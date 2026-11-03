@@ -1,0 +1,74 @@
+! =====================================================================
+!  SW-ALMACEN  (Cisco 2960-24TT)  -  Almacen Central de Distribucion
+! =====================================================================
+enable
+configure terminal
+hostname SW-ALMACEN
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+
+line console 0
+ password Innova2026
+ login
+ exit
+
+! ---------- VLANs (deben existir en cada switch) ----------
+vlan 10
+ name CORPORATIVO
+vlan 20
+ name INVITADOS
+vlan 30
+ name SERVIDORES
+vlan 40
+ name IOT
+vlan 99
+ name GESTION
+ exit
+
+! ---------- Troncal hacia SW-CORE ----------
+interface GigabitEthernet0/1
+ description TRUNK-A-SW-CORE
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+
+! ---------- Access Points del almacen ----------
+interface FastEthernet0/1
+ description AP-2-ALMACEN-ZONA-A
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+
+interface FastEthernet0/2
+ description AP-3-ALMACEN-ZONA-B
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+
+! ---------- (Opcional) sensores IoT cableados ----------
+interface range FastEthernet0/5 - 10
+ description IOT-CABLEADO
+ switchport mode access
+ switchport access vlan 40
+ spanning-tree portfast
+ exit
+
+! ---------- Puertos sin uso apagados ----------
+interface range FastEthernet0/3 - 4 , FastEthernet0/11 - 24 , GigabitEthernet0/2
+ shutdown
+ exit
+
+! ---------- IP de administracion ----------
+interface vlan 99
+ ip address 192.168.0.3 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 192.168.0.1
+
+end
+write memory

@@ -1,0 +1,153 @@
+! =====================================================================
+!  R-CORE  (Cisco ISR 2911)  -  InnovaLogistics Puebla
+!  Router-on-a-stick, DHCP, ACLs de seguridad, ruta a la red 4G
+!  Copiar y pegar en: CLI -> (Enter) -> enable -> configure terminal
+! =====================================================================
+enable
+configure terminal
+hostname R-CORE
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+
+! ---------- Acceso seguro (SSH) ----------
+ip domain-name innovalogistics.local
+username admin privilege 15 secret Innova2026
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+line console 0
+ password Innova2026
+ login
+ exit
+line vty 0 4
+ login local
+ transport input ssh
+ exit
+
+! ---------- Interfaz troncal hacia SW-CORE (router-on-a-stick) ----------
+interface GigabitEthernet0/0
+ description TRUNK-HACIA-SW-CORE
+ no ip address
+ no shutdown
+ exit
+
+interface GigabitEthernet0/0.99
+ description GESTION-WLC-APs (VLAN NATIVA)
+ encapsulation dot1Q 99 native
+ ip address 192.168.0.1 255.255.255.0
+ exit
+
+interface GigabitEthernet0/0.10
+ description CORPORATIVO-WIFI
+ encapsulation dot1Q 10
+ ip address 192.168.1.1 255.255.255.0
+ exit
+
+interface GigabitEthernet0/0.20
+ description INVITADOS-WIFI
+ encapsulation dot1Q 20
+ ip address 192.168.2.1 255.255.255.0
+ exit
+
+interface GigabitEthernet0/0.30
+ description SERVIDORES
+ encapsulation dot1Q 30
+ ip address 192.168.3.1 255.255.255.0
+ exit
+
+interface GigabitEthernet0/0.40
+ description SENSORES-IOT
+ encapsulation dot1Q 40
+ ip address 192.168.4.1 255.255.255.0
+ exit
+
+! ---------- Enlace hacia el Central Office Server (red 4G) ----------
+interface GigabitEthernet0/1
+ description ENLACE-CENTRAL-OFFICE-4G
+ ip address 192.168.5.1 255.255.255.0
+ no shutdown
+ exit
+
+! Ruta estatica: la red de celulares esta detras del Central Office Server
+ip route 192.168.6.0 255.255.255.0 192.168.5.2
+
+! ---------- DHCP ----------
+ip dhcp excluded-address 192.168.0.1 192.168.0.20
+ip dhcp excluded-address 192.168.1.1 192.168.1.10
+ip dhcp excluded-address 192.168.2.1 192.168.2.10
+ip dhcp excluded-address 192.168.4.1 192.168.4.10
+
+ip dhcp pool GESTION-APs
+ network 192.168.0.0 255.255.255.0
+ default-router 192.168.0.1
+ exit
+
+ip dhcp pool CORPORATIVO
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ dns-server 192.168.3.12
+ exit
+
+ip dhcp pool INVITADOS
+ network 192.168.2.0 255.255.255.0
+ default-router 192.168.2.1
+ dns-server 8.8.8.8
+ exit
+
+ip dhcp pool IOT
+ network 192.168.4.0 255.255.255.0
+ default-router 192.168.4.1
+ dns-server 192.168.3.12
+ exit
+
+! ---------- ACL 1: Aislamiento de INVITADOS ----------
+! Los visitantes NO pueden llegar a nada de 192.168.0.0/20 (red interna).
+! Solo pueden pedir DHCP, hacer ping a su gateway y salir a Internet.
+ip access-list extended ACL-INVITADOS
+ remark Permitir DHCP hacia el router
+ permit udp any any eq bootps
+ remark Permitir ping al gateway (para pruebas)
+ permit icmp 192.168.2.0 0.0.0.255 host 192.168.2.1
+ remark Bloquear toda la red interna de la empresa
+ deny ip 192.168.2.0 0.0.0.255 192.168.0.0 0.0.15.255
+ remark Todo lo demas (Internet) permitido
+ permit ip 192.168.2.0 0.0.0.255 any
+ exit
+
+interface GigabitEthernet0/0.20
+ ip access-group ACL-INVITADOS in
+ exit
+
+! ---------- ACL 2: Acceso seguro de la flotilla 4G ----------
+! Los moviles en campo SOLO pueden llegar al Servidor Central (web de entregas y DNS).
+ip access-list extended ACL-CELULAR
+ remark Portal de entregas HTTPS y HTTP
+ permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq 443
+ permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq www
+ remark Resolucion de nombres
+ permit udp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq domain
+ remark Ping al servidor central (pruebas)
+ permit icmp 192.168.6.0 0.0.0.255 host 192.168.3.12
+ deny ip any any
+ exit
+
+interface GigabitEthernet0/1
+ ip access-group ACL-CELULAR in
+ exit
+
+! ---------- ACL 3 (OPCIONAL, aplicar al final cuando todo funcione) ----------
+! La VLAN IoT solo habla con el Servidor IoT.
+ip access-list extended ACL-IOT
+ permit udp any any eq bootps
+ permit icmp 192.168.4.0 0.0.0.255 host 192.168.4.1
+ permit ip 192.168.4.0 0.0.0.255 host 192.168.3.11
+ deny ip any any
+ exit
+! Para activarla quita el "!" de las 3 lineas siguientes:
+! interface GigabitEthernet0/0.40
+!  ip access-group ACL-IOT in
+!  exit
+
+end
+write memory

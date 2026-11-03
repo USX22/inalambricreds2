@@ -1,0 +1,89 @@
+! =====================================================================
+!  SW-CORE  (Cisco 2960-24TT)  -  Edificio de Oficinas
+! =====================================================================
+enable
+configure terminal
+hostname SW-CORE
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+
+line console 0
+ password Innova2026
+ login
+ exit
+
+! ---------- VLANs ----------
+vlan 10
+ name CORPORATIVO
+vlan 20
+ name INVITADOS
+vlan 30
+ name SERVIDORES
+vlan 40
+ name IOT
+vlan 99
+ name GESTION
+ exit
+
+! ---------- Troncales 802.1Q ----------
+interface GigabitEthernet0/1
+ description TRUNK-A-R-CORE
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+
+interface GigabitEthernet0/2
+ description TRUNK-A-SW-ALMACEN
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+
+interface FastEthernet0/1
+ description TRUNK-A-WLC
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+
+! ---------- Access Point de Oficinas ----------
+interface FastEthernet0/2
+ description AP-1-OFICINAS
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+
+! ---------- Servidores ----------
+interface range FastEthernet0/10 - 12
+ description SERVIDORES (RADIUS / IoT / CENTRAL)
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ exit
+
+! ---------- PC de administracion ----------
+interface FastEthernet0/20
+ description PC-ADMIN
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+
+! ---------- Puertos sin uso apagados (seguridad) ----------
+interface range FastEthernet0/3 - 9 , FastEthernet0/13 - 19 , FastEthernet0/21 - 24
+ shutdown
+ exit
+
+! ---------- IP de administracion ----------
+interface vlan 99
+ ip address 192.168.0.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 192.168.0.1
+
+end
+write memory
