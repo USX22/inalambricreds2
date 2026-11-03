@@ -9,6 +9,7 @@ reglas automáticas y conectividad celular 4G hacia el servidor central.
 
 | # | Archivo | Para qué sirve |
 |---|---------|----------------|
+| ⭐ | [docs/00_Tutorial_Completo.md](docs/00_Tutorial_Completo.md) | **Empieza aquí.** Tutorial desde cero: cada concepto explicado y después cómo hacerlo en Packet Tracer. |
 | 1 | [docs/01_Diseno_y_Direccionamiento.md](docs/01_Diseno_y_Direccionamiento.md) | Topología, VLANs, subneteo y tabla de direccionamiento (lo primero que debes entender). |
 | 2 | [docs/02_Guia_Packet_Tracer.md](docs/02_Guia_Packet_Tracer.md) | Paso a paso para construir el archivo `.pkt` en Cisco Packet Tracer. |
 | 3 | [configs/](configs/) | Configuraciones CLI listas para copiar y pegar (router y switches). |
