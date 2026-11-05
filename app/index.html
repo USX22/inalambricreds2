@@ -39,7 +39,7 @@ h1{font-size:2.1rem;letter-spacing:.01em}
 h2{font-size:1.55rem}
 h3{font-size:1.2rem}
 p{margin:0}
-code,kbd{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:.08em .35em;border-radius:4px}
+code,kbd{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:.08em .35em;border-radius:4px;overflow-wrap:anywhere}
 button{font:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -53,9 +53,10 @@ button{font:inherit;cursor:pointer}
 .chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .chip.hot{border-color:var(--bad);color:var(--bad)}
 nav.tabs{display:flex;gap:4px;overflow-x:auto;border-top:1px solid var(--line)}
-nav.tabs .wrap{display:flex;gap:2px;padding-block:0}
+nav.tabs .wrap{display:flex;gap:2px;padding-block:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
 nav.tabs a.on{color:var(--ink);border-bottom-color:var(--accent)}
+@media (max-width:640px){.brand span{display:none}.brand b{font-size:1.05rem}.top .wrap{gap:8px;padding-block:6px}nav.tabs a{padding:8px 10px;font-size:.92rem}.chip{font-size:.72rem}}
 
 main{padding-block:24px 64px}
 .stack{display:flex;flex-direction:column;gap:20px}
@@ -221,6 +222,15 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
 .check input{width:18px;height:18px;margin-top:3px;accent-color:var(--led-on)}
 .chan{width:100%;height:auto}
 .chan text{font:11px var(--f-mono);fill:var(--muted)}
+.term{font:inherit;color:inherit;background:none;border:0;padding:0;border-bottom:1.5px dotted var(--accent);cursor:help}
+.term:hover{color:var(--accent)}
+#gloss-pop{position:fixed;z-index:20;background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.9rem;display:flex;flex-direction:column;gap:4px}
+#gloss-pop b{font-family:var(--f-display);font-size:1.05rem}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px}
+.glist div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.ptwin{width:100%;min-width:560px;height:auto}
+.ptwin text{font:12px var(--f-body);fill:var(--ink)}
+.ptwin .lb{font:600 12px var(--f-body);fill:var(--accent-ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -238,6 +248,7 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
   </div></nav>
 </header>
 <main class="wrap" id="main"></main>
+<div id="gloss-pop" role="dialog" aria-live="polite" hidden></div>
 
 <script>
 /* =====================================================================
@@ -607,11 +618,24 @@ const LESSONS = [
 <h3>Puertos</h3>
 <p>La IP lleva el paquete a la computadora; el <b>puerto</b> lo lleva al programa. <b>TCP</b> confirma la entrega (web, SSH). <b>UDP</b> es más rápido y no confirma (DHCP, DNS, RADIUS, CAPWAP).</p>
 <h3>La línea de comandos de Cisco</h3>
-<p><code>Router&gt;</code> (solo ver) → <code>enable</code> → <code>Router#</code> (ver todo y guardar) → <code>configure terminal</code> → <code>Router(config)#</code> (configurar). <code>exit</code> sube un nivel, <code>end</code> regresa a <code>#</code>, <code>write memory</code> guarda. La tecla <kbd>Tab</kbd> autocompleta y <kbd>?</kbd> muestra opciones.</p>`,
+<p><code>Router&gt;</code> (solo ver) → <code>enable</code> → <code>Router#</code> (ver todo y guardar) → <code>configure terminal</code> → <code>Router(config)#</code> (configurar). <code>exit</code> sube un nivel, <code>end</code> regresa a <code>#</code>, <code>write memory</code> guarda. La tecla <kbd>Tab</kbd> autocompleta y <kbd>?</kbd> muestra opciones.</p>
+<h3>Conoce la pantalla de Packet Tracer</h3>
+<p>Antes de construir nada, ubica estas zonas. Todas las instrucciones de la app las mencionan por su nombre.</p>
+<div data-widget="pt"></div>
+<h3>La ventana de cada equipo</h3>
+<p>Al dar clic sobre un equipo se abre su ventana con pestañas. No todos los equipos tienen todas:</p>
+<div class="tbl"><table><thead><tr><th>Pestaña</th><th>Para qué sirve</th><th>La usarás en</th></tr></thead><tbody>
+<tr><td><b>Physical</b></td><td>Ver el equipo por fuera: encenderlo, poner tarjetas o el adaptador de corriente</td><td>Laptops (tarjeta WiFi), APs (corriente), sensores</td></tr>
+<tr><td><b>Config</b></td><td>Configuración con formularios: nombre, IP, WiFi</td><td>WLC, servidores, sensores, Central Office</td></tr>
+<tr><td><b>CLI</b></td><td>La consola de comandos Cisco. Abajo tiene botones <b>Copy</b> y <b>Paste</b></td><td>Router y switches</td></tr>
+<tr><td><b>Desktop</b></td><td>Programas: <b>IP Configuration</b>, <b>Command Prompt</b> (para ping), <b>Web Browser</b></td><td>PCs, laptops, celulares</td></tr>
+<tr><td><b>Services</b></td><td>Servicios de servidor: HTTP, DNS, AAA (RADIUS), IoT</td><td>Los 3 servidores</td></tr></tbody></table></div>
+<p>Cuando la app dice "PC-ADMIN → Desktop → Command Prompt" significa: clic en PC-ADMIN, pestaña Desktop, ícono Command Prompt.</p>`,
  steps:[
   {t:'Abre Packet Tracer y revisa tu versión en <b>Help → About</b>. Lo ideal es la 8.x; con una 7.x algunos menús de la WLC cambian. Si tienes una versión vieja, actualízala desde netacad.com.'},
   {t:'Crea una carpeta <code>ProyectoInnova</code> donde guardarás todo: los <code>.pkt</code> de cada día, capturas, reporte y presentación.'},
-  {t:'<b>Práctica de calentamiento</b> (en un archivo nuevo, <code>practica.pkt</code>): coloca un switch 2960 y dos PCs. Conecta cada PC al switch con cable directo (Copper Straight-Through). Configura las IPs en Desktop → IP Configuration.', code:'practica1'},
+  {t:'Recorre la pantalla de Packet Tracer con el esquema de arriba: encuentra el selector de tipo de equipo (abajo a la izquierda), el botón de cables (el rayo), y los botones <b>Realtime</b> y <b>Simulation</b> (abajo a la derecha).'},
+  {t:'<b>Práctica de calentamiento</b> (en un archivo nuevo, <code>practica.pkt</code>): abajo a la izquierda elige <b>Network Devices → Switches</b> y arrastra un <b>2960</b> al área de trabajo. Luego <b>End Devices</b> y arrastra dos <b>PC</b>. Para conectar: clic en el rayo (Connections), elige el cable negro continuo (<b>Copper Straight-Through</b>), clic en la PC → FastEthernet0, clic en el switch → cualquier FastEthernet. Configura las IPs en cada PC: Desktop → IP Configuration.', code:'practica1'},
   {t:'Haz el ping de PC-A a PC-B: debe responder. Luego cambia PC-B a <code>10.0.1.2</code> y repite: <b>falla</b>. Acabas de comprobar que equipos de redes distintas necesitan un router. Esa es la razón de existir de R-CORE en tu proyecto.'},
   {t:'Entra al CLI del switch y practica: <code>enable</code>, <code>configure terminal</code>, <code>hostname PRUEBA</code>, <code>end</code>, <code>show running-config</code>. Prueba <kbd>Tab</kbd> y <kbd>?</kbd>.'}
  ],
@@ -678,6 +702,7 @@ const LESSONS = [
 <p>El número después de la diagonal dice cuántos de los 32 bits son de red:</p>
 <pre class="code">/20 = 11111111.11111111.11110000.00000000 = 255.255.240.0
       8 bits   8 bits   4 bits</pre>
+<p><b>Binario en 30 segundos:</b> cada octeto son 8 casillas (bits) que valen, de izquierda a derecha, <code>128 64 32 16 8 4 2 1</code>. Un 1 significa "suma este valor". Así, <code>11110000</code> = 128 + 64 + 32 + 16 = <b>240</b>, y <code>11111111</code> = 255.</p>
 <p>Quedan 32 − 20 = 12 bits de host → 2¹² = <b>4096 direcciones</b>, de <code>192.168.0.0</code> a <code>192.168.15.255</code>. El tercer octeto tiene 4 bits libres, que van de 0000 (0) a 1111 (15).</p>
 <h3>Partirla en /24</h3>
 <p>De /20 a /24 tomas prestados <b>4 bits</b>: 2⁴ = <b>16 subredes</b>, cada una con 2⁸ − 2 = <b>254 hosts</b>. Las subredes son 192.168.<b>0</b>.0, 192.168.<b>1</b>.0 … 192.168.<b>15</b>.0: el tercer octeto avanza de uno en uno.</p>
@@ -767,7 +792,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
 <li><code>shutdown</code> en puertos sin uso: nadie puede conectar un equipo intruso.</li>
 <li><code>interface vlan 99</code> + IP: para administrar el switch a distancia.</li></ul>`,
  steps:[
-  {t:'Abre SW-CORE → CLI, presiona Enter y pega esta configuración completa (botón Copiar, luego clic derecho → Paste o Ctrl+V).', code:'sw_core'},
+  {t:'Abre SW-CORE → CLI, presiona Enter y pega esta configuración completa: botón <b>Copiar</b> de aquí y luego, en Packet Tracer, el botón <b>Paste</b> que está debajo de la consola (o Ctrl+V dentro de la consola).', code:'sw_core'},
   {t:'Abre SW-ALMACEN → CLI y pega la suya.', code:'sw_alm'},
   {t:'Lee la configuración que pegaste y ubica: dónde se crean las VLANs, cuáles puertos son trunk, cuáles access y en qué VLAN.'},
   {t:'Ejecuta los comandos de verificación (abajo) en ambos switches y toma captura de cada uno para el reporte.'},
@@ -876,7 +901,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
   {t:'SRV-CENTRAL → Services → <b>HTTP</b>: HTTP On y HTTPS On. Edita <code>index.html</code> y escribe: <code>&lt;h1&gt;InnovaLogistics - Portal de Entregas&lt;/h1&gt;</code>.'},
   {t:'SRV-CENTRAL → Services → <b>DNS</b>: On. Agrega registros tipo A: <code>entregas.innovalogistics.local</code> → 192.168.3.12 e <code>iot.innovalogistics.local</code> → 192.168.3.11.'},
   {t:'En los tres servidores, apaga el servicio <b>DHCP</b> si está encendido (el DHCP lo da el router).'},
-  {t:'Desde PC-ADMIN → Command Prompt: <code>ping 192.168.0.1</code> y luego <code>ping 192.168.3.12</code>. El primer ping puede perder un paquete mientras se resuelve ARP; es normal.'},
+  {t:'Desde PC-ADMIN → Command Prompt: <code>ping 192.168.0.1</code> y luego <code>ping 192.168.3.12</code>. Es normal que el primer intento muestre "Request timed out": la PC está averiguando la dirección MAC del router (proceso ARP). Los siguientes responden.'},
   {t:'Desde PC-ADMIN → Web Browser: <code>entregas.innovalogistics.local</code>. Debe aparecer el portal. Toma captura.'}
  ],
  verify:[['PC-ADMIN> ping 192.168.3.12','Reply: VLAN 99 → VLAN 30 a través del router'],['Navegador → entregas.innovalogistics.local','Se ve el Portal de Entregas (DNS + HTTP)']],
@@ -956,7 +981,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
 <li>La WLC saca el tráfico del túnel y lo entrega en la VLAN de cada usuario (10, 20, 40) además de su gestión (99): <b>trunk</b>.</li></ul>
 <p>Este modo, en que todo el tráfico pasa por la WLC, se llama <b>modo Local</b>. El otro modo, <b>FlexConnect</b>, deja que el AP conmute localmente (útil en sucursales).</p>`,
  steps:[
-  {t:'WLC → pestaña <b>Config</b> → Management: IP <code>192.168.0.10</code>, máscara <code>255.255.255.0</code>, gateway <code>192.168.0.1</code>.'},
+  {t:'WLC → pestaña <b>Config</b> → Management: IP <code>192.168.0.10</code>, máscara <code>255.255.255.0</code>, gateway <code>192.168.0.1</code>. Si tu modelo de WLC no muestra esos campos en Config, bórrala y usa la <b>WLC-2504</b>, que sí los tiene.'},
   {t:'Espera 1–2 minutos (o usa el botón de adelantar tiempo, abajo a la izquierda) para que los APs obtengan IP y se unan.'},
   {t:'PC-ADMIN → Web Browser → <code>https://192.168.0.10</code>. Si es la primera vez, crea el usuario administrador: <code>admin</code> / <code>Admin2026</code>. Si aparece un asistente inicial, usa nombre <code>WLC-INNOVA</code>, IP 192.168.0.10/24, gateway 192.168.0.1.'},
   {t:'En la WLC: <b>Wireless → All APs</b>. Deben aparecer los 3 APs. Toma captura.'},
@@ -1294,6 +1319,122 @@ permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet
 const LBY = Object.fromEntries(LESSONS.map((l,i)=>[l.id,Object.assign(l,{i})]));
 LESSONS.forEach(l=>{ if(!l.rubk) l.rubk = null; });
 
+
+const GLOSS = {
+ 'IP':'Dirección lógica de un equipo en la red, por ejemplo 192.168.1.15. Sirve para que los paquetes lleguen a él aunque esté en otra red.',
+ 'MAC':'Dirección física grabada en la tarjeta de red (ej. 00D0.BC3A.1F22). Los switches la usan para entregar tramas dentro de la misma red.',
+ 'máscara':'Número que indica qué parte de la IP es la red y cuál el equipo. 255.255.255.0 (o /24) = los tres primeros números son la red.',
+ 'gateway':'Puerta de enlace: la IP del router de tu red. Es a quien le entregas los paquetes que van a otra red.',
+ 'broadcast':'Mensaje enviado a todos los equipos de la red al mismo tiempo. También se llama así a la última dirección de una red (.255 en una /24).',
+ 'host':'Cualquier equipo con IP: PC, laptop, servidor, sensor.',
+ 'octeto':'Cada uno de los 4 números de una IP. Vale de 0 a 255 porque son 8 bits.',
+ 'prefijo':'El número después de la diagonal en una IP (/24, /20). Dice cuántos bits son de red.',
+ 'subred':'Una red más pequeña obtenida al dividir una red grande.',
+ 'switch':'Equipo que conecta dispositivos de la misma red local y entrega cada trama solo al puerto correcto.',
+ 'router':'Equipo que conecta redes distintas y decide por dónde enviar cada paquete.',
+ 'trama':'El nombre del "paquete" en capa 2 (lo que manejan los switches).',
+ 'paquete':'Unidad de información que viaja por la red con IP de origen y destino.',
+ 'ping':'Prueba que envía un mensaje a otro equipo y espera respuesta. Si responde, hay comunicación. Usa el protocolo ICMP.',
+ 'ICMP':'Protocolo de mensajes de control; lo usa el ping.',
+ 'ARP':'Protocolo que averigua la MAC de un equipo a partir de su IP. Por eso el primer ping a veces falla.',
+ 'CLI':'Command Line Interface: la consola de comandos de routers y switches Cisco.',
+ 'VLAN':'Red virtual: divide un switch en varios switches lógicos separados.',
+ 'trunk':'Enlace que transporta varias VLANs por un solo cable, etiquetando cada trama.',
+ '802.1Q':'Estándar que agrega una etiqueta de 4 bytes a las tramas para indicar su VLAN en un trunk.',
+ 'VLAN nativa':'La VLAN que viaja sin etiqueta por un trunk. Debe ser la misma en ambos extremos.',
+ 'STP':'Spanning Tree Protocol: evita bucles entre switches bloqueando enlaces redundantes. Hace esperar ~30 s a los puertos al conectarse.',
+ 'PortFast':'Opción que hace que un puerto de equipo final funcione al instante, sin la espera de STP.',
+ 'subinterfaz':'Interfaz virtual dentro de un puerto físico del router (G0/0.10). Cada una atiende una VLAN.',
+ 'router-on-a-stick':'Técnica para enrutar entre VLANs con un solo cable trunk y una subinterfaz por VLAN.',
+ 'DHCP':'Servicio que da automáticamente IP, máscara, gateway y DNS a los equipos.',
+ 'DORA':'Los 4 pasos de DHCP: Discover, Offer, Request, Acknowledge.',
+ 'pool':'Rango de direcciones que un servidor DHCP reparte para una red.',
+ 'DNS':'Servicio que traduce nombres (entregas.innovalogistics.local) a direcciones IP.',
+ 'HTTP':'Protocolo de páginas web (puerto 80). Viaja sin cifrar.',
+ 'HTTPS':'HTTP cifrado con TLS (puerto 443). Nadie en el camino puede leer el contenido.',
+ 'TLS':'Protocolo de cifrado que protege HTTPS y otras conexiones.',
+ 'SSH':'Acceso remoto cifrado a la consola de un equipo (puerto 22).',
+ 'Telnet':'Acceso remoto sin cifrar; envía hasta las contraseñas en texto plano. No se recomienda.',
+ 'TCP':'Protocolo de transporte que confirma que los datos llegaron (web, SSH).',
+ 'UDP':'Protocolo de transporte rápido que no confirma la entrega (DHCP, DNS, RADIUS, CAPWAP).',
+ 'ACL':'Lista de control de acceso: reglas permitir/denegar que el router aplica a los paquetes.',
+ 'wildcard':'Máscara inversa usada en ACLs: 0 = debe coincidir, 1 = no importa. /24 → 0.0.0.255.',
+ 'WLAN':'Red de área local inalámbrica (WiFi).',
+ 'WWAN':'Red inalámbrica de área amplia, como la red celular 4G.',
+ 'WSN':'Red de sensores inalámbricos.',
+ 'SSID':'El nombre de la red WiFi que ves en tu celular.',
+ 'BSSID':'La MAC del radio de un AP; identifica a cada antena.',
+ 'BSS':'Un AP junto con sus clientes.',
+ 'ESS':'Varios APs con el mismo SSID formando una sola red grande. Permite el roaming.',
+ 'roaming':'Cambiar de un AP a otro sin perder la conexión.',
+ 'AP':'Access Point: la antena que da señal WiFi.',
+ 'LAP':'Lightweight Access Point: AP que no se configura solo, obedece a la WLC.',
+ 'WLC':'Wireless LAN Controller: el equipo central que configura y controla a todos los APs.',
+ 'CAPWAP':'Túnel entre cada AP y la WLC. UDP 5246 para control y 5247 para datos.',
+ 'split-MAC':'Reparto de funciones: el AP hace lo inmediato del radio y la WLC hace la gestión.',
+ 'DTLS':'Versión de TLS para UDP; cifra el canal de control de CAPWAP.',
+ 'beacon':'Mensaje que el AP emite varias veces por segundo para anunciar su SSID.',
+ 'canal':'Franja de frecuencia por la que transmite un AP. En 2.4 GHz solo 1, 6 y 11 no se enciman.',
+ 'CSMA/CA':'Regla del WiFi: escuchar antes de transmitir y esperar turno para evitar choques.',
+ 'PoE':'Power over Ethernet: alimentar un equipo (como un AP) por el mismo cable de red.',
+ 'WPA2':'Seguridad WiFi con cifrado AES. Tiene modo Personal (clave compartida) y Enterprise (usuario por persona).',
+ 'PSK':'Pre-Shared Key: una sola clave compartida por todos los usuarios de la red.',
+ '802.1X':'Estándar de autenticación por usuario: suplicante, autenticador y servidor de autenticación.',
+ 'EAP':'Protocolo que transporta los datos de autenticación en 802.1X.',
+ 'EAPOL':'EAP sobre la red local: así viaja EAP entre la laptop y la WLC.',
+ 'RADIUS':'Servidor que valida usuario y contraseña. Usa UDP 1812 (autenticación) y 1813 (registro).',
+ 'AAA':'Authentication, Authorization, Accounting: quién eres, qué puedes hacer, qué hiciste.',
+ 'shared secret':'Contraseña que solo conocen la WLC y el RADIUS para confiar uno en el otro.',
+ 'suplicante':'En 802.1X, el equipo que pide entrar (la laptop).',
+ 'autenticador':'En 802.1X, quien controla la entrada y consulta al servidor (la WLC).',
+ 'AES':'Algoritmo de cifrado fuerte que usa WPA2.',
+ '4-way handshake':'Intercambio de 4 mensajes entre cliente y AP para crear las llaves de cifrado.',
+ 'PMK':'Llave maestra que sale de la autenticación; de ella se derivan las llaves de cifrado.',
+ 'IoT':'Internet de las Cosas: objetos con sensores o actuadores conectados a la red.',
+ 'sensor':'Dispositivo que mide algo: temperatura, puerta abierta, humo.',
+ 'actuador':'Dispositivo que hace algo: ventilador, sirena, luz.',
+ 'segmentación':'Separar la red en partes para que un problema en una no afecte a las demás.',
+ 'LTE':'Tecnología de la red celular 4G.',
+ 'eNodeB':'Nombre de la antena (estación base) en 4G LTE.',
+ 'EPC':'El núcleo de la red 4G del operador; en Packet Tracer lo simula el Central Office.',
+ 'VPN':'Túnel cifrado a través de una red pública para conectar de forma segura.',
+ 'APN':'Configuración del operador celular; un APN privado conecta los celulares solo con la red de la empresa.',
+ 'ruta estática':'Ruta que escribes a mano en el router para decirle cómo llegar a una red.',
+ 'Simulation Mode':'Modo de Packet Tracer que muestra los paquetes paso a paso como sobres animados.',
+ 'Realtime':'Modo normal de Packet Tracer: todo ocurre al instante.'
+};
+const GKEYS = Object.keys(GLOSS).sort((a,b)=>b.length-a.length);
+const GRE = new RegExp('(?<![\\wÁÉÍÓÚáéíóúñÑ./-])(' + GKEYS.map(k=>k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).join('|') + ')(?![\\wÁÉÍÓÚáéíóúñÑ-])', 'gi');
+function markTerms(root, seen=new Set()){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode(n){
+    const p = n.parentElement; if(!p) return NodeFilter.FILTER_REJECT;
+    if(p.closest('code,pre,kbd,a,button,h1,h2,h3,label,th,.term,.say,svg,select,textarea,[data-widget]')) return NodeFilter.FILTER_REJECT;
+    return /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }});
+  const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    const txt=n.nodeValue; GRE.lastIndex=0; let m, last=0, frag=null;
+    while((m=GRE.exec(txt))){
+      const key=GKEYS.find(k=>k.toLowerCase()===m[1].toLowerCase());
+      if(!key || seen.has(key)) continue;
+      // Siglas cortas en mayúsculas: solo si aparecen en mayúsculas
+      if(key===key.toUpperCase() && m[1]!==key) continue;
+      seen.add(key); frag=frag||document.createDocumentFragment();
+      frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+      const b=document.createElement('button'); b.type='button'; b.className='term'; b.dataset.t=key; b.textContent=m[1];
+      frag.appendChild(b); last=m.index+m[1].length;
+    }
+    if(frag){ frag.appendChild(document.createTextNode(txt.slice(last))); n.parentNode.replaceChild(frag,n); }
+  });
+}
+function showGloss(btn){
+  const pop=document.getElementById('gloss-pop'); const k=btn.dataset.t;
+  pop.innerHTML=`<b>${esc(k)}</b><p>${esc(GLOSS[k])}</p>`; pop.hidden=false;
+  const r=btn.getBoundingClientRect(); const W=Math.min(320,innerWidth-32);
+  pop.style.width=W+'px';
+  pop.style.left=Math.max(16,Math.min(r.left,innerWidth-W-16))+'px';
+  const below=r.bottom+8; pop.style.top=(below+pop.offsetHeight>innerHeight-8? Math.max(8,r.top-pop.offsetHeight-8): below)+'px';
+}
+
 /* ---------- Tarjetas de repaso ---------- */
 const FLASH = [
 ['¿Por qué usaron una WLC en lugar de routers inalámbricos?','Centraliza la configuración de los 3 APs, coordina canales, aplica la misma seguridad en todos y permite roaming transparente. Los routers caseros eran redes aisladas en el mismo canal.'],
@@ -1501,10 +1642,17 @@ function sidebar(cur){
   });
   return h+'</details>';
 }
+function orderOf(lid,qi,n){
+  // Orden de opciones fijo para cada pregunta, pero distinto entre preguntas.
+  let h=2166136261; for(const c of lid+'#'+qi){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); }
+  const a=Array.from({length:n},(_,i)=>i);
+  for(let i=n-1;i>0;i--){ h=Math.imul(h^(h>>>15),2246822507)>>>0; const j=h%(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
 function quizBlock(L,i){
   const q=L.quiz[i]; const ans=(S.quiz[L.id]||{})[i];
   const answered=ans!==undefined;
-  return `<div class="q" id="q-${i}"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="opts">${q.o.map((o,j)=>{
+  return `<div class="q" id="q-${i}"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="opts">${orderOf(L.id,i,q.o.length).map(j=>{const o=q.o[j];
     let c=''; if(answered){ if(j===q.a) c='right'; else if(j===ans) c='wrong'; }
     return `<button class="opt ${c}" data-act="ans" data-q="${i}" data-o="${j}" ${answered?'disabled':''}>${esc(o)}</button>`;}).join('')}</div>
     ${answered?`<div class="exp ${ans===q.a?'right':'wrong'}">${ans===q.a?'Correcto. ':'No es esa. '}${esc(q.e)}${ans!==q.a?` <button class="btn sm ghost" data-act="retry" data-q="${i}">Reintentar</button>`:''}</div>`:''}</div>`;
@@ -1529,7 +1677,7 @@ function renderLesson(id){
         <div class="rub"><span class="eyebrow">Criterio de la rúbrica</span><p>${esc(L.rub)}</p></div>
       </div>
       ${topo(L.focus, L.focus.length&&L.focus.length<16?'En el mapa: la parte de la red que tocas en esta lección':'')}
-      <section class="sec"><h3><span class="tag">1</span>Teoría</h3><div class="prose">${L.theory}</div></section>
+      <section class="sec"><h3><span class="tag">1</span>Teoría</h3><p class="muted" style="font-size:.85rem">Las palabras con <span style="border-bottom:1.5px dotted var(--accent)">subrayado punteado</span> tienen definición: tócalas.</p><div class="prose">${L.theory}</div></section>
       <section class="sec"><h3><span class="tag">2</span>Hazlo en Packet Tracer</h3>
         <ol class="steps">${L.steps.map((s,i)=>`<li class="${st[i]?'ok':''}"><input type="checkbox" id="st-${L.id}-${i}" data-act="step" data-i="${i}" ${st[i]?'checked':''} aria-label="Paso ${i+1} hecho"><div class="body"><label for="st-${L.id}-${i}"><b>Paso ${i+1}.</b> </label><div>${s.t}</div>${s.code?codeBox(s.code):''}</div></li>`).join('')}</ol>
       </section>
@@ -1546,6 +1694,7 @@ function renderLesson(id){
   </div>`;
   if(window.matchMedia('(max-width:900px)').matches){ const d=$('#side details'); if(d) d.open=false; }
   mountWidgets();
+  { const seen=new Set(); document.querySelectorAll('#main .prose, #main .steps .body > div:not(.codebox)').forEach(r=>markTerms(r,seen)); }
   CUR=L;
 }
 let CUR=null;
@@ -1558,6 +1707,7 @@ function refreshLessonMeta(){
 
 /* ---------- Widget: canales ---------- */
 function mountWidgets(){
+  document.querySelectorAll('[data-widget="pt"]').forEach(ptWidget);
   document.querySelectorAll('[data-widget="canales"]').forEach(w=>{
     const sel=(id,v)=>`<div class="field"><label for="${id}">${id.toUpperCase().replace('CH-','')}</label><select id="${id}">${Array.from({length:11},(_,i)=>`<option ${i+1===v?'selected':''}>${i+1}</option>`).join('')}</select></div>`;
     w.innerHTML=`<div class="card stack" style="gap:12px;background:var(--surface-2)"><div class="fields">${sel('ch-ap-1',1)}${sel('ch-ap-2',1)}${sel('ch-ap-3',1)}</div>
@@ -1566,6 +1716,30 @@ function mountWidgets(){
     w.querySelectorAll('select').forEach(s=>s.addEventListener('change',drawCh));
     drawCh();
   });
+}
+function ptWidget(w){
+  const box=(x,y,wd,h,fill)=>`<rect x="${x}" y="${y}" width="${wd}" height="${h}" rx="6" style="fill:${fill};stroke:var(--line)"/>`;
+  const tag=(x,y,n,t)=>`<g><circle cx="${x}" cy="${y}" r="11" style="fill:var(--accent)"/><text class="lb" x="${x}" y="${y+4}" text-anchor="middle">${n}</text><text x="${x+18}" y="${y+4}">${t}</text></g>`;
+  w.innerHTML=`<div class="topobox"><svg class="ptwin" viewBox="0 0 760 420" role="img" aria-label="Esquema de la ventana de Packet Tracer">
+   ${box(10,10,740,400,'var(--surface-2)')}${box(20,20,720,26,'var(--surface)')}<text x="30" y="38">File  Edit  Options  View  Tools  Extensions  Help</text>
+   ${box(20,54,170,24,'var(--surface)')}<text x="30" y="71">Logical | Physical</text>
+   ${box(20,86,720,214,'var(--surface)')}
+   ${box(20,308,140,92,'var(--surface)')}${box(166,308,330,92,'var(--surface)')}${box(600,308,140,92,'var(--surface)')}
+   <text x="30" y="330">⚡ (cables)</text><text x="30" y="350">Network Devices</text><text x="30" y="370">End Devices</text><text x="30" y="390">WAN Emulation</text>
+   <text x="176" y="330">Modelos: 2911  2960  WLC-2504  LAP-PT …</text><text x="176" y="352">Time: 00:01:23   ▶▶ Fast Forward</text>
+   <text x="612" y="336">Realtime</text><text x="612" y="362">Simulation</text>
+   ${tag(320,190,1,'Área de trabajo: aquí colocas y conectas equipos')}
+   ${tag(220,66,2,'Vista lógica (mapa) o física (edificios)')}
+   ${tag(60,288,3,'Tipo de equipo y cables')}
+   ${tag(250,288,4,'Modelos y reloj')}
+   ${tag(560,288,5,'Realtime / Simulation')}
+  </svg></div>
+  <ol style="margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px">
+   <li><b>Área de trabajo:</b> arrastras aquí los equipos. Un clic sobre un equipo abre su ventana.</li>
+   <li><b>Logical / Physical:</b> Logical es el mapa de conexiones (donde trabajarás casi siempre). Physical muestra edificios y distancias.</li>
+   <li><b>Tipo de equipo:</b> Network Devices (routers, switches, inalámbricos), End Devices (PC, laptop, servidor, celular, IoT), WAN Emulation (torre celular, Central Office). El <b>rayo</b> son los cables.</li>
+   <li><b>Modelos y reloj:</b> eliges el modelo exacto (2911, 2960…). El botón de adelantar tiempo hace que la red converja más rápido.</li>
+   <li><b>Realtime / Simulation:</b> Realtime es el modo normal. Simulation muestra cada paquete paso a paso; úsalo para explicar en la exposición.</li></ol>`;
 }
 function drawCh(){
   const v=['ch-ap-1','ch-ap-2','ch-ap-3'].map(id=>+$('#'+id).value);
@@ -1584,11 +1758,11 @@ function drawCh(){
    VISTA: HERRAMIENTAS
    ===================================================================== */
 let TOOL='calc';
-const TOOLS=[['calc','Calculadora de subredes'],['acl','Simulador de ACL'],['paquete','Viaje del paquete'],['configs','Configuraciones'],['tabla','Direccionamiento'],['diag','Diagnóstico']];
+const TOOLS=[['calc','Calculadora de subredes'],['acl','Simulador de ACL'],['paquete','Viaje del paquete'],['configs','Configuraciones'],['tabla','Direccionamiento'],['diag','Diagnóstico'],['glosario','Glosario']];
 function renderTools(){
   $('#main').innerHTML=`<div class="stack"><div><span class="eyebrow">Herramientas</span><h1>Practica sin miedo a romper nada</h1></div>
    <div class="subnav" role="tablist">${TOOLS.map(([k,n])=>`<button role="tab" class="${k===TOOL?'on':''}" data-act="tool" data-k="${k}">${n}</button>`).join('')}</div><div id="tool"></div></div>`;
-  ({calc:toolCalc,acl:toolAcl,paquete:toolJourney,configs:toolConfigs,tabla:toolTabla,diag:toolDiag})[TOOL]();
+  ({calc:toolCalc,acl:toolAcl,paquete:toolJourney,configs:toolConfigs,tabla:toolTabla,diag:toolDiag,glosario:toolGloss})[TOOL]();
 }
 const ip2n=s=>{const p=s.trim().split('.').map(Number); if(p.length!==4||p.some(x=>!Number.isInteger(x)||x<0||x>255)) return null; return ((p[0]<<24)>>>0)+(p[1]<<16)+(p[2]<<8)+p[3];};
 const n2ip=n=>[n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
@@ -1703,6 +1877,13 @@ function toolConfigs(){
    <tr><td>Central Office</td><td class="mono">Backbone 192.168.5.2/24 gw .1 · Celular 192.168.6.0/24, inicio .10, DNS 192.168.3.12</td></tr></tbody></table></div></section></div>`;
 }
 function toolTabla(){ $('#tool').innerHTML=`<div class="stack"><section class="card stack" style="gap:10px"><h2>VLANs y subredes</h2>${T_VLANS}</section><section class="card stack" style="gap:10px"><h2>Tabla de direccionamiento</h2>${T_ADDR}</section></div>`; }
+function toolGloss(){
+  const keys=Object.keys(GLOSS).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  $('#tool').innerHTML=`<div class="stack"><div class="field" style="max-width:420px"><label for="gq">Buscar un término</label><input id="gq" placeholder="ej. trunk, RADIUS, wildcard"></div><p class="muted" id="gn"></p><div class="glist" id="gl"></div></div>`;
+  const draw=()=>{ const q=$('#gq').value.trim().toLowerCase(); const ks=keys.filter(k=>!q||k.toLowerCase().includes(q)||GLOSS[k].toLowerCase().includes(q));
+    $('#gl').innerHTML=ks.map(k=>`<div><b>${esc(k)}</b><p>${esc(GLOSS[k])}</p></div>`).join(''); $('#gn').textContent=`${ks.length} de ${keys.length} términos`; };
+  $('#gq').addEventListener('input',draw); draw();
+}
 function toolDiag(){
   $('#tool').innerHTML=`<div class="stack"><p class="muted">Elige el síntoma. Revisa en orden; casi siempre el error está en los primeros puntos.</p>${TROUBLE.map(([s,l],i)=>`<details class="card"><summary style="cursor:pointer;font-weight:600">${esc(s)}</summary><ol style="margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px">${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}</div>`;
 }
@@ -1778,6 +1959,8 @@ function renderRubric(){
    EVENTOS Y RUTEO
    ===================================================================== */
 document.addEventListener('click',e=>{
+  const term=e.target.closest('.term'); const pop=document.getElementById('gloss-pop');
+  if(term){ showGloss(term); return; } if(!e.target.closest('#gloss-pop')) pop.hidden=true;
   const g=e.target.closest('[data-goto-tool]'); if(g){ TOOL=g.dataset.gotoTool; if(location.hash==='#herramientas'){ e.preventDefault(); renderTools(); } return; }
   const t=e.target.closest('[data-act]'); if(!t) return;
   const act=t.dataset.act;
@@ -1821,6 +2004,8 @@ function route(){
   const nx=CUR||LESSONS.find(l=>ledOf(l)!=='on')||LESSONS[0]; $('nav.tabs a[data-tab="leccion"]').href='#leccion-'+nx.id;
   window.scrollTo(0,0);
 }
-window.addEventListener('hashchange',route);
+window.addEventListener('hashchange',()=>{document.getElementById('gloss-pop').hidden=true; route();});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('gloss-pop').hidden=true; });
+window.addEventListener('scroll',()=>{document.getElementById('gloss-pop').hidden=true;},{passive:true});
 route(); countdown(); setInterval(countdown,30000);
 </script>

@@ -22,6 +22,11 @@ Incluye:
 
 El avance se guarda en el navegador donde la abras.
 
+**Pruebas automáticas de la app:** `node tests/app.test.js` (requiere Node y Playwright con Chromium).
+Revisan 144 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
+simulador de ACL y calculadora con resultados correctos, que el avance se guarde, y que todas las
+vistas se vean bien en celular y en modo oscuro.
+
 ## ¿Qué hay en este repositorio?
 
 | # | Archivo | Para qué sirve |
