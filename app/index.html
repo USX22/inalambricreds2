@@ -861,7 +861,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
 <ul><li>Con DHCP: APs (pool GESTION-APs), laptops corporativas, visitantes, sensores IoT.</li>
 <li>Con IP fija: router, switches, WLC, servidores y PC-ADMIN. Todos los demás los buscan por esa dirección, así que no puede cambiar.</li>
 <li>No hay pool para la VLAN 30 porque ahí solo hay servidores con IP fija.</li>
-<li>Los invitados reciben DNS 8.8.8.8 (externo), porque no deben consultar el DNS interno.</li></ul>
+<li>Los invitados reciben DNS 8.8.8.8 (un DNS público de Internet), porque no deben consultar el DNS interno. En el .pkt no hay Internet, así que solo queda configurado para cuando exista.</li></ul>
 <p>¿Por qué funciona si el router está en otra parte de la red? Porque cada subinterfaz está <b>dentro</b> de su VLAN: el broadcast del Discover le llega directamente.</p>`,
  steps:[
   {t:'En R-CORE, entra a modo <code>R-CORE#</code> (<code>enable</code>, contraseña <code>Innova2026</code>) y pega el bloque 2.', code:'r_dhcp'},
@@ -1015,6 +1015,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
  → AP → túnel CAPWAP → WLC → interfaz GUEST → VLAN 20 → trunk → R-CORE G0/0.20</pre>
 <h3>Por qué el roaming no cambia la IP</h3>
 <p>Los tres APs pertenecen a la misma WLC, y la WLC mete al usuario siempre en la misma VLAN sin importar por qué AP llegue. El cliente nunca cambia de subred, así que conserva su IP y sus conexiones. Se llama <b>roaming de capa 2 dentro del mismo controlador</b>.</p>
+<p><b>Ojo en Packet Tracer:</b> la cobertura de cada AP se calcula con la distancia en la vista <b>Physical</b>. Si todos los equipos están amontonados, la laptop nunca sale del alcance de su AP y no hace roaming. Por eso en los pasos separarás los APs en esa vista.</p>
 <p>Con 802.1X el roaming puede tardar más por la reautenticación. En redes reales se acelera con <b>PMK caching</b> u <b>802.11r (Fast Transition)</b>.</p>`,
  steps:[
   {t:`WLC → <b>Controller → Interfaces → New</b>. Crea CORP (VLAN 10), GUEST (VLAN 20) e IOT (VLAN 40) con los datos de la tabla. En cada una: puerto físico <code>1</code> y Primary DHCP Server = su gateway.`},
@@ -1022,7 +1023,8 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
   {t:'Crea <code>INNOVA-IOT</code>, ID 3, Interface <b>IOT</b>, WPA2 + AES + PSK <code>SensorIoT2026</code>. Apply. (INNOVA-CORP se crea en la lección 12, cuando exista el RADIUS.)'},
   {t:'Canales: <b>Wireless → Access Points → Radios → 802.11b/g/n</b> → cada AP → Channel personalizado: AP-1 = 1, AP-2 = 6, AP-3 = 11. Si tu versión no lo permite, explícalo en la exposición.'},
   {t:'LAP-VISITANTE → Physical: apaga, quita el módulo Ethernet, pon <b>WPC300N</b>, enciende. Config → Wireless0: SSID <code>INNOVA-GUEST</code>, <b>WPA2-PSK</b>, <code>Visitante2026</code>. IP por DHCP: debe recibir 192.168.2.x.'},
-  {t:'<b>Prueba de roaming:</b> coloca la laptop cerca de AP-1. Command Prompt: <code>ping -t 192.168.2.1</code>. Arrastra la laptop hacia la zona del AP-2/AP-3. El ping debe seguir y <code>ipconfig</code> debe mostrar la misma IP. Toma captura.'},
+  {t:'<b>Prepara el roaming en la vista Physical.</b> En Packet Tracer el alcance del WiFi depende de la posición en la vista <b>Physical</b>, no en la Logical. Cambia a Physical (arriba a la izquierda) y entra hasta donde están tus equipos. Arrastra AP-1 a un extremo (zona Oficinas), AP-2 al centro y AP-3 al otro extremo (zona Almacén), de modo que sus círculos de cobertura apenas se toquen.'},
+  {t:'<b>Prueba de roaming:</b> pon la laptop junto a AP-1. En su Command Prompt escribe <code>ping -t 192.168.2.1</code> (si tu versión no acepta <code>-t</code>, usa <code>ping -n 200 192.168.2.1</code>). Sin detener el ping, arrastra la laptop <b>en la vista Physical</b> hasta junto a AP-3. Regresa a Logical: la línea punteada del WiFi ahora llega a otro AP. El ping siguió y <code>ipconfig</code> muestra la misma IP. Toma captura. Si la laptop no cambia de AP, aleja más los APs entre sí.'},
   {t:'WLC → <b>Monitor → Clients</b>: verás la laptop y en qué AP está. Guarda el .pkt.'}
  ],
  verify:[['LAP-VISITANTE> ipconfig','192.168.2.x, gateway 192.168.2.1'],['WLC → WLANs','INNOVA-GUEST e INNOVA-IOT habilitadas'],['ping -t durante el roaming','Continúa; como mucho 1 paquete perdido; misma IP']],
@@ -1105,6 +1107,7 @@ permit icmp 192.168.2.0 0.0.0.255 host 192.168.2.1   <span class="cmt">! ping a 
 deny ip 192.168.2.0 0.0.0.255 192.168.0.0 0.0.15.255 <span class="cmt">! NADA hacia la red de la empresa</span>
 permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet)</span></pre>
 <p>Se aplica con <code>ip access-group ACL-INVITADOS in</code> en <code>G0/0.20</code>: lo más cerca posible del origen, que son los invitados.</p>
+<p><b>¿Y el Internet?</b> Tu .pkt no tiene conexión a Internet: la última línea (<code>permit ip … any</code>) deja listo el acceso para cuando la empresa conecte un proveedor. En la demostración, lo que se prueba es que el invitado <b>no</b> llega a nada interno. Si el docente lo pregunta, explícalo así.</p>
 <p><b>El orden importa:</b> si el deny fuera antes que el permit de DHCP, la petición de IP también se bloquearía.</p>
 <p>Doble protección: la <b>VLAN 20</b> separa el broadcast y la <b>ACL</b> impide que el router los enrute hacia adentro.</p>
 <p>Prueba el <a href="#herramientas" data-goto-tool="acl">simulador de ACL</a>: escribe un paquete y mira qué línea lo atrapa.</p>`,
@@ -1201,7 +1204,7 @@ permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet
   {t:'CEL-CHOFER-1 → Command Prompt → <code>ping 192.168.3.10</code> (RADIUS): debe <b>fallar</b>. Captura. Guarda el .pkt.'}
  ],
  verify:[['R-CORE# show ip route static','S 192.168.6.0/24 [1/0] via 192.168.5.2'],['R-CORE# show ip interface brief','G0/1 up/up'],['Celular → portal','Se ve la página'],['Celular → ping 192.168.3.10','Falla (ACL)']],
- trouble:[['El celular no llega al servidor','show ip route: ¿está la ruta S 192.168.6.0? ¿El Central Office tiene gateway 192.168.5.1? ¿G0/1 está up?'],['El celular no tiene IP','Revisa la configuración Cell Tower del Central Office y que el cable a la torre sea coaxial.']],
+ trouble:[['El celular no llega al servidor','show ip route: ¿está la ruta S 192.168.6.0? ¿El Central Office tiene gateway 192.168.5.1? ¿G0/1 está up?'],['Funcionaba antes del bloque 4 y dejó de funcionar después','Ejecuta show access-lists ACL-CELULAR. Si sube el contador de deny ip any any mientras el celular abre el portal, los paquetes llegan con otra IP de origen (por ejemplo 192.168.5.2, si tu versión del Central Office la traduce). Prueba sin la ACL (interface g0/1 → no ip access-group ACL-CELULAR in) y dime qué ves para ajustarla.'],['El celular no tiene IP','Revisa la configuración Cell Tower del Central Office y que el cable a la torre sea coaxial.']],
  quiz:[
   {q:'¿Para qué sirve "ip route 192.168.6.0 255.255.255.0 192.168.5.2"?', o:['Para que el router sepa devolver las respuestas a los celulares','Para dar IP a los celulares','Para bloquear a los celulares','Para conectar la torre'], a:0, e:'El router no conoce la red 192.168.6.0; la ruta le dice que está detrás del Central Office.'},
   {q:'¿Qué dispositivo de PT asigna IP a los celulares?', o:['R-CORE','La torre','El Central Office Server','La WLC'], a:2, e:'El Central Office simula el núcleo del operador y entrega IPs a los móviles.'},
@@ -1231,7 +1234,7 @@ permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet
   {t:'<b>Base:</b> show vlan brief, show interfaces trunk, show ip interface brief, show ip route, show ip dhcp binding. Captura de cada uno.'},
   {t:'<b>Inter-VLAN:</b> PC-ADMIN → ping 192.168.3.12.'},
   {t:'<b>WLC:</b> All APs (3 registrados), WLANs (3 SSIDs), Monitor → Clients.'},
-  {t:'<b>Roaming:</b> ping -t mientras mueves la laptop de AP-1 a AP-2. Misma IP.'},
+  {t:'<b>Roaming:</b> ping continuo mientras mueves la laptop en la vista Physical de AP-1 a AP-3. Misma IP, la línea WiFi cambia de AP.'},
   {t:'<b>Falla de AP:</b> desconecta el AP-1; la laptop se reasocia a otro AP. Reconecta.'},
   {t:'<b>802.1X:</b> conexión correcta y conexión con contraseña incorrecta.'},
   {t:'<b>RADIUS caído:</b> apaga el servicio AAA y reconecta una laptop corporativa: no entra; el visitante sí. Vuelve a encenderlo.'},

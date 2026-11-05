@@ -39,6 +39,7 @@ vistas se vean bien en celular y en modo oscuro.
 | 5 | [docs/04_Reporte_Tecnico.md](docs/04_Reporte_Tecnico.md) | Borrador del **reporte** a entregar (pásalo a Word y agrega capturas). |
 | 6 | [docs/05_Guia_de_Estudio.md](docs/05_Guia_de_Estudio.md) | Teoría explicada + banco de preguntas con respuestas para la defensa. |
 | 7 | [docs/06_Guion_Presentacion.md](docs/06_Guion_Presentacion.md) | Diapositivas sugeridas y qué decir en cada una. |
+| 8 | [docs/07_Revision_del_Proyecto.md](docs/07_Revision_del_Proyecto.md) | Revisión contra el PDF y la rúbrica: requisito por requisito, problemas corregidos y lo que se confirma en Packet Tracer. |
 
 ## Evidencias que pide el docente
 

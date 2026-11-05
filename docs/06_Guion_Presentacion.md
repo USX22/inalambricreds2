@@ -55,7 +55,7 @@ canales 1, 6 y 11 para eliminar la interferencia."
 **Decir:** "Los tres APs anuncian los mismos SSIDs formando un ESS. Cuando un empleado camina del
 edificio de oficinas al almacén, cambia de AP sin perder conexión y conserva su IP porque la WLC lo
 mantiene en la VLAN 10."
-**DEMO EN VIVO:** ping -t y arrastrar la laptop.
+**DEMO EN VIVO:** ping -t y arrastrar la laptop **en la vista Physical** de AP-1 a AP-3; en la vista Logical se ve que cambió de AP.
 
 ### Diapositiva 9 – Seguridad 802.1X / RADIUS (1.5 min)
 **Pantalla:** Diagrama Suplicante → Autenticador (WLC) → Servidor (RADIUS) con flechas EAPOL/RADIUS.

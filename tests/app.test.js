@@ -73,14 +73,14 @@ function cfgLines(txt) {
   // ---------- 3. Cada vista se dibuja sin errores ni textos rotos ----------
   const hashes = ['#ruta', '#herramientas', '#defensa', '#rubrica', ...(await page.evaluate(() => LESSONS.map(l => '#leccion-' + l.id)))];
   for (const h of hashes) {
-    await page.evaluate(x => location.hash = x, h); await page.waitForTimeout(60);
+    await page.evaluate(x => location.hash = x, h); await page.waitForTimeout(150);
     const txt = await page.evaluate(() => document.getElementById('main').innerText);
     ok(txt.length > 200, `${h} tiene contenido`);
     ok(!/undefined|NaN|\$\{|\[object/.test(txt), `${h} sin textos rotos`, (txt.match(/.{0,30}(undefined|NaN|\$\{|\[object).{0,30}/) || [''])[0]);
   }
   for (const t of ['calc', 'acl', 'paquete', 'configs', 'tabla', 'diag', 'glosario']) {
-    await page.evaluate(() => location.hash = '#herramientas'); await page.waitForTimeout(40);
-    const b = await page.$(`[data-act="tool"][data-k="${t}"]`); ok(!!b, `herramienta ${t} existe`); if (b) { await b.click(); await page.waitForTimeout(40); }
+    await page.evaluate(() => location.hash = '#herramientas'); await page.waitForTimeout(100);
+    const b = await page.$(`[data-act="tool"][data-k="${t}"]`); ok(!!b, `herramienta ${t} existe`); if (b) { await b.click(); await page.waitForTimeout(100); }
   }
   // Enlaces internos válidos
   const badLinks = await page.evaluate(async () => {
@@ -114,7 +114,7 @@ function cfgLines(txt) {
     ['ACL-IOT', '192.168.4.12', '192.168.3.12', 'tcp', '80', 'DENEGADO'],
     ['ACL-IOT', '192.168.4.12', '192.168.4.1', 'icmp', '', 'PERMITIDO'],
   ];
-  await page.evaluate(() => location.hash = '#herramientas'); await page.waitForTimeout(40);
+  await page.evaluate(() => location.hash = '#herramientas'); await page.waitForTimeout(100);
   await page.click('[data-act="tool"][data-k="acl"]');
   for (const [acl, s, d, p, port, exp] of aclCases) {
     await page.selectOption('#aacl', acl); await page.fill('#asrc', s); await page.fill('#adst', d);
@@ -166,7 +166,7 @@ function cfgLines(txt) {
     const m = await browser.newPage({ viewport: { width: 375, height: 800 }, colorScheme: scheme });
     m.on('pageerror', e => errors.push(e.message));
     for (const h of hashes) {
-      await m.goto(URL + h); await m.waitForTimeout(80);
+      await m.goto(URL + h); await m.waitForTimeout(150);
       const over = await m.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
       ok(!over, `${h} sin desbordarse a lo ancho (${scheme})`);
     }

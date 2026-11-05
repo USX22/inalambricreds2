@@ -21,7 +21,7 @@ es lo que debes ver. Las pruebas marcadas con ⚠️ son las típicas "pruebas d
 | 7 | APs registrados | WLC web → Wireless → All APs | 3 APs con estado *Registered* |
 | 8 | SSIDs | WLC web → WLANs | INNOVA-CORP, INNOVA-GUEST, INNOVA-IOT habilitadas |
 | 9 | Clientes | WLC web → Monitor → Clients | Laptops/tablet/IoT asociados indicando AP y WLAN |
-| 10 | ⚠️ **Roaming** | LAP-EMPLEADO-1: Command Prompt `ping -t 192.168.3.12`, luego **arrastra la laptop** de la zona de AP-1 a la de AP-2/AP-3 | La laptop cambia de AP, **conserva la misma IP** y el ping sigue (a lo más 1 paquete perdido) |
+| 10 | ⚠️ **Roaming** | LAP-EMPLEADO-1: Command Prompt `ping -t 192.168.3.12`, luego, **en la vista Physical**, arrastra la laptop de junto a AP-1 a junto a AP-3 (los APs deben estar separados en esa vista) | La laptop cambia de AP, **conserva la misma IP** y el ping sigue (a lo más 1 paquete perdido) |
 | 11 | ⚠️ Caída de un AP | Quita el cable de AP-1 (o apágalo) | Los clientes cercanos se reasocian a otro AP del ESS |
 
 **¿Por qué conserva la IP en el roaming?** Porque los tres APs anuncian el mismo SSID (ESS) y todo el

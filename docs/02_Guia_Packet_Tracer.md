@@ -186,6 +186,13 @@ Config → **Wireless0**:
 
 Coloca LAP-EMPLEADO-1 cerca de AP-1, TAB-ALMACEN cerca de AP-2 / AP-3.
 
+### Preparar el roaming (vista Physical)
+El alcance WiFi en Packet Tracer se calcula con la distancia en la vista **Physical**. Cambia a Physical,
+entra hasta donde están tus equipos y separa los APs: AP-1 en un extremo (Oficinas), AP-2 al centro y
+AP-3 en el otro extremo (Almacén), con coberturas que apenas se toquen. Para probar el roaming, arrastra
+la laptop **en esa vista** de un AP a otro con un ping continuo (`ping -t`, o `ping -n 200` si tu versión
+no acepta `-t`).
+
 ## FASE 6 – Red de sensores IoT (WSN)
 
 ### 6.1 Darles WiFi a los dispositivos IoT

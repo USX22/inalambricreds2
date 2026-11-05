@@ -538,9 +538,10 @@ Pasos **4.4 a 4.7** de la guía (RADIUS, interfaces, WLANs y canales), luego **F
 Por ahora conecta solo al **visitante** (PSK). El empleado se prueba en el Módulo 11.
 
 ## ✅ Compruébalo: roaming
-1. LAP-EMPLEADO-1 cerca de AP-1 (después del Módulo 11).
-2. Command Prompt: `ping -t 192.168.3.12` (ping continuo).
-3. Arrastra la laptop hacia el AP-2.
+La cobertura WiFi en Packet Tracer depende de la posición en la vista **Physical**. Primero, en esa vista, separa los APs: AP-1 en un extremo, AP-2 al centro, AP-3 en el otro, con coberturas que apenas se toquen.
+1. LAP-EMPLEADO-1 junto a AP-1 (después del Módulo 11).
+2. Command Prompt: `ping -t 192.168.3.12` (si no acepta `-t`, usa `ping -n 200 192.168.3.12`).
+3. En la vista **Physical**, arrastra la laptop hasta junto a AP-3. En la vista Logical, la línea punteada del WiFi cambia de AP.
 4. El ping sigue y la IP **no cambia** (`ipconfig`).
 
 ¿Por qué no cambia la IP? Porque los tres APs pertenecen a la misma WLC y esta mete al usuario
