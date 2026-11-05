@@ -1,0 +1,1826 @@
+<meta charset="utf-8">
+<title>Laboratorio InnovaLogistics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: consola de laboratorio. Barra superior fija con cuenta regresiva, navegación por pestañas,
+   lecciones en dos columnas (lista de "puertos" + contenido). Progreso = LEDs de puertos de switch. */
+:root{
+  --bg:#F2F5F6; --surface:#FFFFFF; --surface-2:#E8EEF0; --ink:#132029; --muted:#55666F; --line:#D3DDE1;
+  --accent:#0B6E78; --accent-ink:#FFFFFF; --accent-soft:#DCEEF0;
+  --led-on:#1E9E57; --led-mid:#D49800; --led-off:#B6C2C7;
+  --bad:#B93A26; --bad-soft:#F8E2DD; --good:#1B7F47; --good-soft:#DFF2E7; --warn-soft:#FAEFD3;
+  --code-bg:#0F1A20; --code-ink:#D6E6EA; --code-dim:#7F98A1;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0C1317; --surface:#141F25; --surface-2:#1B2830; --ink:#E2EBEE; --muted:#93A5AD; --line:#26363F;
+  --accent:#43B7C2; --accent-ink:#05262A; --accent-soft:#12323A;
+  --led-on:#34C474; --led-mid:#E9B124; --led-off:#3A4A52;
+  --bad:#F07C68; --bad-soft:#3A201B; --good:#5FD394; --good-soft:#14301F; --warn-soft:#382E13;
+  --code-bg:#070E12; --code-ink:#CFE2E7; --code-dim:#6E8790; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0C1317; --surface:#141F25; --surface-2:#1B2830; --ink:#E2EBEE; --muted:#93A5AD; --line:#26363F;
+  --accent:#43B7C2; --accent-ink:#05262A; --accent-soft:#12323A;
+  --led-on:#34C474; --led-mid:#E9B124; --led-off:#3A4A52;
+  --bad:#F07C68; --bad-soft:#3A201B; --good:#5FD394; --good-soft:#14301F; --warn-soft:#382E13;
+  --code-bg:#070E12; --code-ink:#CFE2E7; --code-dim:#6E8790; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:2.1rem;letter-spacing:.01em}
+h2{font-size:1.55rem}
+h3{font-size:1.2rem}
+p{margin:0}
+code,kbd{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:.08em .35em;border-radius:4px}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Barra superior */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.brand b{font-family:var(--f-display);font-size:1.25rem;letter-spacing:.02em}
+.brand span{color:var(--muted);font-size:.8rem}
+.chip{font-family:var(--f-mono);font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.hot{border-color:var(--bad);color:var(--bad)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;border-top:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:2px;padding-block:0}
+nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs a.on{color:var(--ink);border-bottom-color:var(--accent)}
+
+main{padding-block:24px 64px}
+.stack{display:flex;flex-direction:column;gap:20px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.muted{color:var(--muted)}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:8px 14px;font-weight:600;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.sm{padding:4px 10px;font-size:.85rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:stretch}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.count{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;margin-block:10px 6px}
+.count .n{font-family:var(--f-display);font-size:3.2rem;line-height:1;font-variant-numeric:tabular-nums}
+.count .u{color:var(--muted);font-size:.85rem;margin-left:4px}
+
+/* Panel de switch (progreso) */
+.faceplate{background:var(--code-bg);border-radius:10px;padding:16px;color:var(--code-ink)}
+.faceplate .lbl{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;color:var(--code-dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ports{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:8px;margin-block:12px}
+.port{background:#1E2B32;border:1px solid #33444D;border-radius:4px;padding:6px 2px 4px;text-align:center;color:#AFC4CB;font-family:var(--f-mono);font-size:.72rem;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:4px}
+.port:hover{border-color:var(--accent)}
+@media (max-width:520px){.ports{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.led{width:9px;height:9px;border-radius:50%;background:var(--led-off);display:inline-block;flex:none}
+.led.on{background:var(--led-on);box-shadow:0 0 6px var(--led-on)}
+.led.mid{background:var(--led-mid);box-shadow:0 0 6px var(--led-mid)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:var(--code-dim);font-family:var(--f-mono)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* Calendario */
+.days{display:flex;flex-direction:column}
+.day{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding-block:12px;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day .d{font-family:var(--f-display);font-size:1.05rem}
+.day.today .d{color:var(--accent)}
+.day.today{background:linear-gradient(90deg,var(--accent-soft),transparent);border-radius:6px;padding-inline:8px}
+.day ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.day li a{display:inline-flex;gap:8px;align-items:center;text-decoration:none;color:var(--ink)}
+.day li a:hover{color:var(--accent)}
+.deadline{font-weight:600;color:var(--bad)}
+
+/* Lección */
+.lesson > *{min-width:0}
+.lesson{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:900px){.lesson{grid-template-columns:minmax(0,1fr)}.side{position:static!important;max-height:none!important}}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 120px);max-height:calc(100vh - 140px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.side h4{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:12px 8px 4px}
+.side h4:first-child{margin-top:4px}
+.side a{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:6px;text-decoration:none;color:var(--ink);font-size:.9rem}
+.side a .num{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);width:20px}
+.side a.cur{background:var(--accent-soft);font-weight:600}
+.side details summary{cursor:pointer;font-weight:600;padding:4px 8px}
+@media (min-width:901px){.side details summary{display:none}}
+
+.lhead{display:flex;flex-direction:column;gap:8px}
+.pbar{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--led-on);transition:width .3s}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.why > div{border-left:3px solid var(--accent);padding:4px 12px;background:var(--surface);border-radius:0 8px 8px 0}
+.why > div.rub{border-left-color:var(--led-mid)}
+
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sec > h3{display:flex;align-items:center;gap:10px}
+.sec > h3 .tag{font-family:var(--f-mono);font-size:.7rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2);color:var(--muted);padding:2px 8px;border-radius:4px}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:72ch}
+.prose ul,.prose ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.analogy{background:var(--warn-soft);border-radius:8px;padding:12px 14px}
+.analogy::before{content:"Piénsalo así";display:block;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tbl{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--surface-2)}
+td.mono,th.mono{font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:8px}
+.steps li.ok{background:var(--good-soft);border-color:transparent}
+.steps input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--led-on)}
+.steps .body{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+pre.code{background:var(--code-bg);color:var(--code-ink);font:13px/1.55 var(--f-mono);padding:14px;border-radius:8px;overflow:auto;margin:0;max-height:440px;white-space:pre}
+.codebox{position:relative;min-width:0}
+.codebox .btn{position:absolute;top:8px;right:8px}
+.cmt{color:var(--code-dim)}
+
+.verify td:first-child{font-family:var(--f-mono);font-size:.85rem}
+.q{border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:8px 12px}
+.opt:hover{border-color:var(--accent)}
+.opt.right{background:var(--good-soft);border-color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.exp{font-size:.9rem;padding:8px 12px;border-radius:6px}
+.exp.right{background:var(--good-soft)}
+.exp.wrong{background:var(--bad-soft)}
+.say{font-size:1.05rem;border-left:3px solid var(--accent);padding:6px 14px;font-style:italic}
+.links{display:flex;flex-direction:column;gap:6px}
+.links a{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;text-decoration:none;color:var(--ink);padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.links a b{color:var(--accent)}
+textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);color:var(--ink)}
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* Topología */
+.topo{width:100%;min-width:620px;height:auto;display:block}
+.topo .zone{fill:var(--surface-2);stroke:none}
+.topo .zl{font:600 11px var(--f-mono);fill:var(--muted);letter-spacing:.08em}
+.topo .e{stroke:var(--line);stroke-width:2;fill:none}
+.topo .e.dash{stroke-dasharray:5 5}
+.topo .e.hi{stroke:var(--accent);stroke-width:3}
+.topo .n rect{fill:var(--surface);stroke:var(--muted);stroke-width:1.2}
+.topo .n text{font:500 12px var(--f-body);fill:var(--ink)}
+.topo .n.hi rect{fill:var(--accent);stroke:var(--accent)}
+.topo .n.hi text{fill:var(--accent-ink);font-weight:600}
+.topo.dim .n:not(.hi){opacity:.45}
+.topobox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto}
+.topobox .cap{font-size:.8rem;color:var(--muted);padding:2px 6px 6px}
+
+/* Herramientas */
+.subnav{display:flex;gap:6px;flex-wrap:wrap}
+.subnav button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px}
+.subnav button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:.8rem;color:var(--muted)}
+.field input,.field select{font:15px var(--f-mono);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 16px;font-size:.92rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.subgrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+@media (max-width:560px){.subgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.sub{border:1px solid var(--line);border-radius:6px;padding:6px;font-size:.72rem;font-family:var(--f-mono);background:var(--surface);color:var(--ink);text-align:left}
+.sub b{display:block;font-size:.78rem}
+.sub.used{background:var(--accent-soft);border-color:var(--accent)}
+.acl{font-family:var(--f-mono);font-size:.85rem;display:flex;flex-direction:column;gap:3px}
+.acl div{padding:5px 10px;border-radius:5px;border:1px solid transparent;overflow-wrap:anywhere}
+.acl div.chk{opacity:.55}
+.acl div.hit.permit{background:var(--good-soft);border-color:var(--good);opacity:1}
+.acl div.hit.deny{background:var(--bad-soft);border-color:var(--bad);opacity:1}
+.verdict{font-weight:600;padding:10px 14px;border-radius:8px}
+.verdict.permit{background:var(--good-soft);color:var(--good)}
+.verdict.deny{background:var(--bad-soft);color:var(--bad)}
+.verdict.na{background:var(--warn-soft)}
+.journey{display:flex;flex-direction:column;gap:12px}
+.jstep{font-size:1rem;min-height:4.5em}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--led-off)}
+.dots i.on{background:var(--accent)}
+.flash{min-height:220px;display:flex;flex-direction:column;gap:14px;justify-content:space-between}
+.flash .fq{font-family:var(--f-display);font-size:1.45rem;line-height:1.25}
+.timer{font-family:var(--f-display);font-size:3.4rem;font-variant-numeric:tabular-nums;line-height:1}
+.segs{display:flex;flex-direction:column;gap:4px}
+.seg{display:grid;grid-template-columns:52px minmax(0,1fr) 48px;gap:10px;padding:6px 10px;border-radius:6px;font-size:.92rem;align-items:center}
+.seg .t{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.seg.cur{background:var(--accent-soft);font-weight:600}
+.seg.past{color:var(--muted)}
+.crit{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:14px;align-items:center;padding-block:14px;border-top:1px solid var(--line)}
+.crit:first-child{border-top:0}
+.crit .pts{font-family:var(--f-display);font-size:1.5rem;text-align:right;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--led-on)}
+.chan{width:100%;height:auto}
+.chan text{font:11px var(--f-mono);fill:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>Laboratorio InnovaLogistics</b><span>Proyecto integrador · Redes inalámbricas</span></div>
+    <span class="chip" id="cd">—</span>
+  </div>
+  <nav class="tabs" aria-label="Secciones"><div class="wrap">
+    <a href="#ruta" data-tab="ruta">Mi ruta</a>
+    <a href="#leccion-fundamentos" data-tab="leccion">Lecciones</a>
+    <a href="#herramientas" data-tab="herramientas">Herramientas</a>
+    <a href="#defensa" data-tab="defensa">Defensa (20 min)</a>
+    <a href="#rubrica" data-tab="rubrica">Rúbrica y entrega</a>
+  </div></nav>
+</header>
+<main class="wrap" id="main"></main>
+
+<script>
+/* =====================================================================
+   DATOS DEL PROYECTO
+   ===================================================================== */
+const DEADLINE = new Date('2026-11-13T12:00:00-06:00'); // Puebla (UTC-6)
+
+const NODES = {
+  cel:{x:80,y:70,l:'Celulares 4G'}, tower:{x:220,y:70,l:'Torre 4G'}, co:{x:360,y:70,l:'Central Office'}, r:{x:510,y:70,l:'R-CORE'},
+  wlc:{x:390,y:150,l:'WLC'}, cli:{x:95,y:205,l:'Laptops / Tablet'}, ap1:{x:270,y:205,l:'AP-1'}, swc:{x:510,y:205,l:'SW-CORE'},
+  adm:{x:110,y:330,l:'PC-ADMIN'}, rad:{x:255,y:330,l:'RADIUS'}, iot:{x:385,y:330,l:'Servidor IoT'}, cen:{x:535,y:330,l:'Servidor Central'},
+  swa:{x:725,y:245,l:'SW-ALMACEN'}, ap2:{x:665,y:350,l:'AP-2'}, ap3:{x:790,y:350,l:'AP-3'}, sens:{x:728,y:440,l:'Sensores IoT'}
+};
+const EDGES = [['cel','tower',1],['tower','co'],['co','r'],['r','swc'],['swc','wlc'],['swc','ap1'],['ap1','cli',1],
+  ['swc','adm'],['swc','rad'],['swc','iot'],['swc','cen'],['swc','swa'],['swa','ap2'],['swa','ap3'],['ap2','sens',1],['ap3','sens',1]];
+
+function topo(focus, caption){
+  focus = focus || [];
+  const f = new Set(focus);
+  let s = `<svg class="topo${focus.length?' dim':''}" viewBox="0 0 860 470" role="img" aria-label="Topología de la red${focus.length?'; resaltado: '+focus.map(k=>NODES[k].l).join(', '):''}">`;
+  s += `<rect class="zone" x="12" y="30" width="430" height="78" rx="8"/><text class="zl" x="22" y="46">FLOTILLA · RED 4G</text>`;
+  s += `<rect class="zone" x="12" y="122" width="600" height="240" rx="8"/><text class="zl" x="22" y="138">EDIFICIO OFICINAS</text>`;
+  s += `<rect class="zone" x="622" y="205" width="228" height="258" rx="8"/><text class="zl" x="632" y="221">ALMACÉN</text>`;
+  EDGES.forEach(([a,b,d])=>{ const A=NODES[a],B=NODES[b]; const hi=f.has(a)&&f.has(b);
+    s += `<line class="e${d?' dash':''}${hi?' hi':''}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`; });
+  for(const k in NODES){ const n=NODES[k]; const w=n.l.length*7.1+22;
+    s += `<g class="n${f.has(k)?' hi':''}"><rect x="${n.x-w/2}" y="${n.y-15}" width="${w}" height="30" rx="6"/><text x="${n.x}" y="${n.y+4}" text-anchor="middle">${n.l}</text></g>`; }
+  s += `</svg>`;
+  return `<div class="topobox">${caption?`<div class="cap">${caption}</div>`:''}${s}</div>`;
+}
+
+/* ---------- Configuraciones (por bloques, para ir en orden) ---------- */
+const CFG = {};
+CFG.r_base = `! R-CORE · Bloque 1: base, SSH, router-on-a-stick y enlace 4G
+enable
+configure terminal
+hostname R-CORE
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+ip domain-name innovalogistics.local
+username admin privilege 15 secret Innova2026
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+line console 0
+ password Innova2026
+ login
+ exit
+line vty 0 4
+ login local
+ transport input ssh
+ exit
+interface GigabitEthernet0/0
+ description TRUNK-HACIA-SW-CORE
+ no ip address
+ no shutdown
+ exit
+interface GigabitEthernet0/0.99
+ description GESTION-WLC-APs (VLAN NATIVA)
+ encapsulation dot1Q 99 native
+ ip address 192.168.0.1 255.255.255.0
+ exit
+interface GigabitEthernet0/0.10
+ description CORPORATIVO-WIFI
+ encapsulation dot1Q 10
+ ip address 192.168.1.1 255.255.255.0
+ exit
+interface GigabitEthernet0/0.20
+ description INVITADOS-WIFI
+ encapsulation dot1Q 20
+ ip address 192.168.2.1 255.255.255.0
+ exit
+interface GigabitEthernet0/0.30
+ description SERVIDORES
+ encapsulation dot1Q 30
+ ip address 192.168.3.1 255.255.255.0
+ exit
+interface GigabitEthernet0/0.40
+ description SENSORES-IOT
+ encapsulation dot1Q 40
+ ip address 192.168.4.1 255.255.255.0
+ exit
+interface GigabitEthernet0/1
+ description ENLACE-CENTRAL-OFFICE-4G
+ ip address 192.168.5.1 255.255.255.0
+ no shutdown
+ exit
+end
+write memory`;
+CFG.r_dhcp = `! R-CORE · Bloque 2: DHCP (pegar estando en R-CORE#)
+configure terminal
+ip dhcp excluded-address 192.168.0.1 192.168.0.20
+ip dhcp excluded-address 192.168.1.1 192.168.1.10
+ip dhcp excluded-address 192.168.2.1 192.168.2.10
+ip dhcp excluded-address 192.168.4.1 192.168.4.10
+ip dhcp pool GESTION-APs
+ network 192.168.0.0 255.255.255.0
+ default-router 192.168.0.1
+ exit
+ip dhcp pool CORPORATIVO
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ dns-server 192.168.3.12
+ exit
+ip dhcp pool INVITADOS
+ network 192.168.2.0 255.255.255.0
+ default-router 192.168.2.1
+ dns-server 8.8.8.8
+ exit
+ip dhcp pool IOT
+ network 192.168.4.0 255.255.255.0
+ default-router 192.168.4.1
+ dns-server 192.168.3.12
+ exit
+end
+write memory`;
+CFG.r_acl_inv = `! R-CORE · Bloque 3: aislamiento de invitados (pegar estando en R-CORE#)
+configure terminal
+ip access-list extended ACL-INVITADOS
+ remark Permitir DHCP hacia el router
+ permit udp any any eq bootps
+ remark Permitir ping al gateway (para pruebas)
+ permit icmp 192.168.2.0 0.0.0.255 host 192.168.2.1
+ remark Bloquear toda la red interna de la empresa
+ deny ip 192.168.2.0 0.0.0.255 192.168.0.0 0.0.15.255
+ remark Todo lo demas (Internet) permitido
+ permit ip 192.168.2.0 0.0.0.255 any
+ exit
+interface GigabitEthernet0/0.20
+ ip access-group ACL-INVITADOS in
+ exit
+end
+write memory`;
+CFG.r_cel = `! R-CORE · Bloque 4: ruta y seguridad de la red 4G (pegar estando en R-CORE#)
+configure terminal
+ip route 192.168.6.0 255.255.255.0 192.168.5.2
+ip access-list extended ACL-CELULAR
+ remark Portal de entregas HTTPS y HTTP
+ permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq 443
+ permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq www
+ remark Resolucion de nombres
+ permit udp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq domain
+ remark Ping al servidor central (pruebas)
+ permit icmp 192.168.6.0 0.0.0.255 host 192.168.3.12
+ deny ip any any
+ exit
+interface GigabitEthernet0/1
+ ip access-group ACL-CELULAR in
+ exit
+end
+write memory`;
+CFG.r_acl_iot = `! R-CORE · Bloque 5 (opcional): la VLAN IoT solo habla con el Servidor IoT
+configure terminal
+ip access-list extended ACL-IOT
+ permit udp any any eq bootps
+ permit icmp 192.168.4.0 0.0.0.255 host 192.168.4.1
+ permit ip 192.168.4.0 0.0.0.255 host 192.168.3.11
+ deny ip any any
+ exit
+interface GigabitEthernet0/0.40
+ ip access-group ACL-IOT in
+ exit
+end
+write memory`;
+CFG.sw_core = `! SW-CORE (2960) · Edificio de Oficinas
+enable
+configure terminal
+hostname SW-CORE
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+line console 0
+ password Innova2026
+ login
+ exit
+vlan 10
+ name CORPORATIVO
+vlan 20
+ name INVITADOS
+vlan 30
+ name SERVIDORES
+vlan 40
+ name IOT
+vlan 99
+ name GESTION
+ exit
+interface GigabitEthernet0/1
+ description TRUNK-A-R-CORE
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+interface GigabitEthernet0/2
+ description TRUNK-A-SW-ALMACEN
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+interface FastEthernet0/1
+ description TRUNK-A-WLC
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+interface FastEthernet0/2
+ description AP-1-OFICINAS
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+interface range FastEthernet0/10 - 12
+ description SERVIDORES (RADIUS / IoT / CENTRAL)
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ exit
+interface FastEthernet0/20
+ description PC-ADMIN
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+interface range FastEthernet0/3 - 9 , FastEthernet0/13 - 19 , FastEthernet0/21 - 24
+ shutdown
+ exit
+interface vlan 99
+ ip address 192.168.0.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 192.168.0.1
+end
+write memory`;
+CFG.sw_alm = `! SW-ALMACEN (2960) · Almacén Central de Distribución
+enable
+configure terminal
+hostname SW-ALMACEN
+no ip domain-lookup
+service password-encryption
+enable secret Innova2026
+banner motd # Acceso restringido - Solo personal autorizado de InnovaLogistics #
+line console 0
+ password Innova2026
+ login
+ exit
+vlan 10
+ name CORPORATIVO
+vlan 20
+ name INVITADOS
+vlan 30
+ name SERVIDORES
+vlan 40
+ name IOT
+vlan 99
+ name GESTION
+ exit
+interface GigabitEthernet0/1
+ description TRUNK-A-SW-CORE
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,40,99
+ exit
+interface FastEthernet0/1
+ description AP-2-ALMACEN-ZONA-A
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+interface FastEthernet0/2
+ description AP-3-ALMACEN-ZONA-B
+ switchport mode access
+ switchport access vlan 99
+ spanning-tree portfast
+ exit
+interface range FastEthernet0/5 - 10
+ description IOT-CABLEADO
+ switchport mode access
+ switchport access vlan 40
+ spanning-tree portfast
+ exit
+interface range FastEthernet0/3 - 4 , FastEthernet0/11 - 24 , GigabitEthernet0/2
+ shutdown
+ exit
+interface vlan 99
+ ip address 192.168.0.3 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 192.168.0.1
+end
+write memory`;
+CFG.practica1 = `! Práctica de calentamiento (archivo aparte, NO es el proyecto)
+! PC-A: IP 10.0.0.1  máscara 255.255.255.0
+! PC-B: IP 10.0.0.2  máscara 255.255.255.0
+! En PC-A > Desktop > Command Prompt:
+ping 10.0.0.2
+! Ahora cambia PC-B a 10.0.1.2 y repite el ping.`;
+
+/* ---------- Tablas de referencia ---------- */
+const T_VLANS = `<div class="tbl"><table><thead><tr><th>VLAN</th><th>Nombre</th><th>Red</th><th>Gateway</th><th>Quién vive ahí</th></tr></thead><tbody>
+<tr><td class="mono">99</td><td>GESTION (nativa)</td><td class="mono">192.168.0.0/24</td><td class="mono">192.168.0.1</td><td>WLC, APs, switches, PC-ADMIN</td></tr>
+<tr><td class="mono">10</td><td>CORPORATIVO</td><td class="mono">192.168.1.0/24</td><td class="mono">192.168.1.1</td><td>Empleados (SSID INNOVA-CORP)</td></tr>
+<tr><td class="mono">20</td><td>INVITADOS</td><td class="mono">192.168.2.0/24</td><td class="mono">192.168.2.1</td><td>Visitantes (SSID INNOVA-GUEST)</td></tr>
+<tr><td class="mono">30</td><td>SERVIDORES</td><td class="mono">192.168.3.0/24</td><td class="mono">192.168.3.1</td><td>RADIUS .10 · IoT .11 · Central .12</td></tr>
+<tr><td class="mono">40</td><td>IOT</td><td class="mono">192.168.4.0/24</td><td class="mono">192.168.4.1</td><td>Sensores y actuadores (SSID INNOVA-IOT)</td></tr>
+<tr><td class="mono">—</td><td>ENLACE-4G</td><td class="mono">192.168.5.0/24</td><td class="mono">—</td><td>R-CORE .1 ↔ Central Office .2</td></tr>
+<tr><td class="mono">—</td><td>CELULAR</td><td class="mono">192.168.6.0/24</td><td class="mono">(Central Office)</td><td>Smartphones de la flotilla</td></tr>
+</tbody></table></div>`;
+const T_ADDR = `<div class="tbl"><table><thead><tr><th>Dispositivo</th><th>Interfaz</th><th>IP</th><th>Máscara</th><th>Gateway</th></tr></thead><tbody>
+${[['R-CORE','G0/0.99 (nativa)','192.168.0.1','/24','—'],['R-CORE','G0/0.10','192.168.1.1','/24','—'],['R-CORE','G0/0.20','192.168.2.1','/24','—'],['R-CORE','G0/0.30','192.168.3.1','/24','—'],['R-CORE','G0/0.40','192.168.4.1','/24','—'],['R-CORE','G0/1','192.168.5.1','/24','—'],
+['SW-CORE','VLAN 99','192.168.0.2','/24','192.168.0.1'],['SW-ALMACEN','VLAN 99','192.168.0.3','/24','192.168.0.1'],
+['WLC','Management','192.168.0.10','/24','192.168.0.1'],['WLC','Interfaz CORP (VLAN 10)','192.168.1.2','/24','192.168.1.1'],['WLC','Interfaz GUEST (VLAN 20)','192.168.2.2','/24','192.168.2.1'],['WLC','Interfaz IOT (VLAN 40)','192.168.4.2','/24','192.168.4.1'],
+['AP-1 / AP-2 / AP-3','G0','DHCP (192.168.0.21+)','/24','192.168.0.1'],['PC-ADMIN','Fa0','192.168.0.20','/24','192.168.0.1'],
+['SRV-RADIUS','Fa0','192.168.3.10','/24','192.168.3.1'],['SRV-IOT','Fa0','192.168.3.11','/24','192.168.3.1'],['SRV-CENTRAL','Fa0','192.168.3.12','/24','192.168.3.1'],
+['CENTRAL-OFFICE','Backbone','192.168.5.2','/24','192.168.5.1'],['Celulares','3G/4G Cell','DHCP (192.168.6.x)','/24','192.168.6.1'],
+['Laptops empleados','Wireless0','DHCP (192.168.1.11+)','/24','192.168.1.1'],['Laptop visitante','Wireless0','DHCP (192.168.2.11+)','/24','192.168.2.1'],['Sensores/actuadores','Wireless0','DHCP (192.168.4.11+)','/24','192.168.4.1']
+].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td></tr>`).join('')}
+</tbody></table></div>`;
+
+/* ---------- Plan por días ---------- */
+const DAYS = [
+  {d:'2026-11-05', name:'Jue 5 nov', goal:'Entender la red en papel', lessons:['fundamentos','caso','subneteo']},
+  {d:'2026-11-06', name:'Vie 6 nov', goal:'Red cableada funcionando', lessons:['cableado','vlans','router','dhcp']},
+  {d:'2026-11-07', name:'Sáb 7 nov', goal:'Servidores y teoría WiFi; APs unidos a la WLC', lessons:['servidores','wifi','wlc']},
+  {d:'2026-11-08', name:'Dom 8 nov', goal:'SSIDs, roaming y RADIUS', lessons:['ssids','radius']},
+  {d:'2026-11-09', name:'Lun 9 nov', goal:'Invitados aislados e IoT', lessons:['acl','iot']},
+  {d:'2026-11-10', name:'Mar 10 nov', goal:'Red 4G y todas las pruebas con capturas', lessons:['celular','pruebas']},
+  {d:'2026-11-11', name:'Mié 11 nov', goal:'Reporte y presentación terminados', lessons:['entregables']},
+  {d:'2026-11-12', name:'Jue 12 nov', goal:'Ensayo cronometrado y simulacro de preguntas', lessons:['defensa']},
+  {d:'2026-11-13', name:'Vie 13 nov', goal:'ENTREGA 12:00 hrs · 20 min por proyecto', lessons:[]}
+];
+
+const ETAPAS = ['1 · Entender','2 · Red cableada','3 · Red inalámbrica','4 · Seguridad','5 · IoT y 4G','6 · Entrega y defensa'];
+const RUB = [
+  {k:'base', n:'Diseño e infraestructura base (VLANs, DHCP, routing)', w:20},
+  {k:'wlc', n:'Configuración WLC, WLANs y roaming', w:25},
+  {k:'seg', n:'Seguridad inalámbrica (802.1X / RADIUS y VLAN Guest)', w:25},
+  {k:'iot', n:'Integración IoT, WSN y red celular (WWAN)', w:20},
+  {k:'doc', n:'Documentación y sustentación técnica', w:10}
+];
+
+/* =====================================================================
+   LECCIONES
+   ===================================================================== */
+const LESSONS = [
+/* ---------------------------------------------------------------- 1 */
+{id:'fundamentos', et:0, title:'Lo mínimo de redes que necesitas', focus:['r','swc'],
+ prob:'Todo el proyecto se apoya en estas ideas. Sin ellas, los comandos son magia; con ellas, son lógica.',
+ rub:'Base para todos los criterios',
+ theory:`
+<p>Una <b>red</b> es un grupo de equipos que intercambian información. En este proyecto hay cinco tipos: <b>LAN</b> (red local cableada), <b>WLAN</b> (red local inalámbrica, el WiFi), <b>WAN</b> (redes grandes, Internet), <b>WWAN</b> (inalámbrica de área amplia: la red celular 4G) y <b>WSN</b> (red de sensores inalámbricos).</p>
+<h3>IP, máscara y gateway</h3>
+<p>La <b>dirección IP</b> identifica a un equipo en la red, por ejemplo <code>192.168.1.15</code>. Son 4 números de 0 a 255 (32 bits).</p>
+<p>La <b>máscara</b> separa la IP en dos partes: la <b>red</b> y el <b>host</b>. Con <code>/24</code> (255.255.255.0), los primeros tres números son la red y el último es el equipo: <code>192.168.1.15/24</code> está en la red <code>192.168.1.0</code> y es el host 15.</p>
+<div class="analogy">La red es la colonia y el host es el número de casa. Dos casas de la misma colonia se visitan caminando (switch). Para ir a otra colonia necesitas al cartero (router). El <b>gateway</b> es ese cartero: la dirección del router de tu red.</div>
+<p>En cada red, la primera dirección (<code>.0</code>) nombra a la red y la última (<code>.255</code>) es el <b>broadcast</b> ("mensaje para todos"). Por eso en una /24 caben <b>254</b> equipos.</p>
+<h3>Switch y router</h3>
+<ul><li><b>Switch (capa 2):</b> une equipos de la <b>misma red</b>. Usa direcciones <b>MAC</b> (el número de serie de la tarjeta de red).</li>
+<li><b>Router (capa 3):</b> une <b>redes distintas</b>. Usa direcciones <b>IP</b> y una tabla de rutas.</li></ul>
+<h3>El modelo OSI, versión útil</h3>
+<div class="tbl"><table><thead><tr><th>Capa</th><th>Qué maneja</th><th>En tu proyecto</th></tr></thead><tbody>
+<tr><td>1 Física</td><td>Cables y ondas de radio</td><td>Cables, WiFi, 4G</td></tr>
+<tr><td>2 Enlace</td><td>MAC, tramas</td><td>Switches, VLANs, trunks, 802.11</td></tr>
+<tr><td>3 Red</td><td>IP, rutas</td><td>Router, subredes, ACLs</td></tr>
+<tr><td>4 Transporte</td><td>Puertos TCP/UDP</td><td>RADIUS 1812, CAPWAP 5246/5247</td></tr>
+<tr><td>7 Aplicación</td><td>Servicios</td><td>DHCP, DNS, HTTP, RADIUS</td></tr></tbody></table></div>
+<h3>Puertos</h3>
+<p>La IP lleva el paquete a la computadora; el <b>puerto</b> lo lleva al programa. <b>TCP</b> confirma la entrega (web, SSH). <b>UDP</b> es más rápido y no confirma (DHCP, DNS, RADIUS, CAPWAP).</p>
+<h3>La línea de comandos de Cisco</h3>
+<p><code>Router&gt;</code> (solo ver) → <code>enable</code> → <code>Router#</code> (ver todo y guardar) → <code>configure terminal</code> → <code>Router(config)#</code> (configurar). <code>exit</code> sube un nivel, <code>end</code> regresa a <code>#</code>, <code>write memory</code> guarda. La tecla <kbd>Tab</kbd> autocompleta y <kbd>?</kbd> muestra opciones.</p>`,
+ steps:[
+  {t:'Abre Packet Tracer y revisa tu versión en <b>Help → About</b>. Lo ideal es la 8.x; con una 7.x algunos menús de la WLC cambian. Si tienes una versión vieja, actualízala desde netacad.com.'},
+  {t:'Crea una carpeta <code>ProyectoInnova</code> donde guardarás todo: los <code>.pkt</code> de cada día, capturas, reporte y presentación.'},
+  {t:'<b>Práctica de calentamiento</b> (en un archivo nuevo, <code>practica.pkt</code>): coloca un switch 2960 y dos PCs. Conecta cada PC al switch con cable directo (Copper Straight-Through). Configura las IPs en Desktop → IP Configuration.', code:'practica1'},
+  {t:'Haz el ping de PC-A a PC-B: debe responder. Luego cambia PC-B a <code>10.0.1.2</code> y repite: <b>falla</b>. Acabas de comprobar que equipos de redes distintas necesitan un router. Esa es la razón de existir de R-CORE en tu proyecto.'},
+  {t:'Entra al CLI del switch y practica: <code>enable</code>, <code>configure terminal</code>, <code>hostname PRUEBA</code>, <code>end</code>, <code>show running-config</code>. Prueba <kbd>Tab</kbd> y <kbd>?</kbd>.'}
+ ],
+ verify:[['ping 10.0.0.2 (misma red)','Reply from 10.0.0.2'],['ping 10.0.1.2 (otra red, sin router)','Request timed out']],
+ quiz:[
+  {q:'Una laptop tiene la IP 192.168.2.30/24. ¿En qué red está?', o:['192.168.0.0','192.168.2.0','192.168.2.30','192.168.2.255'], a:1, e:'Con /24 los tres primeros octetos son la red: 192.168.2.0. El .30 es el número de host.'},
+  {q:'Un empleado en 192.168.1.0/24 quiere llegar al servidor en 192.168.3.0/24. ¿Qué equipo lo hace posible?', o:['Un switch','Un access point','Un router','Un cable cruzado'], a:2, e:'Son redes distintas. Solo un router (capa 3) conecta redes distintas.'},
+  {q:'¿Cuántos equipos caben en una red /24?', o:['256','255','254','24'], a:2, e:'256 direcciones menos la de red (.0) y la de broadcast (.255) = 254.'},
+  {q:'¿Qué comando te lleva de Router> a Router#?', o:['configure terminal','enable','exit','write memory'], a:1, e:'enable entra a modo privilegiado. configure terminal es el paso siguiente, para configurar.'}
+ ],
+ say:'Una IP tiene parte de red y parte de host, separadas por la máscara. Dentro de la misma red los equipos se hablan por el switch; para pasar a otra red se necesita un router, que es el gateway de cada red.',
+ links:[['caso','Ahora que sabes qué es una red, vemos la red que vas a construir'],['subneteo','La máscara es la base del subneteo']]
+},
+/* ---------------------------------------------------------------- 2 */
+{id:'caso', et:0, title:'El caso InnovaLogistics y tu diseño', focus:[],
+ prob:'Antes de configurar nada necesitas poder explicar qué problema resuelve cada equipo. El docente evalúa que justifiques la solución.',
+ rub:'Documentación y sustentación (10 %) y la lógica de todos los demás',
+ theory:`
+<p>InnovaLogistics distribuye insumos médicos e industriales en el Parque Industrial Chachapa, Puebla. Tiene <b>Oficinas Corporativas</b>, un <b>Almacén Central</b> y una <b>flotilla</b> en ruta.</p>
+<h3>Cuatro problemas, cuatro soluciones</h3>
+<div class="tbl"><table><thead><tr><th>Problema</th><th>Por qué pasa</th><th>Tu solución</th></tr></thead><tbody>
+<tr><td>WiFi saturado, caídas, sin cobertura, fuga de información</td><td>Routers caseros independientes, todos en el mismo canal de 2.4 GHz, y una sola clave para todos</td><td><b>WLC + 3 APs</b> coordinados en canales 1/6/11, mismo SSID (ESS) con roaming, y <b>WPA2-Enterprise</b> con usuario propio por empleado</td></tr>
+<tr><td>Visitantes en la misma red que los servidores</td><td>Una sola red plana</td><td>SSID de invitados en <b>VLAN 20</b> + <b>ACL</b> que bloquea toda la red interna</td></tr>
+<tr><td>Sin monitoreo de temperatura ni humo</td><td>No hay sensores</td><td><b>Sensores IoT</b> + servidor IoT con reglas automáticas (ventilador, sirena)</td></tr>
+<tr><td>Flotilla desconectada</td><td>El WiFi no llega a la calle</td><td><b>Torre celular 4G</b> + Central Office conectado al router, con ACL que solo deja llegar al portal de entregas</td></tr>
+</tbody></table></div>
+<h3>Cómo leer el mapa</h3>
+<ol><li><b>R-CORE</b> está en el centro: conecta todas las redes (VLANs y red celular).</li>
+<li>Del router sale un cable al <b>SW-CORE</b> (oficinas): ahí están la WLC, el AP-1, los 3 servidores y la PC de administración.</li>
+<li>Del SW-CORE sale un cable al <b>SW-ALMACEN</b>, con el AP-2 y el AP-3.</li>
+<li>Por WiFi se conectan laptops, tablet y sensores.</li>
+<li>Por otro puerto del router están el <b>Central Office</b> y la <b>torre 4G</b>, donde se conectan los celulares.</li></ol>
+<h3>Lo que te van a evaluar</h3>
+<div class="tbl"><table><thead><tr><th>Criterio</th><th>Peso</th><th>Lecciones que lo cubren</th></tr></thead><tbody>
+<tr><td>Infraestructura base (VLANs, trunks, inter-VLAN, DHCP, subneteo)</td><td class="mono">20 %</td><td>3 a 8</td></tr>
+<tr><td>WLC, LAPs en CAPWAP, SSIDs y roaming sin pérdida</td><td class="mono">25 %</td><td>9 a 11</td></tr>
+<tr><td>WPA2-Enterprise + RADIUS e invitados aislados por ACL</td><td class="mono">25 %</td><td>12 y 13</td></tr>
+<tr><td>IoT con reglas automáticas y red 4G</td><td class="mono">20 %</td><td>14 y 15</td></tr>
+<tr><td>Reporte (topología, tabla de direccionamiento) y defensa ante pruebas de falla</td><td class="mono">10 %</td><td>16 a 18</td></tr>
+</tbody></table></div>
+<p>Tienes que entregar tres evidencias: <b>reporte</b>, <b>archivo .pkt</b> y <b>presentación</b>. Expones el <b>13 de noviembre a las 12:00</b> y tienes <b>20 minutos</b>.</p>`,
+ steps:[
+  {t:'Lee el PDF del proyecto completo una vez, con calma. Subraya las palabras: WLC, 3 Access Points, ESS, Roaming, WPA2-Enterprise, 802.1X, RADIUS, VLAN, Invitados, IoT, Torre Celular, 192.168.0.0/20.'},
+  {t:'Mira el mapa de arriba (la topología). En una hoja, <b>dibújalo de memoria</b> con los 16 bloques. Compara y corrige.'},
+  {t:'Explica en voz alta, en 1 minuto, qué hace cada uno de los 4 pilares (WLC, seguridad, IoT, 4G) y qué problema resuelve.'},
+  {t:'Revisa la tabla de la rúbrica: identifica que WLC (25 %) y Seguridad (25 %) valen la mitad de la calificación. Ahí pondrás más cuidado.'}
+ ],
+ verify:[['¿Puedes dibujar la topología sin ver?','Sí, con los 3 APs, 2 switches, WLC, 3 servidores y la parte 4G'],['¿Puedes decir qué problema resuelve cada pilar?','Sí, en una frase cada uno']],
+ quiz:[
+  {q:'¿Qué parte del diseño resuelve que los visitantes vean los servidores?', o:['Los canales 1, 6 y 11','La VLAN 20 con su ACL','El servidor IoT','La torre celular'], a:1, e:'Los visitantes quedan en su propia VLAN y una ACL en el router bloquea todo lo que vaya hacia la red interna.'},
+  {q:'¿Por qué se cambian los routers caseros por una WLC con APs ligeros?', o:['Porque son más baratos','Para controlar todos los APs desde un punto: canales, SSIDs, seguridad y roaming','Porque los routers no tienen WiFi','Para usar 4G'], a:1, e:'La WLC centraliza la configuración y coordina a los APs. Los routers caseros eran redes aisladas en el mismo canal.'},
+  {q:'¿Qué dos criterios pesan más en la rúbrica?', o:['Infraestructura base y Documentación','WLC/roaming y Seguridad','IoT y Documentación','Infraestructura base e IoT'], a:1, e:'WLC/WLANs/roaming (25 %) y Seguridad (25 %) suman la mitad de la calificación.'}
+ ],
+ say:'Nuestra solución tiene cuatro pilares: una WLC con tres APs para cobertura y roaming, WPA2-Enterprise con RADIUS más una VLAN aislada para invitados, una red de sensores IoT con reglas automáticas, y conectividad 4G para la flotilla.',
+ links:[['subneteo','Cada pilar vive en su propia subred: veamos cómo se reparte la 192.168.0.0/20']]
+},
+/* ---------------------------------------------------------------- 3 */
+{id:'subneteo', et:0, title:'Subneteo: de 192.168.0.0/20 a redes /24', focus:['r'], rubk:'base',
+ prob:'El caso pide usar 192.168.0.0/20 dividida en subredes /24. Cada grupo (empleados, invitados, servidores, IoT) necesita su propia red.',
+ rub:'Infraestructura base (20 %): "sin errores de subneteo"',
+ theory:`
+<p><b>Subnetear</b> es partir una red grande en redes más pequeñas. Sirve para ordenar, para aplicar seguridad por grupo y para reducir el tráfico de broadcast.</p>
+<h3>Leer el /20</h3>
+<p>El número después de la diagonal dice cuántos de los 32 bits son de red:</p>
+<pre class="code">/20 = 11111111.11111111.11110000.00000000 = 255.255.240.0
+      8 bits   8 bits   4 bits</pre>
+<p>Quedan 32 − 20 = 12 bits de host → 2¹² = <b>4096 direcciones</b>, de <code>192.168.0.0</code> a <code>192.168.15.255</code>. El tercer octeto tiene 4 bits libres, que van de 0000 (0) a 1111 (15).</p>
+<h3>Partirla en /24</h3>
+<p>De /20 a /24 tomas prestados <b>4 bits</b>: 2⁴ = <b>16 subredes</b>, cada una con 2⁸ − 2 = <b>254 hosts</b>. Las subredes son 192.168.<b>0</b>.0, 192.168.<b>1</b>.0 … 192.168.<b>15</b>.0: el tercer octeto avanza de uno en uno.</p>
+<div class="analogy">Tienes un terreno de 16 manzanas (la /20). Lo divides en 16 manzanas iguales de 254 lotes (las /24). Le das una manzana a cada grupo y dejas las sobrantes para crecer.</div>
+<h3>Tu reparto</h3>
+${T_VLANS}
+<p><b>Convención:</b> el <code>.1</code> de cada red es siempre el router. Así es fácil de recordar y de explicar.</p>
+<p>Prueba la <a href="#herramientas" data-goto-tool="calc">calculadora de subredes</a>: escribe cualquier IP y te dice su red, broadcast y a qué VLAN pertenece.</p>`,
+ steps:[
+  {t:'En una hoja, escribe en binario el tercer octeto de 255.255.240.0 (11110000) y explica con tus palabras por qué la /20 llega hasta 192.168.15.255.'},
+  {t:'Escribe de memoria las 7 subredes que usas, con su VLAN, uso y gateway. Compara con la tabla de arriba.'},
+  {t:'Abre la calculadora de subredes (Herramientas → Calculadora) y prueba: <code>192.168.2.30/24</code>, <code>192.168.0.0/20</code>, <code>192.168.9.1/24</code>. Fíjate qué VLAN te dice en cada caso.'},
+  {t:'Responde el quiz de esta lección sin mirar la tabla.'}
+ ],
+ verify:[['¿Cuántas /24 caben en una /20?','16'],['¿Última dirección de la /20?','192.168.15.255'],['¿Gateway de la VLAN 30?','192.168.3.1']],
+ quiz:[
+  {q:'¿Cuántos bits se prestan para pasar de /20 a /24 y cuántas subredes salen?', o:['8 bits, 256 subredes','4 bits, 16 subredes','4 bits, 14 subredes','2 bits, 4 subredes'], a:1, e:'24 − 20 = 4 bits prestados; 2⁴ = 16 subredes.'},
+  {q:'¿Cuál es la máscara decimal de un /20?', o:['255.255.255.0','255.255.240.0','255.255.248.0','255.255.0.0'], a:1, e:'20 bits en 1: 255.255 y en el tercer octeto 11110000 = 240.'},
+  {q:'¿Qué IP NO pertenece a la red de la empresa 192.168.0.0/20?', o:['192.168.0.10','192.168.6.20','192.168.15.200','192.168.16.1'], a:3, e:'La /20 termina en 192.168.15.255. La 192.168.16.1 ya está fuera.'},
+  {q:'¿Por qué los invitados tienen su propia subred?', o:['Para tener más velocidad','Para poder aplicar reglas de seguridad solo a ellos','Porque el DHCP lo exige','Porque el router no soporta más IPs'], a:1, e:'Al estar en su propia red/VLAN, el router puede filtrar su tráfico con una ACL sin afectar a nadie más.'}
+ ],
+ say:'La /20 tiene 4096 direcciones. Al llevarla a /24 prestamos 4 bits: obtenemos 16 subredes de 254 hosts. Usamos 7 (gestión, corporativo, invitados, servidores, IoT, enlace 4G y celular) y dejamos 9 para crecimiento. El .1 de cada una es el router.',
+ links:[['vlans','Cada subred se convierte en una VLAN en los switches'],['router','Cada .1 se configura como subinterfaz del router']]
+},
+/* ---------------------------------------------------------------- 4 */
+{id:'cableado', et:1, title:'Colocar y cablear los equipos', focus:Object.keys(NODES), rubk:'base',
+ prob:'El archivo .pkt es una evidencia obligatoria. Un cableado ordenado y con los puertos correctos evita la mitad de los errores.',
+ rub:'Infraestructura base (20 %) y Documentación (topología)',
+ theory:`
+<h3>Los equipos y su papel</h3>
+<div class="tbl"><table><thead><tr><th>Cant.</th><th>En Packet Tracer</th><th>Nombre</th><th>Para qué</th></tr></thead><tbody>
+<tr><td>1</td><td>Routers → 2911</td><td>R-CORE</td><td>Une todas las redes</td></tr>
+<tr><td>2</td><td>Switches → 2960</td><td>SW-CORE, SW-ALMACEN</td><td>Un switch por edificio</td></tr>
+<tr><td>1</td><td>Wireless Devices → WLC-3504 (o 2504)</td><td>WLC</td><td>Controla los APs</td></tr>
+<tr><td>3</td><td>Wireless Devices → LAP-PT (o 3702i)</td><td>AP-1, AP-2, AP-3</td><td>Antenas WiFi</td></tr>
+<tr><td>3</td><td>End Devices → Server</td><td>SRV-RADIUS, SRV-IOT, SRV-CENTRAL</td><td>Autenticación, IoT, portal web</td></tr>
+<tr><td>1</td><td>End Devices → PC</td><td>PC-ADMIN</td><td>Administrar la WLC por web</td></tr>
+<tr><td>3 + 1</td><td>End Devices → Laptop / Tablet</td><td>LAP-EMPLEADO-1, LAP-EMPLEADO-2, LAP-VISITANTE, TAB-ALMACEN</td><td>Clientes WiFi</td></tr>
+<tr><td>1 + 1</td><td>WAN Emulation → Central Office Server / Cell Tower</td><td>CENTRAL-OFFICE, TORRE-4G</td><td>Red celular</td></tr>
+<tr><td>2</td><td>End Devices → Smartphone</td><td>CEL-CHOFER-1, CEL-VENTAS</td><td>Flotilla</td></tr>
+<tr><td>6</td><td>End Devices → Home / Smart City</td><td>TEMP, PUERTA, HUMO, VENTILADOR, SIRENA, LUZ</td><td>Sensores y actuadores</td></tr>
+</tbody></table></div>
+<h3>Tipos de cable</h3>
+<ul><li><b>Directo (Copper Straight-Through):</b> entre equipos distintos (PC–switch, router–switch, AP–switch).</li>
+<li><b>Cruzado (Copper Cross-Over):</b> entre equipos iguales (switch–switch).</li>
+<li><b>Coaxial:</b> torre celular ↔ Central Office.</li></ul>
+<p><b>FastEthernet (Fa)</b> = 100 Mbps; <b>GigabitEthernet (G)</b> = 1000 Mbps. Los enlaces que cargan más tráfico (router y entre switches) van en G.</p>
+<h3>Conexiones exactas</h3>
+<div class="tbl"><table><thead><tr><th>Desde</th><th>Puerto</th><th>Hasta</th><th>Puerto</th><th>Cable</th></tr></thead><tbody>
+${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE','Backbone','Directo'],['CENTRAL-OFFICE','Coaxial','TORRE-4G','Coaxial','Coaxial'],['SW-CORE','G0/2','SW-ALMACEN','G0/1','Cruzado'],['SW-CORE','Fa0/1','WLC','Gig0/1 (puerto 1)','Directo'],['SW-CORE','Fa0/2','AP-1','G0','Directo'],['SW-CORE','Fa0/10','SRV-RADIUS','Fa0','Directo'],['SW-CORE','Fa0/11','SRV-IOT','Fa0','Directo'],['SW-CORE','Fa0/12','SRV-CENTRAL','Fa0','Directo'],['SW-CORE','Fa0/20','PC-ADMIN','Fa0','Directo'],['SW-ALMACEN','Fa0/1','AP-2','G0','Directo'],['SW-ALMACEN','Fa0/2','AP-3','G0','Directo']].map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td>${r[2]}</td><td class="mono">${r[3]}</td><td>${r[4]}</td></tr>`).join('')}
+</tbody></table></div>
+<p>Usa siempre el <b>puerto exacto</b>: las configuraciones que pegarás después dependen de él.</p>`,
+ steps:[
+  {t:'Crea el archivo <code>Innova_dia2.pkt</code>. Coloca todos los equipos de la tabla. Usa la topología de arriba como guía de posición.'},
+  {t:'Renombra cada equipo: clic → pestaña <b>Config</b> → Display Name (y Hostname en los servidores/PCs).'},
+  {t:'Cablea según la tabla de conexiones. Para elegir el puerto, haz clic en el cable y luego en el equipo: aparece la lista de puertos.'},
+  {t:'Si un AP aparece apagado, abre su pestaña <b>Physical</b> y arrastra el <b>Power Adapter</b> al conector.'},
+  {t:'Dibuja zonas de color (rectángulo) para Oficinas, Almacén y Flotilla 4G, con una nota de texto en cada una.'},
+  {t:'Guarda el archivo.'}
+ ],
+ verify:[['Los puntos de cada cable','Verdes, o naranjas mientras arrancan'],['Puertos del router','En rojo por ahora: es normal hasta hacer "no shutdown" (lección 6)']],
+ quiz:[
+  {q:'¿Qué cable usas entre SW-CORE y SW-ALMACEN?', o:['Directo','Cruzado','Coaxial','Serial'], a:1, e:'Son equipos iguales (switch–switch): cable cruzado.'},
+  {q:'¿Por qué el router y los switches se unen por puertos Gigabit?', o:['Porque los Fa no funcionan en PT','Porque esos enlaces llevan el tráfico de todas las VLANs juntas','Para usar menos cable','Porque lo exige el DHCP'], a:1, e:'Los enlaces troncales concentran el tráfico de todos; conviene que sean los más rápidos.'},
+  {q:'¿Qué cable une la torre celular con el Central Office?', o:['Fibra','Directo','Coaxial','Consola'], a:2, e:'En Packet Tracer, la torre y el Central Office se conectan con coaxial.'}
+ ],
+ say:'Tenemos un switch por edificio unidos por un enlace Gigabit. Al switch de oficinas llegan el router, la WLC, el AP-1, los servidores y la PC de administración; al del almacén, el AP-2 y el AP-3. El router tiene un segundo puerto hacia la red celular.',
+ links:[['vlans','Ya hay cables; ahora le decimos a cada puerto a qué VLAN pertenece']]
+},
+/* ---------------------------------------------------------------- 5 */
+{id:'vlans', et:1, title:'VLANs y trunks en los switches', focus:['swc','swa','r','wlc'], rubk:'base',
+ prob:'Separar empleados, invitados, servidores, sensores y gestión, aunque compartan los mismos switches y cables.',
+ rub:'Infraestructura base (20 %): VLANs y trunking 802.1Q',
+ theory:`
+<p>Una <b>VLAN</b> divide un switch físico en varios switches lógicos. Los equipos de la VLAN 10 no ven a los de la VLAN 20 aunque estén en el mismo switch. Cada VLAN es un <b>dominio de broadcast</b> separado.</p>
+<div class="analogy">Un edificio con varias oficinas cerradas: comparten pasillos y elevador (el switch y los cables), pero cada oficina tiene su puerta. Para pasar de una oficina a otra hay que ir con recepción (el router).</div>
+<p>Regla del proyecto: <b>1 VLAN = 1 subred</b>. VLAN 10 ↔ 192.168.1.0/24, VLAN 20 ↔ 192.168.2.0/24, etc.</p>
+<h3>Puerto de acceso y puerto trunk</h3>
+<ul><li><b>Access:</b> pertenece a <b>una</b> VLAN. Para equipos finales: PC, servidor… y también los APs (en la lección 10 verás por qué).</li>
+<li><b>Trunk:</b> lleva <b>varias</b> VLANs por un solo cable. Entre switches, hacia el router y hacia la WLC.</li></ul>
+<h3>802.1Q y VLAN nativa</h3>
+<p>Por un trunk viajan tramas de muchas VLANs. Para distinguirlas, el switch inserta una <b>etiqueta 802.1Q</b> de 4 bytes con el número de VLAN. La <b>VLAN nativa</b> es la única que viaja <b>sin etiqueta</b>, y debe ser la misma en ambos extremos del trunk.</p>
+<p>Usamos la <b>99</b> como nativa porque la WLC envía su tráfico de gestión sin etiqueta y ese tráfico debe caer en la VLAN 99.</p>
+<h3>Otros comandos</h3>
+<ul><li><code>switchport trunk allowed vlan 10,20,30,40,99</code>: solo esas VLANs pasan por el trunk (seguridad).</li>
+<li><code>spanning-tree portfast</code>: el puerto de un equipo final empieza a funcionar al instante, sin esperar los ~30 s de STP. Nunca en un trunk.</li>
+<li><code>shutdown</code> en puertos sin uso: nadie puede conectar un equipo intruso.</li>
+<li><code>interface vlan 99</code> + IP: para administrar el switch a distancia.</li></ul>`,
+ steps:[
+  {t:'Abre SW-CORE → CLI, presiona Enter y pega esta configuración completa (botón Copiar, luego clic derecho → Paste o Ctrl+V).', code:'sw_core'},
+  {t:'Abre SW-ALMACEN → CLI y pega la suya.', code:'sw_alm'},
+  {t:'Lee la configuración que pegaste y ubica: dónde se crean las VLANs, cuáles puertos son trunk, cuáles access y en qué VLAN.'},
+  {t:'Ejecuta los comandos de verificación (abajo) en ambos switches y toma captura de cada uno para el reporte.'},
+  {t:'Guarda el .pkt.'}
+ ],
+ verify:[['SW-CORE# show vlan brief','VLANs 10, 20, 30, 40, 99 activas; Fa0/2 y Fa0/20 en 99; Fa0/10-12 en 30'],['SW-CORE# show interfaces trunk','G0/1, G0/2 y Fa0/1 en trunking, Native vlan 99'],['SW-ALMACEN# show vlan brief','Fa0/1 y Fa0/2 en VLAN 99']],
+ quiz:[
+  {q:'¿Por qué los puertos trunk no aparecen en "show vlan brief"?', o:['Porque están apagados','Porque pertenecen a todas las VLANs permitidas, no a una sola','Porque son Gigabit','Es un error de configuración'], a:1, e:'Es normal: un trunk transporta varias VLANs. Se revisa con "show interfaces trunk".'},
+  {q:'¿Qué pasa si un trunk tiene VLAN nativa 99 en un lado y 1 en el otro?', o:['Nada','Error "native VLAN mismatch" y el tráfico sin etiqueta cae en la VLAN equivocada','El trunk se vuelve más rápido','Se borran las VLANs'], a:1, e:'La nativa debe coincidir en ambos extremos.'},
+  {q:'¿Qué hace la etiqueta 802.1Q?', o:['Cifra la trama','Indica a qué VLAN pertenece la trama dentro de un trunk','Asigna la IP','Elige el canal WiFi'], a:1, e:'Son 4 bytes con el ID de VLAN, para que el otro extremo del trunk sepa a qué VLAN entregarla.'},
+  {q:'¿Dónde NO se debe usar PortFast?', o:['En el puerto de una PC','En el puerto de un servidor','En un enlace trunk entre switches','En el puerto de un AP'], a:2, e:'PortFast es para equipos finales. En enlaces entre switches podría provocar bucles.'}
+ ],
+ say:'Creamos cinco VLANs. Los equipos finales y los APs van en puertos de acceso; los enlaces entre switches, al router y a la WLC son trunks 802.1Q que etiquetan cada trama con su VLAN. La VLAN nativa es la 99 en todos los trunks porque la gestión de la WLC viaja sin etiqueta.',
+ links:[['router','Las VLANs están separadas: el router las comunica'],['wlc','Por qué el puerto de la WLC es trunk y el de los APs es access']]
+},
+/* ---------------------------------------------------------------- 6 */
+{id:'router', et:1, title:'Router-on-a-stick: comunicar las VLANs', focus:['r','swc'], rubk:'base',
+ prob:'Los empleados (VLAN 10) necesitan llegar a los servidores (VLAN 30). Solo un router puede unir redes distintas.',
+ rub:'Infraestructura base (20 %): Inter-VLAN Routing',
+ theory:`
+<p><b>Router-on-a-stick</b> usa un solo cable trunk entre switch y router. El puerto del router se divide en <b>subinterfaces</b> virtuales (<code>G0/0.10</code>, <code>G0/0.20</code>…). Cada subinterfaz:</p>
+<ul><li>atiende una VLAN: <code>encapsulation dot1Q 10</code></li>
+<li>tiene la IP que es el <b>gateway</b> de esa VLAN: <code>192.168.1.1</code></li></ul>
+<p>Un paquete de la VLAN 10 hacia la VLAN 30 sube al router por el trunk con etiqueta 10. El router lo enruta y lo baja por el mismo cable con etiqueta 30.</p>
+<div class="analogy">Un solo elevador (el cable) que para en varios pisos (VLANs). El router es el operador que recibe a alguien en el piso 10 y lo deja en el piso 30.</div>
+<h3>La tabla de rutas</h3>
+<ul><li><b>C (conectadas):</b> redes que el router tiene en sus interfaces. Las aprende solo.</li>
+<li><b>S (estáticas):</b> las escribes tú. Necesitarás una hacia los celulares (lección 15).</li></ul>
+<h3>Qué hace cada parte del bloque</h3>
+<ul><li><code>hostname</code>, <code>enable secret</code>, <code>service password-encryption</code>, <code>banner motd</code>: identidad y contraseñas cifradas.</li>
+<li><code>ip domain-name</code>, <code>username</code>, <code>crypto key generate rsa</code>, <code>ip ssh version 2</code>, <code>transport input ssh</code>: administración remota cifrada con <b>SSH</b> (Telnet manda todo en texto plano).</li>
+<li><code>interface G0/0</code> + <code>no shutdown</code>: enciende el puerto físico; las subinterfaces dependen de él.</li>
+<li><code>encapsulation dot1Q 99 native</code>: la VLAN 99 llega sin etiqueta, igual que en los switches.</li></ul>
+<p>Esta es la primera de varias partes de la configuración del router. Las siguientes (DHCP, ACLs, red 4G) las agregarás en su lección, para entender cada una.</p>`,
+ steps:[
+  {t:'Abre R-CORE → CLI. Si pregunta "initial configuration dialog", responde <code>no</code>. Pega el bloque 1.', code:'r_base'},
+  {t:'Si PT pregunta por el tamaño de la llave RSA, escribe <code>1024</code>. Espera a que termine.'},
+  {t:'Verifica con <code>show ip interface brief</code>: todas las subinterfaces deben estar "up up". G0/1 puede estar "down" hasta configurar el Central Office (lección 15).'},
+  {t:'Verifica con <code>show ip route</code>: debes ver 5 líneas "C" (192.168.0.0 a 192.168.4.0). Toma captura.'},
+  {t:'Guarda el .pkt.'}
+ ],
+ verify:[['R-CORE# show ip interface brief','G0/0.10, .20, .30, .40, .99 en up/up'],['R-CORE# show ip route','C 192.168.0.0 … C 192.168.4.0 (y 192.168.5.0 cuando G0/1 suba)'],['R-CORE# show interfaces g0/0.10','Encapsulation 802.1Q Virtual LAN, Vlan ID 10']],
+ quiz:[
+  {q:'¿Qué comando dice a una subinterfaz qué VLAN atender?', o:['switchport access vlan 10','encapsulation dot1Q 10','vlan 10','ip route 10'], a:1, e:'encapsulation dot1Q <id> asocia la subinterfaz a esa VLAN.'},
+  {q:'Si se te olvida "no shutdown" en G0/0, ¿qué pasa?', o:['Nada, las subinterfaces funcionan solas','Todas las subinterfaces quedan caídas y nadie sale de su VLAN','Solo falla la VLAN 99','Se borra la configuración'], a:1, e:'Las subinterfaces dependen del puerto físico. Si G0/0 está apagado, todas caen.'},
+  {q:'¿Por qué usamos SSH y no Telnet?', o:['SSH es más rápido','SSH cifra la sesión; Telnet envía contraseñas en texto plano','Telnet no existe en PT','SSH no necesita contraseña'], a:1, e:'Es parte de la seguridad del proyecto: la administración también debe ir cifrada.'}
+ ],
+ say:'Usamos router-on-a-stick: un solo enlace trunk con una subinterfaz por VLAN. Cada subinterfaz tiene encapsulación 802.1Q y la IP .1 que funciona como gateway. Así el router enruta entre VLANs con un solo cable.',
+ links:[['dhcp','El router ya es el gateway; ahora también repartirá las IPs'],['acl','En la subinterfaz .20 pondremos el candado para invitados']]
+},
+/* ---------------------------------------------------------------- 7 */
+{id:'dhcp', et:1, title:'DHCP: IPs automáticas para todos', focus:['r'], rubk:'base',
+ prob:'Laptops, tablets, sensores y APs necesitan IP sin configurarlos a mano uno por uno.',
+ rub:'Infraestructura base (20 %): DHCP en switches/routers',
+ theory:`
+<p><b>DHCP</b> entrega automáticamente IP, máscara, gateway y DNS. Funciona en 4 pasos, <b>DORA</b>:</p>
+<ol><li><b>Discover:</b> el cliente pregunta a todos "¿hay un servidor DHCP?" (broadcast).</li>
+<li><b>Offer:</b> el servidor responde "te ofrezco la 192.168.1.11".</li>
+<li><b>Request:</b> el cliente responde "la quiero".</li>
+<li><b>Acknowledge:</b> el servidor confirma "es tuya".</li></ol>
+<div class="analogy">Llegas a un hotel (la red): preguntas en recepción si hay cuarto, te ofrecen uno, lo aceptas y te dan la llave.</div>
+<ul><li><b>Pool:</b> el rango que reparte para una red. Hay uno por VLAN.</li>
+<li><b>excluded-address:</b> IPs que el DHCP no debe dar porque ya están ocupadas (gateway, WLC, switches, PC-ADMIN).</li>
+<li><b>default-router</b> y <b>dns-server</b>: el gateway y el DNS que se le entregan al cliente.</li></ul>
+<h3>Quién usa DHCP y quién no</h3>
+<ul><li>Con DHCP: APs (pool GESTION-APs), laptops corporativas, visitantes, sensores IoT.</li>
+<li>Con IP fija: router, switches, WLC, servidores y PC-ADMIN. Todos los demás los buscan por esa dirección, así que no puede cambiar.</li>
+<li>No hay pool para la VLAN 30 porque ahí solo hay servidores con IP fija.</li>
+<li>Los invitados reciben DNS 8.8.8.8 (externo), porque no deben consultar el DNS interno.</li></ul>
+<p>¿Por qué funciona si el router está en otra parte de la red? Porque cada subinterfaz está <b>dentro</b> de su VLAN: el broadcast del Discover le llega directamente.</p>`,
+ steps:[
+  {t:'En R-CORE, entra a modo <code>R-CORE#</code> (<code>enable</code>, contraseña <code>Innova2026</code>) y pega el bloque 2.', code:'r_dhcp'},
+  {t:'Lee cada pool y relaciónalo con su VLAN en la tabla de la lección 3.'},
+  {t:'Ejecuta <code>show ip dhcp pool</code>. Todavía no habrá IPs entregadas: los clientes llegan en las lecciones 10 a 14. Vuelve a este comando después.'},
+  {t:'Guarda el .pkt.'}
+ ],
+ verify:[['R-CORE# show ip dhcp pool','4 pools: GESTION-APs, CORPORATIVO, INVITADOS, IOT'],['R-CORE# show ip dhcp binding (después de la lección 10)','IPs 192.168.0.21+ para los APs']],
+ quiz:[
+  {q:'¿En qué orden ocurre DHCP?', o:['Request, Offer, Discover, Ack','Discover, Offer, Request, Acknowledge','Offer, Discover, Ack, Request','Discover, Request, Offer, Ack'], a:1, e:'DORA: Discover, Offer, Request, Acknowledge.'},
+  {q:'¿Para qué sirve "ip dhcp excluded-address 192.168.0.1 192.168.0.20"?', o:['Para bloquear esas IPs en la ACL','Para que el DHCP no reparta IPs ya usadas por el router, switches, WLC y PC-ADMIN','Para darles prioridad','Para crear la VLAN 99'], a:1, e:'Evita conflictos de IP duplicada con los equipos de IP fija.'},
+  {q:'¿Por qué los servidores tienen IP fija?', o:['Porque DHCP no funciona en servidores','Porque la WLC, los sensores y los clientes los buscan por una IP que no debe cambiar','Por la VLAN nativa','Porque así lo pide 802.1X'], a:1, e:'Por ejemplo, la WLC tiene configurado el RADIUS en 192.168.3.10: si cambiara, nadie podría autenticarse.'}
+ ],
+ say:'El router es el servidor DHCP con un pool por VLAN. Excluimos las direcciones de los equipos con IP fija: router, switches, WLC y servidores. El cliente obtiene su IP con el proceso DORA.',
+ links:[['servidores','Ahora configuramos los equipos de IP fija y probamos que todo se comunica'],['wlc','Los APs usarán el pool GESTION-APs para encontrar a la WLC']]
+},
+/* ---------------------------------------------------------------- 8 */
+{id:'servidores', et:1, title:'Servidores y primera prueba de la red', focus:['adm','rad','iot','cen','swc','r'], rubk:'base',
+ prob:'Los servidores son el destino de todo: RADIUS valida empleados, IoT controla el almacén y el Central recibe las entregas.',
+ rub:'Infraestructura base (20 %) y prueba de que el Inter-VLAN funciona',
+ theory:`
+<ul><li><b>SRV-RADIUS (192.168.3.10):</b> verifica usuario y contraseña de los empleados. Lo configuras en la lección 12.</li>
+<li><b>SRV-IOT (192.168.3.11):</b> registra sensores y ejecuta reglas. Lección 14.</li>
+<li><b>SRV-CENTRAL (192.168.3.12):</b> portal web de entregas (<b>HTTP/HTTPS</b>) y <b>DNS</b>.</li></ul>
+<p><b>DNS</b> traduce nombres a IPs, como la agenda de tu celular: escribes <code>entregas.innovalogistics.local</code> y el DNS responde <code>192.168.3.12</code>.</p>
+<p><b>HTTPS</b> es HTTP cifrado con TLS: nadie en el camino puede leer lo que envías. Los choferes lo usarán desde la red 4G.</p>
+<h3>Por qué esta lección es una prueba</h3>
+<p>PC-ADMIN está en la VLAN 99 y los servidores en la 30. Si el ping entre ellos funciona, demuestras que <b>VLANs, trunks y router-on-a-stick</b> están bien. Es la primera evidencia fuerte del criterio de infraestructura.</p>
+<h3>Si el ping falla, revisa en este orden</h3>
+<ol><li>IP, máscara y gateway del equipo.</li><li>Puerto del switch en la VLAN correcta (<code>show vlan brief</code>).</li><li>Trunk activo (<code>show interfaces trunk</code>).</li><li>Subinterfaz del router up (<code>show ip interface brief</code>).</li></ol>`,
+ steps:[
+  {t:`Configura IP estática (Desktop → IP Configuration → Static):<div class="tbl"><table><thead><tr><th>Equipo</th><th>IP</th><th>Máscara</th><th>Gateway</th><th>DNS</th></tr></thead><tbody>
+<tr><td>SRV-RADIUS</td><td class="mono">192.168.3.10</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
+<tr><td>SRV-IOT</td><td class="mono">192.168.3.11</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
+<tr><td>SRV-CENTRAL</td><td class="mono">192.168.3.12</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
+<tr><td>PC-ADMIN</td><td class="mono">192.168.0.20</td><td class="mono">255.255.255.0</td><td class="mono">192.168.0.1</td><td class="mono">192.168.3.12</td></tr></tbody></table></div>`},
+  {t:'SRV-CENTRAL → Services → <b>HTTP</b>: HTTP On y HTTPS On. Edita <code>index.html</code> y escribe: <code>&lt;h1&gt;InnovaLogistics - Portal de Entregas&lt;/h1&gt;</code>.'},
+  {t:'SRV-CENTRAL → Services → <b>DNS</b>: On. Agrega registros tipo A: <code>entregas.innovalogistics.local</code> → 192.168.3.12 e <code>iot.innovalogistics.local</code> → 192.168.3.11.'},
+  {t:'En los tres servidores, apaga el servicio <b>DHCP</b> si está encendido (el DHCP lo da el router).'},
+  {t:'Desde PC-ADMIN → Command Prompt: <code>ping 192.168.0.1</code> y luego <code>ping 192.168.3.12</code>. El primer ping puede perder un paquete mientras se resuelve ARP; es normal.'},
+  {t:'Desde PC-ADMIN → Web Browser: <code>entregas.innovalogistics.local</code>. Debe aparecer el portal. Toma captura.'}
+ ],
+ verify:[['PC-ADMIN> ping 192.168.3.12','Reply: VLAN 99 → VLAN 30 a través del router'],['Navegador → entregas.innovalogistics.local','Se ve el Portal de Entregas (DNS + HTTP)']],
+ quiz:[
+  {q:'PC-ADMIN (VLAN 99) hace ping al servidor (VLAN 30) y funciona. ¿Qué demuestra?', o:['Que el WiFi funciona','Que VLANs, trunks y el enrutamiento entre VLANs están bien','Que RADIUS funciona','Solo que el cable está conectado'], a:1, e:'El paquete tuvo que subir por el trunk al router, cambiar de VLAN y bajar al servidor.'},
+  {q:'¿Qué hace el DNS?', o:['Asigna IPs','Traduce nombres a direcciones IP','Cifra la web','Autentica usuarios'], a:1, e:'Convierte entregas.innovalogistics.local en 192.168.3.12.'},
+  {q:'El ping falla. ¿Qué revisas primero?', o:['La contraseña del router','La IP, máscara y gateway del equipo','El canal WiFi','El servidor IoT'], a:1, e:'Se diagnostica de lo más básico a lo complejo: primero la configuración IP del equipo.'}
+ ],
+ say:'Los servidores tienen IP fija en la VLAN 30. Probamos el enrutamiento entre VLANs con un ping de la PC de administración, en la VLAN 99, al servidor central, y el acceso web por nombre usando nuestro DNS.',
+ links:[['wifi','La red cableada está lista. Ahora la teoría del WiFi'],['radius','El SRV-RADIUS se configura en la lección 12'],['iot','El SRV-IOT se activa en la lección 14']]
+},
+/* ---------------------------------------------------------------- 9 */
+{id:'wifi', et:2, title:'Cómo funciona el WiFi', focus:['ap1','ap2','ap3','cli'], rubk:'wlc',
+ prob:'El problema 1 de la empresa es de radio: mismo canal, interferencia, sin cobertura. Esta teoría explica por qué y cómo lo resolvemos.',
+ rub:'WLC, WLANs y roaming (25 %): base teórica que te preguntarán',
+ theory:`
+<p>El WiFi es la familia de estándares <b>IEEE 802.11</b>: transmite datos con ondas de radio.</p>
+<div class="tbl"><table><thead><tr><th>Estándar</th><th>Nombre</th><th>Banda</th><th>Máx. aprox.</th></tr></thead><tbody>
+<tr><td>802.11b</td><td>—</td><td>2.4 GHz</td><td>11 Mbps</td></tr><tr><td>802.11a</td><td>—</td><td>5 GHz</td><td>54 Mbps</td></tr>
+<tr><td>802.11g</td><td>—</td><td>2.4 GHz</td><td>54 Mbps</td></tr><tr><td>802.11n</td><td>WiFi 4</td><td>2.4 / 5 GHz</td><td>600 Mbps</td></tr>
+<tr><td>802.11ac</td><td>WiFi 5</td><td>5 GHz</td><td>~3.5 Gbps</td></tr><tr><td>802.11ax</td><td>WiFi 6/6E</td><td>2.4 / 5 / 6 GHz</td><td>~9.6 Gbps</td></tr></tbody></table></div>
+<h3>Bandas y canales</h3>
+<p><b>2.4 GHz</b> llega más lejos y atraviesa mejor las paredes, pero tiene más interferencia y solo <b>3 canales que no se enciman: 1, 6 y 11</b>. <b>5 GHz</b> tiene más canales y velocidad, pero menos alcance.</p>
+<p>Los canales de 2.4 GHz están separados 5 MHz, pero cada uno ocupa unos 22 MHz, así que se enciman con sus vecinos. Prueba aquí: elige el canal de cada AP.</p>
+<div data-widget="canales"></div>
+<h3>Por qué el mismo canal es un problema</h3>
+<p>En el aire no se pueden detectar choques, así que el WiFi usa <b>CSMA/CA</b>: escuchar antes de hablar y esperar turno. Si todos los APs están en el mismo canal, todos esperan a todos: lentitud y caídas. Se llama <b>interferencia co-canal</b> y es exactamente lo que pasaba con los routers caseros.</p>
+<h3>SSID, BSS y ESS</h3>
+<ul><li><b>SSID:</b> el nombre de la red (INNOVA-CORP).</li>
+<li><b>BSSID:</b> la MAC del radio de cada AP; identifica a cada antena.</li>
+<li><b>BSS:</b> un AP con sus clientes.</li>
+<li><b>ESS:</b> varios APs con el <b>mismo SSID</b> unidos por la red cableada. Para el usuario es una sola red grande. <b>Es lo que pide el proyecto.</b></li>
+<li><b>IBSS (ad-hoc):</b> equipos conectados entre sí sin AP.</li></ul>
+<h3>Roaming</h3>
+<p>Es cambiar de AP sin desconectarse. Lo decide el <b>cliente</b> cuando la señal del AP actual baja. Requisitos: mismo SSID, misma seguridad, coberturas que se enciman un 15–20 % y canales distintos en APs vecinos.</p>
+<div class="analogy">Como el celular en una llamada mientras viajas en carretera: cambia de antena sin cortar. Aquí cambias del AP de oficinas al del almacén sin perder la conexión.</div>`,
+ steps:[
+  {t:'En el simulador de canales, pon los tres APs en el canal 1 (como estaba la empresa) y observa el aviso. Luego aplica 1/6/11.'},
+  {t:'Prueba 1/3/6: verás por qué no basta con "canales distintos"; tienen que estar separados por al menos 5.'},
+  {t:'Explica en voz alta, en 30 segundos, por qué los routers caseros fallaban (mismo canal + CSMA/CA).'},
+  {t:'Dibuja en una hoja un BSS y un ESS. Marca dónde ocurre el roaming.'}
+ ],
+ verify:[['¿Canales sin traslape en 2.4 GHz?','1, 6 y 11'],['¿Qué es un ESS?','Varios APs con el mismo SSID unidos por la red cableada']],
+ quiz:[
+  {q:'¿Por qué se eligen los canales 1, 6 y 11?', o:['Son los más rápidos','Son los únicos de 2.4 GHz que no se enciman entre sí','Los exige la WLC','Son de 5 GHz'], a:1, e:'Cada canal ocupa ~22 MHz y están separados 5 MHz; solo 1, 6 y 11 quedan sin traslape.'},
+  {q:'¿Qué es un ESS?', o:['Un AP sin clientes','Varios APs con el mismo SSID formando una sola red','Un tipo de cifrado','Una VLAN'], a:1, e:'Extended Service Set: el conjunto de BSS con el mismo SSID. Permite el roaming.'},
+  {q:'¿Quién decide hacer roaming?', o:['La WLC','El router','El cliente (la laptop)','El servidor RADIUS'], a:2, e:'El cliente decide cambiar cuando la señal del AP actual se debilita. La WLC lo facilita.'},
+  {q:'¿Qué método de acceso al medio usa el WiFi?', o:['CSMA/CD','CSMA/CA','Token Ring','TDMA'], a:1, e:'CSMA/CA (evitar colisiones). CSMA/CD es de Ethernet cableado antiguo.'}
+ ],
+ say:'Los routers caseros estaban todos en el mismo canal de 2.4 GHz; con CSMA/CA se estorbaban entre sí. Pusimos los tres APs en los canales 1, 6 y 11, que no se enciman, y con el mismo SSID forman un ESS que permite roaming.',
+ links:[['wlc','Ahora el equipo que coordina a los tres APs: la WLC'],['ssids','El roaming lo probarás en la lección 11']]
+},
+/* ---------------------------------------------------------------- 10 */
+{id:'wlc', et:2, title:'La WLC, los APs ligeros y CAPWAP', focus:['wlc','ap1','ap2','ap3','swc','swa','adm'], rubk:'wlc',
+ prob:'Reemplazar los routers caseros independientes por una infraestructura centralizada.',
+ rub:'WLC, WLANs y roaming (25 %): "aprovisiona los LAPs en modo CAPWAP"',
+ theory:`
+<h3>AP autónomo y AP ligero</h3>
+<ul><li><b>AP autónomo:</b> tiene cerebro propio; cada uno se configura por separado (como los routers caseros).</li>
+<li><b>Lightweight AP (LAP):</b> no se configura solo; obedece a una <b>WLC</b>.</li></ul>
+<p>La <b>WLC</b> (Wireless LAN Controller) es el cerebro central: SSIDs, seguridad, canales y VLANs se configuran ahí una vez y se aplican a todos los APs.</p>
+<h3>Split-MAC</h3>
+<ul><li>El <b>AP</b> hace lo inmediato: transmitir, enviar <i>beacons</i> (los anuncios del SSID), confirmar recepción, cifrar en el aire.</li>
+<li>La <b>WLC</b> hace la gestión: decidir quién entra, autenticar, asignar la VLAN, controlar el roaming.</li></ul>
+<div class="analogy">Los APs son meseros y la WLC es el gerente. Los meseros atienden las mesas al momento; el gerente decide quién entra, en qué sección se sienta y qué reglas aplican.</div>
+<h3>CAPWAP</h3>
+<p>Es el túnel entre cada AP y la WLC:</p>
+<ul><li><b>UDP 5246:</b> control (órdenes y configuración), cifrado con DTLS.</li>
+<li><b>UDP 5247:</b> datos (el tráfico de los usuarios va encapsulado aquí).</li></ul>
+<h3>Cómo encuentra el AP a la WLC</h3>
+<ol><li>El AP enciende y pide IP por DHCP (pool GESTION-APs, VLAN 99).</li>
+<li>Envía un <b>discovery</b> por broadcast. La WLC está en la misma VLAN 99, lo escucha y responde.</li>
+<li>Se forma el túnel CAPWAP y el AP descarga su configuración.</li></ol>
+<p>Si la WLC estuviera en otra subred se usaría la <b>opción 43 de DHCP</b> o un registro DNS <code>CISCO-CAPWAP-CONTROLLER</code>.</p>
+<h3>Por qué el AP va en access y la WLC en trunk</h3>
+<ul><li>El AP solo envía CAPWAP en la VLAN 99; el tráfico de los usuarios va <b>dentro</b> del túnel. No necesita etiquetas: <b>access</b>.</li>
+<li>La WLC saca el tráfico del túnel y lo entrega en la VLAN de cada usuario (10, 20, 40) además de su gestión (99): <b>trunk</b>.</li></ul>
+<p>Este modo, en que todo el tráfico pasa por la WLC, se llama <b>modo Local</b>. El otro modo, <b>FlexConnect</b>, deja que el AP conmute localmente (útil en sucursales).</p>`,
+ steps:[
+  {t:'WLC → pestaña <b>Config</b> → Management: IP <code>192.168.0.10</code>, máscara <code>255.255.255.0</code>, gateway <code>192.168.0.1</code>.'},
+  {t:'Espera 1–2 minutos (o usa el botón de adelantar tiempo, abajo a la izquierda) para que los APs obtengan IP y se unan.'},
+  {t:'PC-ADMIN → Web Browser → <code>https://192.168.0.10</code>. Si es la primera vez, crea el usuario administrador: <code>admin</code> / <code>Admin2026</code>. Si aparece un asistente inicial, usa nombre <code>WLC-INNOVA</code>, IP 192.168.0.10/24, gateway 192.168.0.1.'},
+  {t:'En la WLC: <b>Wireless → All APs</b>. Deben aparecer los 3 APs. Toma captura.'},
+  {t:'Renombra los APs (clic en cada uno): <code>AP-1-OFICINAS</code>, <code>AP-2-ALMACEN-A</code>, <code>AP-3-ALMACEN-B</code>.'},
+  {t:'En R-CORE: <code>show ip dhcp binding</code>. Verás 3 IPs 192.168.0.x: son los APs.'},
+  {t:'Cambia a <b>Simulation Mode</b>, filtra el protocolo <b>CAPWAP</b> y observa los paquetes entre APs y WLC. Regresa a Realtime. Guarda el .pkt.'}
+ ],
+ verify:[['WLC web → Wireless → All APs','3 APs registrados'],['R-CORE# show ip dhcp binding','3 IPs en 192.168.0.21–23'],['PC-ADMIN> ping 192.168.0.10','Reply de la WLC']],
+ trouble:[['Los APs no aparecen','¿Tienen energía (Power Adapter)? ¿Tienen IP (show ip dhcp binding)? ¿Su puerto está en VLAN 99? ¿La WLC tiene 192.168.0.10?'],['No abre la página de la WLC','¿PC-ADMIN está en VLAN 99 con gateway 192.168.0.1? Prueba ping 192.168.0.10. Prueba http:// en vez de https://.']],
+ quiz:[
+  {q:'¿Qué puertos usa CAPWAP?', o:['TCP 80 y 443','UDP 5246 (control) y UDP 5247 (datos)','UDP 1812 y 1813','TCP 22'], a:1, e:'5246 para control (cifrado con DTLS) y 5247 para los datos de los clientes.'},
+  {q:'¿Cómo descubren los APs a la WLC en tu diseño?', o:['Por DNS','Por broadcast, porque están en la misma VLAN 99 que la WLC','Con un cable de consola','Por la torre celular'], a:1, e:'Están en la misma subred de gestión. En otra subred se usaría DHCP opción 43 o DNS.'},
+  {q:'¿Por qué el puerto del AP es access y el de la WLC es trunk?', o:['Por velocidad','El AP solo manda CAPWAP en VLAN 99; la WLC entrega tráfico de varias VLANs','Es al revés','Porque la WLC no tiene IP'], a:1, e:'El tráfico de los usuarios viaja dentro del túnel hasta la WLC; ella lo saca a su VLAN por el trunk.'},
+  {q:'En split-MAC, ¿quién decide si un cliente puede entrar a la red?', o:['El AP','La WLC','El switch','El cliente'], a:1, e:'La WLC hace la asociación, autenticación y políticas. El AP hace lo de tiempo real.'}
+ ],
+ say:'Los APs son lightweight. Al encender piden IP por DHCP en la VLAN de gestión, descubren la WLC por broadcast y forman un túnel CAPWAP: 5246 para control y 5247 para datos. Toda la configuración vive en la WLC y se aplica a los tres APs.',
+ links:[['ssids','La WLC está lista: ahora creamos las redes WiFi'],['vlans','Repasa access y trunk si la razón no te quedó clara']]
+},
+/* ---------------------------------------------------------------- 11 */
+{id:'ssids', et:2, title:'SSIDs, interfaces dinámicas y roaming', focus:['wlc','ap1','ap2','ap3','cli','swc','r'], rubk:'wlc',
+ prob:'Cada tipo de usuario debe caer en su VLAN, y un usuario debe moverse entre edificios sin perder conexión.',
+ rub:'WLC, WLANs y roaming (25 %): "crea los SSIDs y logra un roaming fluido sin pérdida de paquetes"',
+ theory:`
+<p>La WLC necesita una "pata" en cada VLAN de usuarios para soltar ahí su tráfico. Cada pata es una <b>interfaz dinámica</b> con su VLAN e IP:</p>
+<div class="tbl"><table><thead><tr><th>Interfaz</th><th>VLAN</th><th>IP</th><th>Gateway / DHCP</th><th>SSID</th><th>Seguridad</th></tr></thead><tbody>
+<tr><td>CORP</td><td class="mono">10</td><td class="mono">192.168.1.2</td><td class="mono">192.168.1.1</td><td>INNOVA-CORP</td><td>WPA2-Enterprise (lección 12)</td></tr>
+<tr><td>GUEST</td><td class="mono">20</td><td class="mono">192.168.2.2</td><td class="mono">192.168.2.1</td><td>INNOVA-GUEST</td><td>WPA2-PSK <code>Visitante2026</code></td></tr>
+<tr><td>IOT</td><td class="mono">40</td><td class="mono">192.168.4.2</td><td class="mono">192.168.4.1</td><td>INNOVA-IOT</td><td>WPA2-PSK <code>SensorIoT2026</code></td></tr></tbody></table></div>
+<p>Cada SSID se amarra a una interfaz: <b>SSID → interfaz → VLAN</b>.</p>
+<pre class="code">Visitante se conecta a "INNOVA-GUEST"
+ → AP → túnel CAPWAP → WLC → interfaz GUEST → VLAN 20 → trunk → R-CORE G0/0.20</pre>
+<h3>Por qué el roaming no cambia la IP</h3>
+<p>Los tres APs pertenecen a la misma WLC, y la WLC mete al usuario siempre en la misma VLAN sin importar por qué AP llegue. El cliente nunca cambia de subred, así que conserva su IP y sus conexiones. Se llama <b>roaming de capa 2 dentro del mismo controlador</b>.</p>
+<p>Con 802.1X el roaming puede tardar más por la reautenticación. En redes reales se acelera con <b>PMK caching</b> u <b>802.11r (Fast Transition)</b>.</p>`,
+ steps:[
+  {t:`WLC → <b>Controller → Interfaces → New</b>. Crea CORP (VLAN 10), GUEST (VLAN 20) e IOT (VLAN 40) con los datos de la tabla. En cada una: puerto físico <code>1</code> y Primary DHCP Server = su gateway.`},
+  {t:'WLC → <b>WLANs → Create New → Go</b>: SSID <code>INNOVA-GUEST</code>, ID 2. General: Status Enabled, Interface <b>GUEST</b>. Security → Layer 2: WPA+WPA2, WPA2 Policy, AES, Auth Key Mgmt <b>PSK</b>, clave <code>Visitante2026</code>. Apply.'},
+  {t:'Crea <code>INNOVA-IOT</code>, ID 3, Interface <b>IOT</b>, WPA2 + AES + PSK <code>SensorIoT2026</code>. Apply. (INNOVA-CORP se crea en la lección 12, cuando exista el RADIUS.)'},
+  {t:'Canales: <b>Wireless → Access Points → Radios → 802.11b/g/n</b> → cada AP → Channel personalizado: AP-1 = 1, AP-2 = 6, AP-3 = 11. Si tu versión no lo permite, explícalo en la exposición.'},
+  {t:'LAP-VISITANTE → Physical: apaga, quita el módulo Ethernet, pon <b>WPC300N</b>, enciende. Config → Wireless0: SSID <code>INNOVA-GUEST</code>, <b>WPA2-PSK</b>, <code>Visitante2026</code>. IP por DHCP: debe recibir 192.168.2.x.'},
+  {t:'<b>Prueba de roaming:</b> coloca la laptop cerca de AP-1. Command Prompt: <code>ping -t 192.168.2.1</code>. Arrastra la laptop hacia la zona del AP-2/AP-3. El ping debe seguir y <code>ipconfig</code> debe mostrar la misma IP. Toma captura.'},
+  {t:'WLC → <b>Monitor → Clients</b>: verás la laptop y en qué AP está. Guarda el .pkt.'}
+ ],
+ verify:[['LAP-VISITANTE> ipconfig','192.168.2.x, gateway 192.168.2.1'],['WLC → WLANs','INNOVA-GUEST e INNOVA-IOT habilitadas'],['ping -t durante el roaming','Continúa; como mucho 1 paquete perdido; misma IP']],
+ trouble:[['El cliente conecta pero no recibe IP','Revisa el Primary DHCP Server de la interfaz dinámica y que la VLAN esté permitida en el trunk de la WLC (show interfaces trunk).'],['La laptop no ve el SSID','¿La WLAN está Enabled? ¿La laptop tiene tarjeta inalámbrica WPC300N? ¿Está dentro del alcance de algún AP?']],
+ quiz:[
+  {q:'¿Qué une a un SSID con una VLAN en la WLC?', o:['El canal','La interfaz dinámica asignada a la WLAN','El AP','El cable'], a:1, e:'La WLAN apunta a una interfaz dinámica, y esa interfaz está en una VLAN.'},
+  {q:'Durante el roaming de AP-1 a AP-2, ¿por qué la laptop conserva su IP?', o:['Porque tiene IP fija','Porque la WLC la mantiene en la misma VLAN sin importar el AP','Porque los APs tienen la misma MAC','Porque el DHCP la reserva'], a:1, e:'Roaming de capa 2 en el mismo controlador: nunca cambia de subred.'},
+  {q:'¿Qué tarjeta se le pone a la laptop en Packet Tracer para WiFi?', o:['PT-IOT-NM-1W','WPC300N','HWIC-4ESW','NM-1FE'], a:1, e:'WPC300N es la tarjeta inalámbrica de las laptops. PT-IOT-NM-1W es para dispositivos IoT.'}
+ ],
+ say:'Cada SSID está ligado a una interfaz dinámica de la WLC, que pertenece a una VLAN. Probamos el roaming con un ping continuo mientras movíamos la laptop de un AP a otro: siguió respondiendo y conservó su IP porque la WLC la mantiene en la misma VLAN.',
+ links:[['radius','Ahora la red de empleados con usuario y contraseña propios'],['acl','El visitante ya tiene IP; en la lección 13 lo aislamos']]
+},
+/* ---------------------------------------------------------------- 12 */
+{id:'radius', et:3, title:'WPA2-Enterprise, 802.1X y RADIUS', focus:['cli','ap1','wlc','swc','r','rad'], rubk:'seg',
+ prob:'Problema 1: una sola clave WPA2-PSK compartida provoca fuga de información. Si un empleado se va, se lleva la clave.',
+ rub:'Seguridad (25 %): "WPA2-Enterprise con servidor RADIUS/AAA funcional"',
+ theory:`
+<div class="tbl"><table><thead><tr><th>Protocolo</th><th>Cifrado</th><th>Estado</th></tr></thead><tbody>
+<tr><td>WEP</td><td>RC4</td><td>Roto, nunca usar</td></tr><tr><td>WPA</td><td>TKIP</td><td>Obsoleto</td></tr>
+<tr><td><b>WPA2</b></td><td><b>AES-CCMP</b></td><td>Estándar actual (el que usamos)</td></tr><tr><td>WPA3</td><td>AES + SAE</td><td>El más nuevo; PT no lo soporta completo</td></tr></tbody></table></div>
+<h3>Personal y Enterprise</h3>
+<ul><li><b>WPA2-Personal (PSK):</b> una clave para todos. Si alguien se va, hay que cambiarla en todos los equipos.</li>
+<li><b>WPA2-Enterprise (802.1X):</b> cada persona tiene su usuario y contraseña, validados por un servidor. Para quitarle el acceso a alguien, borras su usuario.</li></ul>
+<h3>Los 3 actores de 802.1X</h3>
+<div class="tbl"><table><thead><tr><th>Rol</th><th>Analogía</th><th>En tu red</th></tr></thead><tbody>
+<tr><td><b>Suplicante</b></td><td>La persona que quiere entrar</td><td>La laptop</td></tr>
+<tr><td><b>Autenticador</b></td><td>El guardia de la puerta</td><td>La <b>WLC</b></td></tr>
+<tr><td><b>Servidor de autenticación</b></td><td>La oficina con la lista de empleados</td><td>El <b>RADIUS</b></td></tr></tbody></table></div>
+<p>El guardia no decide: pregunta a la oficina y obedece.</p>
+<h3>El proceso</h3>
+<ol><li>La laptop se asocia a INNOVA-CORP.</li>
+<li>La WLC le pide su identidad con <b>EAP</b> (entre laptop y WLC viaja como <b>EAPOL</b>).</li>
+<li>La WLC lo empaqueta en un <b>RADIUS Access-Request</b> hacia 192.168.3.10, puerto <b>UDP 1812</b>, firmado con el <b>shared secret</b>.</li>
+<li>El RADIUS revisa la cuenta y responde <b>Access-Accept</b> o <b>Access-Reject</b>.</li>
+<li>Se derivan las llaves (<b>4-way handshake</b>) y todo viaja cifrado con <b>AES</b>.</li>
+<li>La laptop pide IP por DHCP en la VLAN 10.</li></ol>
+<h3>AAA</h3>
+<p><b>Authentication</b> (¿quién eres?), <b>Authorization</b> (¿qué puedes hacer?), <b>Accounting</b> (¿qué hiciste?). RADIUS usa 1812 para autenticación y 1813 para accounting. TACACS+ (TCP 49) es la alternativa de Cisco para administrar equipos.</p>
+<p>Un detalle que el docente suele preguntar: en el servidor RADIUS, el <b>cliente</b> es la <b>WLC</b> (192.168.0.10), no la laptop, porque es la WLC la que le hace la pregunta.</p>`,
+ steps:[
+  {t:'SRV-RADIUS → Services → <b>AAA</b>: Service On. Network Configuration: Client Name <code>WLC</code>, Client IP <code>192.168.0.10</code>, Secret <code>RadiusInnova2026</code>, ServerType <b>Radius</b> → Add.'},
+  {t:'User Setup: agrega <code>jlopez</code>/<code>Corp2026</code>, <code>mgarcia</code>/<code>Corp2026</code>, <code>almacen01</code>/<code>Corp2026</code>.'},
+  {t:'WLC → <b>Security → AAA → RADIUS → Authentication → New</b>: Server IP <code>192.168.3.10</code>, Shared Secret <code>RadiusInnova2026</code> (exactamente igual), Port 1812, Enabled. Apply.'},
+  {t:'WLC → WLANs → Create New: <code>INNOVA-CORP</code>, ID 1, Interface <b>CORP</b>, Enabled. Security → Layer 2: WPA+WPA2, WPA2, AES, Auth Key Mgmt <b>802.1X</b>. Security → AAA Servers: Server 1 = 192.168.3.10. Apply.'},
+  {t:'LAP-EMPLEADO-1 y LAP-EMPLEADO-2 (con WPC300N): SSID <code>INNOVA-CORP</code>, Authentication <b>WPA2</b> (no WPA2-PSK), User ID <code>jlopez</code> / <code>mgarcia</code>, Password <code>Corp2026</code>, AES. IP por DHCP → 192.168.1.x.'},
+  {t:'TAB-ALMACEN: igual, con <code>almacen01</code>. Colócala cerca de AP-2 o AP-3.'},
+  {t:'Prueba la falla: cambia la contraseña de LAP-EMPLEADO-2 a <code>xxxx</code>. No debe conectar. Regrésala. Toma ambas capturas.'},
+  {t:'Simulation Mode con filtro <b>RADIUS</b>: reconecta una laptop y observa Access-Request y Access-Accept. Repite el roaming de la lección 11 con LAP-EMPLEADO-1 haciendo <code>ping -t 192.168.3.12</code>. Guarda.'}
+ ],
+ verify:[['LAP-EMPLEADO-1> ipconfig','192.168.1.x'],['Contraseña incorrecta','No conecta'],['LAP-EMPLEADO-1> ping 192.168.3.12','Reply (empleados sí llegan a servidores)']],
+ trouble:[['La laptop no conecta con la contraseña correcta','Compara el secret en WLC y servidor (mayúsculas incluidas). Client IP en el servidor = 192.168.0.10. Servicio AAA On. Usuario bien escrito. ¿La WLC llega al RADIUS? (ping desde PC-ADMIN a 192.168.3.10).']],
+ quiz:[
+  {q:'En 802.1X, ¿qué rol tiene la WLC?', o:['Suplicante','Autenticador','Servidor de autenticación','Cliente DHCP'], a:1, e:'La WLC es el autenticador: pide credenciales y las reenvía al RADIUS.'},
+  {q:'En el servidor RADIUS, ¿qué IP va como "Client IP"?', o:['La de la laptop','192.168.0.10 (la WLC)','192.168.3.1 (el router)','La del AP'], a:1, e:'El cliente RADIUS es quien le pregunta: la WLC.'},
+  {q:'¿Qué pasa si se cae el servidor RADIUS?', o:['Nadie de ninguna red se conecta','Los empleados no pueden autenticarse; invitados e IoT (PSK) siguen funcionando','Solo fallan los invitados','Nada'], a:1, e:'Solo INNOVA-CORP depende del RADIUS. En producción se pone un RADIUS secundario.'},
+  {q:'¿Puerto de autenticación de RADIUS?', o:['TCP 49','UDP 1812','UDP 5246','TCP 443'], a:1, e:'1812 autenticación, 1813 accounting. TCP 49 es TACACS+.'},
+  {q:'Principal ventaja de Enterprise sobre PSK para la empresa:', o:['Más velocidad','Cada empleado tiene su cuenta y se puede revocar a uno sin afectar al resto','No necesita servidor','Usa 5 GHz'], a:1, e:'Resuelve la fuga de información de la clave compartida.'}
+ ],
+ say:'Eliminamos la clave compartida. La laptop es el suplicante, la WLC el autenticador y el servidor RADIUS el servidor de autenticación. La WLC reenvía las credenciales al RADIUS por UDP 1812 con un secreto compartido; si las acepta, se cifra con AES. Si un empleado deja la empresa, solo se borra su usuario.',
+ links:[['acl','Los empleados ya están seguros; ahora encerramos a los invitados'],['ssids','El roaming también funciona con 802.1X']]
+},
+/* ---------------------------------------------------------------- 13 */
+{id:'acl', et:3, title:'Aislar a los invitados con una ACL', focus:['cli','wlc','swc','r','cen'], rubk:'seg',
+ prob:'Problema 2: los clientes y proveedores usan la misma red que accede a los servidores internos.',
+ rub:'Seguridad (25 %): "la red de Invitados está totalmente aislada por ACL"',
+ theory:`
+<p>Una <b>ACL</b> (Access Control List) es una lista de reglas permitir/denegar que el router aplica a los paquetes.</p>
+<div class="analogy">Un guardia con una lista. Lee de arriba hacia abajo; en cuanto una línea coincide con la persona, hace lo que dice esa línea y deja de leer. Si nadie en la lista coincide, no pasa (deny implícito).</div>
+<ol><li>Se lee <b>de arriba hacia abajo</b>.</li><li>La <b>primera coincidencia</b> decide.</li><li>Al final hay un <b>deny any implícito</b>.</li></ol>
+<h3>Tipos y ubicación</h3>
+<ul><li><b>Estándar:</b> solo mira el origen. Va <b>cerca del destino</b>.</li>
+<li><b>Extendida:</b> mira origen, destino, protocolo y puerto. Va <b>cerca del origen</b>. Es la que usamos.</li>
+<li><b>in</b> revisa lo que entra al router por esa interfaz; <b>out</b>, lo que sale.</li></ul>
+<h3>Wildcard</h3>
+<p>Es la máscara al revés: 0 = debe coincidir, 1 = no importa. Se calcula como 255.255.255.255 − máscara.</p>
+<ul><li>/24 → <code>0.0.0.255</code></li><li>/20 → 255.255.255.255 − 255.255.240.0 = <code>0.0.15.255</code>: cubre de 192.168.0.0 a 192.168.15.255, toda la empresa.</li></ul>
+<h3>Tu ACL, línea por línea</h3>
+<pre class="code">permit udp any any eq bootps        <span class="cmt">! DHCP (puerto 67). Sin esto, el invitado no tendría IP</span>
+permit icmp 192.168.2.0 0.0.0.255 host 192.168.2.1   <span class="cmt">! ping a su gateway, para pruebas</span>
+deny ip 192.168.2.0 0.0.0.255 192.168.0.0 0.0.15.255 <span class="cmt">! NADA hacia la red de la empresa</span>
+permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet)</span></pre>
+<p>Se aplica con <code>ip access-group ACL-INVITADOS in</code> en <code>G0/0.20</code>: lo más cerca posible del origen, que son los invitados.</p>
+<p><b>El orden importa:</b> si el deny fuera antes que el permit de DHCP, la petición de IP también se bloquearía.</p>
+<p>Doble protección: la <b>VLAN 20</b> separa el broadcast y la <b>ACL</b> impide que el router los enrute hacia adentro.</p>
+<p>Prueba el <a href="#herramientas" data-goto-tool="acl">simulador de ACL</a>: escribe un paquete y mira qué línea lo atrapa.</p>`,
+ steps:[
+  {t:'Antes de aplicar la ACL, desde LAP-VISITANTE haz <code>ping 192.168.3.12</code>. ¡Responde! Ese es el problema 2 de la empresa. Toma captura del "antes".'},
+  {t:'En R-CORE# pega el bloque 3.', code:'r_acl_inv'},
+  {t:'Repite <code>ping 192.168.3.12</code> desde LAP-VISITANTE: ahora falla. Prueba también <code>ping 192.168.1.11</code> y <code>ping 192.168.0.10</code>: fallan. <code>ping 192.168.2.1</code>: responde. Captura del "después".'},
+  {t:'En R-CORE: <code>show access-lists</code>. La línea deny muestra "(X match(es))". Captura.'},
+  {t:'Desconecta y reconecta el WiFi del visitante: debe seguir obteniendo IP (gracias a la primera línea).'},
+  {t:'En el simulador de ACL de la app, prueba los paquetes de ejemplo y explica en voz alta por qué cada uno se permite o se niega. Guarda el .pkt.'}
+ ],
+ verify:[['Visitante> ping 192.168.3.12','Falla (Destination host unreachable)'],['Visitante> ping 192.168.2.1','Responde'],['R-CORE# show access-lists','Coincidencias en la línea deny']],
+ quiz:[
+  {q:'¿Qué wildcard cubre toda la red 192.168.0.0/20?', o:['0.0.0.255','0.0.15.255','255.255.240.0','0.0.16.255'], a:1, e:'255.255.255.255 − 255.255.240.0 = 0.0.15.255.'},
+  {q:'¿Por qué "permit udp any any eq bootps" va antes del deny?', o:['Por estética','Para que los invitados puedan obtener IP por DHCP; si no, el deny lo bloquearía','Para permitir Internet','Para el RADIUS'], a:1, e:'La primera coincidencia gana. El DHCP debe permitirse antes de bloquear.'},
+  {q:'¿Dónde se aplica la ACL extendida de invitados?', o:['Out en G0/1','In en G0/0.20, cerca del origen','En el switch','En la WLC'], a:1, e:'Las extendidas van cerca del origen; "in" filtra lo que entra desde la VLAN de invitados.'},
+  {q:'¿Qué pasa con un paquete que no coincide con ninguna línea?', o:['Se permite','Se descarta por el deny implícito','Se reenvía al RADIUS','Se manda a la VLAN nativa'], a:1, e:'Toda ACL termina con un deny any implícito.'}
+ ],
+ say:'Los invitados están en la VLAN 20 y una ACL extendida, aplicada de entrada en su subinterfaz, niega todo hacia 192.168.0.0/20 con wildcard 0.0.15.255. Solo permite DHCP, ping a su gateway e Internet. La ACL se lee de arriba hacia abajo y termina con un deny implícito.',
+ links:[['celular','Usarás otra ACL para proteger el acceso de la flotilla'],['iot','Opcional: otra ACL para encerrar a los sensores']]
+},
+/* ---------------------------------------------------------------- 14 */
+{id:'iot', et:4, title:'IoT: sensores y reglas automáticas', focus:['sens','ap2','ap3','swa','swc','r','iot','wlc'], rubk:'iot',
+ prob:'Problema 3: los insumos médicos requieren control estricto de temperatura y detección de humo, con alertas en tiempo real.',
+ rub:'IoT/WSN/WWAN (20 %): "conecta sensores/actuadores al Servidor IoT con reglas automatizadas"',
+ theory:`
+<ul><li><b>IoT</b> (Internet de las Cosas): objetos con sensores o actuadores conectados a la red.</li>
+<li><b>Sensor:</b> <b>mide</b> (temperatura, puerta abierta, humo). Son los sentidos.</li>
+<li><b>Actuador:</b> <b>actúa</b> (ventilador, sirena, luz). Son los músculos.</li>
+<li><b>Servidor IoT:</b> el cerebro. Recibe lecturas y aplica reglas <b>SI condición ENTONCES acción</b>.</li>
+<li><b>WSN</b> (Wireless Sensor Network): red de sensores sin cables. En la industria se usan Zigbee, LoRaWAN, BLE o WiFi; en PT usamos WiFi con el adaptador <b>PT-IOT-NM-1W</b>.</li></ul>
+<h3>Tus reglas</h3>
+<div class="tbl"><table><thead><tr><th>SI</th><th>ENTONCES</th><th>Por qué</th></tr></thead><tbody>
+<tr><td>Temperatura &gt; 25 °C</td><td>Ventilador en High</td><td>Los medicamentos se guardan a temperatura ambiente controlada (15–25 °C)</td></tr>
+<tr><td>Temperatura ≤ 25 °C</td><td>Ventilador Off</td><td>Ahorro de energía</td></tr>
+<tr><td>Humo detectado</td><td>Sirena On</td><td>Riesgo de incendio</td></tr>
+<tr><td>Sin humo</td><td>Sirena Off</td><td>Regresa al estado normal</td></tr>
+<tr><td>Puerta abierta</td><td>Luz On</td><td>Indica acceso a la cámara de insumos</td></tr>
+<tr><td>Puerta cerrada</td><td>Luz Off</td><td>—</td></tr></tbody></table></div>
+<h3>Por qué una VLAN aparte</h3>
+<p>Los dispositivos IoT suelen tener poca seguridad. Si alguien compromete un sensor, no debe llegar a laptops ni servidores. Eso es <b>segmentación</b>. Con la ACL-IOT opcional, la VLAN 40 solo habla con el servidor IoT.</p>
+<h3>El recorrido</h3>
+<pre class="code">Sensor de temperatura → WiFi INNOVA-IOT → AP-2 → CAPWAP → WLC → VLAN 40
+ → R-CORE → VLAN 30 → Servidor IoT (evalúa la regla)
+ → orden de regreso → … → Ventilador se enciende</pre>`,
+ steps:[
+  {t:'SRV-IOT → Services → <b>IoT</b>: On.'},
+  {t:'PC-ADMIN → Web Browser → <code>http://192.168.3.11</code> → <b>Sign Up Now</b>: usuario <code>admin</code>, contraseña <code>admin2026</code>.'},
+  {t:'Coloca en el almacén: Temperature Monitor, Door, Smoke Detector, Ceiling Fan, Siren y Light. Renómbralos TEMP-ALMACEN, PUERTA-ALMACEN, HUMO-ALMACEN, VENTILADOR, SIRENA, LUZ-PUERTA.'},
+  {t:'En cada uno: Config → <b>Advanced</b> → I/O Config → Network Adapter: <b>PT-IOT-NM-1W</b>. Luego Config → Wireless0: SSID <code>INNOVA-IOT</code>, WPA2-PSK <code>SensorIoT2026</code>, IP por DHCP (192.168.4.x). Plan B si el WiFi da problemas: déjalos con su puerto Ethernet y conéctalos a SW-ALMACEN Fa0/5–Fa0/10 (VLAN 40).'},
+  {t:'En cada uno: Config → Settings → IoT Server: <b>Remote Server</b>, dirección <code>192.168.3.11</code>, usuario <code>admin</code>, contraseña <code>admin2026</code> → Connect. Debe decir Connected.'},
+  {t:'En la web del servidor IoT (desde PC-ADMIN): <b>Conditions → Add</b>, crea las 6 reglas de la tabla. Captura de la lista.'},
+  {t:'Pruebas: <b>Alt + clic</b> en la puerta (abre/cierra) → la luz responde. Agrega un <b>Heating Element</b> o <b>Furnace</b> junto al sensor y enciéndelo con Alt+clic (o sube la temperatura en Environment) → el ventilador arranca. Agrega un <b>Old Car</b> y enciéndelo (genera humo) → la sirena suena. Usa el botón de adelantar tiempo.'},
+  {t:'Desde TAB-ALMACEN → navegador → <code>http://192.168.3.11</code>: el almacenista ve el estado. Captura.'},
+  {t:'Opcional, cuando todo funcione: pega el bloque 5 (ACL-IOT) en R-CORE# y comprueba que los sensores siguen conectados.', code:'r_acl_iot'},
+  {t:'Guarda el .pkt.'}
+ ],
+ verify:[['Servidor IoT → Devices','6 dispositivos registrados'],['Temperatura > 25 °C','Ventilador encendido'],['Humo','Sirena activa'],['Alt+clic en puerta','Luz se enciende']],
+ trouble:[['El dispositivo no dice Connected','¿Tiene IP 192.168.4.x? ¿Services → IoT está On? ¿Usuario y contraseña correctos? Si aplicaste ACL-IOT, quítala y prueba.']],
+ quiz:[
+  {q:'¿Cuál de estos es un actuador?', o:['Sensor de temperatura','Detector de humo','Sirena','Sensor de puerta'], a:2, e:'La sirena actúa. Los otros miden.'},
+  {q:'¿Por qué los sensores están en una VLAN propia?', o:['Para que sean más rápidos','Porque son poco seguros: si se comprometen no deben alcanzar el resto de la red','Porque el DHCP lo pide','Porque no soportan WPA2'], a:1, e:'Segmentación: limitar el daño de un dispositivo comprometido.'},
+  {q:'¿Quién decide encender el ventilador?', o:['El sensor de temperatura','El servidor IoT, al cumplirse la regla','La WLC','El router'], a:1, e:'El sensor solo reporta. El servidor evalúa la condición y ordena al actuador.'},
+  {q:'¿Qué adaptador WiFi usan los dispositivos IoT en PT?', o:['WPC300N','PT-IOT-NM-1W','HWIC-AP','Linksys-WMP300N'], a:1, e:'PT-IOT-NM-1W se pone en Config → Advanced → I/O Config.'}
+ ],
+ say:'Los sensores de temperatura, puerta y humo envían lecturas por el SSID IoT al servidor IoT. El servidor evalúa reglas SI/ENTONCES: más de 25 °C enciende el ventilador, humo activa la sirena. Están en la VLAN 40 para que un sensor comprometido no alcance la red corporativa.',
+ links:[['celular','Último pilar: la flotilla en la calle'],['ssids','INNOVA-IOT se creó en la lección 11']]
+},
+/* ---------------------------------------------------------------- 15 */
+{id:'celular', et:4, title:'Red celular 4G para la flotilla', focus:['cel','tower','co','r','swc','cen'], rubk:'iot',
+ prob:'Problema 4: los camiones y agentes no pueden reportar entregas fuera del alcance del WiFi.',
+ rub:'IoT/WSN/WWAN (20 %): "integra la red 4G celular para clientes externos"',
+ theory:`
+<ul><li><b>WWAN:</b> red inalámbrica de área amplia, la que dan los operadores (3G, 4G LTE, 5G).</li>
+<li><b>Torre celular (Cell Tower):</b> la antena que da cobertura. En LTE se llama <b>eNodeB</b>.</li>
+<li><b>Central Office Server:</b> simula la central del operador (en LTE, el núcleo <b>EPC</b>). Les da IP a los celulares y conecta la red celular con la empresa por su puerto <b>Backbone</b>.</li></ul>
+<h3>Recorrido de ida</h3>
+<pre class="code">Celular 192.168.6.10
+ → radio 4G → TORRE-4G → coaxial → CENTRAL-OFFICE (192.168.5.2)
+ → R-CORE G0/1 (192.168.5.1)   <span class="cmt">! aquí la ACL-CELULAR revisa el paquete</span>
+ → G0/0.30 → SW-CORE → SRV-CENTRAL 192.168.3.12</pre>
+<h3>Recorrido de regreso</h3>
+<p>El servidor responde a 192.168.6.10. El router no tiene esa red conectada, así que necesita una <b>ruta estática</b>: <code>ip route 192.168.6.0 255.255.255.0 192.168.5.2</code> ("para llegar a los celulares, entrégaselo al Central Office").</p>
+<h3>Comunicación segura</h3>
+<ul><li><b>ACL-CELULAR</b> solo permite a los celulares llegar al Servidor Central por HTTPS (443), HTTP (80) y DNS (53), más ping para pruebas. Todo lo demás se niega.</li>
+<li><b>HTTPS</b> cifra el contenido.</li>
+<li>En una red real se agregaría <b>VPN IPsec</b> o un <b>APN privado</b> del operador.</li></ul>`,
+ steps:[
+  {t:'CENTRAL-OFFICE → Config → <b>Backbone</b>: IP <code>192.168.5.2</code>, máscara <code>255.255.255.0</code>, gateway <code>192.168.5.1</code>.'},
+  {t:'CENTRAL-OFFICE → Config → sección <b>Cell Tower</b> (DHCP para móviles): red <code>192.168.6.0</code>, máscara <code>255.255.255.0</code>, gateway <code>192.168.6.1</code>, IP inicial <code>192.168.6.10</code>, DNS <code>192.168.3.12</code>. Si viene con 172.16.x.x, cámbialo para respetar la /20.'},
+  {t:'En R-CORE# pega el bloque 4 (ruta y ACL-CELULAR).', code:'r_cel'},
+  {t:'Coloca CEL-CHOFER-1 y CEL-VENTAS cerca de la torre. Ya traen tarjeta 3G/4G. Revisa en Desktop → IP Configuration que tengan 192.168.6.x (si no, elige DHCP).'},
+  {t:'CEL-CHOFER-1 → Web Browser → <code>https://entregas.innovalogistics.local</code>: se ve el portal. Captura.'},
+  {t:'CEL-CHOFER-1 → Command Prompt → <code>ping 192.168.3.10</code> (RADIUS): debe <b>fallar</b>. Captura. Guarda el .pkt.'}
+ ],
+ verify:[['R-CORE# show ip route static','S 192.168.6.0/24 [1/0] via 192.168.5.2'],['R-CORE# show ip interface brief','G0/1 up/up'],['Celular → portal','Se ve la página'],['Celular → ping 192.168.3.10','Falla (ACL)']],
+ trouble:[['El celular no llega al servidor','show ip route: ¿está la ruta S 192.168.6.0? ¿El Central Office tiene gateway 192.168.5.1? ¿G0/1 está up?'],['El celular no tiene IP','Revisa la configuración Cell Tower del Central Office y que el cable a la torre sea coaxial.']],
+ quiz:[
+  {q:'¿Para qué sirve "ip route 192.168.6.0 255.255.255.0 192.168.5.2"?', o:['Para que el router sepa devolver las respuestas a los celulares','Para dar IP a los celulares','Para bloquear a los celulares','Para conectar la torre'], a:0, e:'El router no conoce la red 192.168.6.0; la ruta le dice que está detrás del Central Office.'},
+  {q:'¿Qué dispositivo de PT asigna IP a los celulares?', o:['R-CORE','La torre','El Central Office Server','La WLC'], a:2, e:'El Central Office simula el núcleo del operador y entrega IPs a los móviles.'},
+  {q:'Un celular intenta conectarse al RADIUS. ¿Qué pasa?', o:['Se conecta','La ACL-CELULAR lo bloquea','El RADIUS lo autentica','Se va por la VLAN 20'], a:1, e:'ACL-CELULAR solo permite al Servidor Central por 443, 80, 53 e ICMP.'},
+  {q:'¿Cómo se llama la estación base en LTE?', o:['BTS','eNodeB','gNodeB','EPC'], a:1, e:'eNodeB en 4G LTE. gNodeB es 5G. El EPC es el núcleo.'}
+ ],
+ say:'Los móviles se conectan a la torre 4G y el Central Office les asigna una IP de la 192.168.6.0. El router tiene una ruta estática hacia esa red por el Central Office, y una ACL limita a los móviles al portal de entregas por HTTPS y DNS.',
+ links:[['pruebas','Todo está construido: ahora a probar y documentar']]
+},
+/* ---------------------------------------------------------------- 16 */
+{id:'pruebas', et:5, title:'Pruebas finales y capturas', focus:Object.keys(NODES), rubk:'doc',
+ prob:'Demostrar que todo funciona. El reporte necesita evidencias y el docente hará pruebas de falla en vivo.',
+ rub:'Todos los criterios: cada prueba es evidencia de uno',
+ theory:`
+<p>Cada prueba se relaciona con un criterio de la rúbrica. Haz todas en el <b>.pkt final</b> y guarda la captura con un nombre claro (<code>P07_roaming.png</code>).</p>
+<h3>Cómo diagnosticar cuando algo falla</h3>
+<p>De abajo hacia arriba, por capas:</p>
+<div class="tbl"><table><thead><tr><th>Capa</th><th>Pregunta</th><th>Dónde</th></tr></thead><tbody>
+<tr><td>1 Física</td><td>¿Cable verde? ¿AP con energía?</td><td>Vista lógica, pestaña Physical</td></tr>
+<tr><td>2 Enlace</td><td>¿Puerto en la VLAN correcta? ¿Trunk arriba?</td><td>show vlan brief, show interfaces trunk</td></tr>
+<tr><td>3 Red</td><td>¿IP y gateway correctos? ¿Ruta?</td><td>ipconfig, show ip route, ping</td></tr>
+<tr><td>Seguridad</td><td>¿Lo bloquea una ACL? ¿RADIUS rechaza?</td><td>show access-lists, secret RADIUS</td></tr>
+<tr><td>Servicio</td><td>¿El servicio está encendido?</td><td>Pestaña Services</td></tr></tbody></table></div>
+<p>Aunque algo falle frente al docente, explicar este razonamiento demuestra que entiendes la red.</p>
+<p>En <b>Simulation Mode</b> puedes mostrar CAPWAP, RADIUS, DHCP e ICMP paso a paso. El ping del invitado muestra una X en R-CORE: ahí lo detiene la ACL.</p>`,
+ steps:[
+  {t:'<b>Base:</b> show vlan brief, show interfaces trunk, show ip interface brief, show ip route, show ip dhcp binding. Captura de cada uno.'},
+  {t:'<b>Inter-VLAN:</b> PC-ADMIN → ping 192.168.3.12.'},
+  {t:'<b>WLC:</b> All APs (3 registrados), WLANs (3 SSIDs), Monitor → Clients.'},
+  {t:'<b>Roaming:</b> ping -t mientras mueves la laptop de AP-1 a AP-2. Misma IP.'},
+  {t:'<b>Falla de AP:</b> desconecta el AP-1; la laptop se reasocia a otro AP. Reconecta.'},
+  {t:'<b>802.1X:</b> conexión correcta y conexión con contraseña incorrecta.'},
+  {t:'<b>RADIUS caído:</b> apaga el servicio AAA y reconecta una laptop corporativa: no entra; el visitante sí. Vuelve a encenderlo.'},
+  {t:'<b>Invitados:</b> ping a 192.168.3.12, 192.168.1.11 y 192.168.0.10 fallan; ping a 192.168.2.1 responde; show access-lists con coincidencias.'},
+  {t:'<b>IoT:</b> temperatura → ventilador, humo → sirena, puerta → luz. Captura de la lista de dispositivos y de las reglas.'},
+  {t:'<b>4G:</b> celular abre el portal; ping al RADIUS falla; show ip route static.'},
+  {t:'<b>SSH:</b> PC-ADMIN → Command Prompt → <code>ssh -l admin 192.168.0.1</code>.'},
+  {t:'Guarda el archivo final como <code>InnovaLogistics_Final.pkt</code> y haz una copia de respaldo en otra carpeta o USB.'}
+ ],
+ verify:[['¿Tienes una captura por prueba?','Sí, nombradas por número'],['¿Respaldo del .pkt final?','Sí, en dos lugares']],
+ quiz:[
+  {q:'Un empleado no puede navegar. ¿Por dónde empiezas?', o:['Reinstalar Packet Tracer','Capa 1: ¿está asociado al WiFi? Luego IP, luego ACL/RADIUS','Borrar la ACL','Cambiar los canales'], a:1, e:'De abajo hacia arriba: físico/enlace, red, seguridad, servicio.'},
+  {q:'El docente desconecta el AP-1. ¿Qué debe pasar?', o:['Toda la red cae','Los clientes se reasocian a otro AP del ESS','La WLC se reinicia','Los invitados pierden la ACL'], a:1, e:'Es la ventaja del ESS con varios APs: hay cobertura de respaldo.'},
+  {q:'¿Con qué comando muestras que la ACL de invitados está bloqueando?', o:['show vlan brief','show access-lists','show ip dhcp binding','show running-config interface g0/1'], a:1, e:'Muestra cada línea con su contador de coincidencias.'}
+ ],
+ say:'Validamos cada requerimiento con pruebas: inter-VLAN, registro de APs, roaming con ping continuo, autenticación correcta e incorrecta, aislamiento de invitados con contadores de la ACL, automatización IoT y acceso 4G restringido.',
+ links:[['entregables','Con las capturas, armamos el reporte y la presentación']]
+},
+/* ---------------------------------------------------------------- 17 */
+{id:'entregables', et:5, title:'Reporte y presentación', focus:[], rubk:'doc',
+ prob:'Son 2 de las 3 evidencias. El reporte debe tener topología y tabla de direccionamiento.',
+ rub:'Documentación y sustentación (10 %): "reporte estructurado con topología, tabla de direccionamiento"',
+ theory:`
+<h3>El reporte</h3>
+<p>En el repositorio está el borrador completo: <code>docs/04_Reporte_Tecnico.md</code>. Estructura:</p>
+<ol><li>Portada</li><li>Introducción</li><li>Objetivos</li><li>Análisis de la problemática</li><li>Solución propuesta (los 4 pilares)</li><li>Topología (captura lógica y física)</li><li>Direccionamiento (tablas de VLANs y de direcciones)</li><li>Configuración de cada equipo (con capturas)</li><li>Pruebas y resultados</li><li>Conclusiones y recomendaciones</li><li>Anexos: configuraciones completas</li></ol>
+<p>La tabla de direccionamiento completa está en <a href="#herramientas" data-goto-tool="tabla">Herramientas → Direccionamiento</a>.</p>
+<h3>La presentación para 20 minutos</h3>
+<p>El tiempo total es de 20 minutos, incluyendo las preguntas y pruebas del docente. Plan: unos 13 minutos de exposición con demostraciones integradas y 7 minutos para preguntas. En la pestaña <a href="#defensa">Defensa</a> tienes el cronómetro con cada bloque.</p>
+<ul><li>Pocas palabras por diapositiva; capturas grandes de PT.</li>
+<li>Una diapositiva por pilar, con su "problema → solución → demostración".</li>
+<li>Diapositivas de respaldo con capturas por si algo falla en vivo.</li></ul>`,
+ steps:[
+  {t:'Copia el contenido de <code>docs/04_Reporte_Tecnico.md</code> a Word (o Google Docs). Pon tu nombre, materia ICCS 260, docente y fecha 13/11/2026.'},
+  {t:'Pega cada captura donde dice [Captura]. Pon pie de foto a cada una ("Figura 5. Roaming entre AP-1 y AP-2").'},
+  {t:'Agrega las tablas de VLANs y de direccionamiento completas. Agrega las configuraciones como anexo (Herramientas → Configuraciones).'},
+  {t:'Exporta el reporte a PDF.'},
+  {t:'Haz las diapositivas siguiendo los bloques del cronómetro de la pestaña Defensa (12 bloques).'},
+  {t:'Agrega 3 diapositivas de respaldo al final: captura de roaming, de RADIUS rechazando y de la ACL bloqueando.'},
+  {t:'Revisa que tengas las 3 evidencias en la carpeta: reporte PDF, .pkt final y presentación.'}
+ ],
+ verify:[['¿El reporte tiene topología y tabla de direccionamiento?','Sí'],['¿La presentación cabe en 13 minutos?','Sí, probado con el cronómetro']],
+ quiz:[
+  {q:'¿Qué dos elementos pide explícitamente la rúbrica en el reporte?', o:['Presupuesto y cronograma','Topología y tabla de direccionamiento','Código fuente y manual','Encuesta y gráficas'], a:1, e:'"Reporte estructurado con topología, tabla de direccionamiento".'},
+  {q:'¿Cuánto tiempo tienes en total?', o:['10 min','15 min','20 min, incluyendo preguntas','45 min'], a:2, e:'20 minutos por proyecto. Reserva tiempo para las pruebas del docente.'}
+ ],
+ say:'El reporte documenta el problema, la solución, la topología, el direccionamiento, las configuraciones y las pruebas con evidencia.',
+ links:[['defensa','Último paso: ensayar']]
+},
+/* ---------------------------------------------------------------- 18 */
+{id:'defensa', et:5, title:'Ensayo y simulacro de defensa', focus:[], rubk:'doc',
+ prob:'La rúbrica pide defender el funcionamiento ante pruebas de falla del docente.',
+ rub:'Documentación y sustentación (10 %): "defiende el funcionamiento ante pruebas de falla"',
+ theory:`
+<h3>Lo que el docente probablemente hará</h3>
+<ul><li>Desconectar un AP → muestras que los clientes se pasan a otro.</li>
+<li>Pedir que un invitado haga ping a un servidor → falla por la ACL; muestras <code>show access-lists</code>.</li>
+<li>Conectar una laptop con contraseña incorrecta → RADIUS la rechaza.</li>
+<li>Apagar el RADIUS → explicas que solo afecta a INNOVA-CORP y que en producción habría uno secundario.</li>
+<li>Subir la temperatura → el ventilador arranca.</li>
+<li>Preguntar por el subneteo, CAPWAP, 802.1X o la wildcard.</li></ul>
+<h3>Si algo falla en vivo</h3>
+<p>No te quedes callado. Di qué revisarías y en qué orden (capas). Por ejemplo: "Voy a revisar si el AP tiene IP con show ip dhcp binding, luego el trunk con show interfaces trunk". Eso también cuenta como dominio del tema.</p>
+<h3>Antes de entrar</h3>
+<ol><li>Abre el .pkt 5 minutos antes y adelanta el tiempo para que los APs se registren.</li>
+<li>Deja abiertos el Command Prompt de LAP-EMPLEADO-1 y de LAP-VISITANTE.</li>
+<li>Ten la presentación con las diapositivas de respaldo.</li></ol>`,
+ steps:[
+  {t:'Ensayo 1: usa el cronómetro de la pestaña Defensa y presenta en voz alta. Anota dónde te pasaste de tiempo.'},
+  {t:'Haz las tarjetas de repaso (pestaña Defensa) hasta marcar todas como "La sé".'},
+  {t:'Practica las 6 pruebas de falla de arriba en tu .pkt, en voz alta, como si el docente las pidiera.'},
+  {t:'Ensayo 2 completo con demostración, cronometrado. Debe quedar en 13 minutos o menos.'},
+  {t:'Repasa el "Dilo así" de cada lección: son tus respuestas cortas.'},
+  {t:'Viernes 13: llega antes, prueba la computadora/proyector y abre el .pkt.'}
+ ],
+ verify:[['¿Exposición en 13 min o menos?','Sí'],['¿Todas las tarjetas en "La sé"?','Sí']],
+ quiz:[
+  {q:'El docente apaga el RADIUS. ¿Qué respondes?', o:['Que se cayó toda la red','Que los empleados nuevos no pueden autenticarse, invitados e IoT siguen, y que en producción se pondría un RADIUS secundario','Que hay que reiniciar la WLC','Que es un error de Packet Tracer'], a:1, e:'Muestra que entiendes qué depende de qué.'},
+  {q:'Algo no funciona en vivo. Lo mejor es:', o:['Quedarse callado','Explicar el diagnóstico por capas y los comandos que usarías','Cerrar Packet Tracer','Saltar ese tema'], a:1, e:'El razonamiento de diagnóstico es parte de lo que se evalúa.'}
+ ],
+ say:'Validamos el diseño con pruebas de falla: si cae un AP los clientes hacen roaming a otro; si cae RADIUS solo se afecta la red corporativa; los invitados nunca alcanzan la red interna.',
+ links:[['fundamentos','Si te queda tiempo, repasa desde el principio']]
+}
+];
+const LBY = Object.fromEntries(LESSONS.map((l,i)=>[l.id,Object.assign(l,{i})]));
+LESSONS.forEach(l=>{ if(!l.rubk) l.rubk = null; });
+
+/* ---------- Tarjetas de repaso ---------- */
+const FLASH = [
+['¿Por qué usaron una WLC en lugar de routers inalámbricos?','Centraliza la configuración de los 3 APs, coordina canales, aplica la misma seguridad en todos y permite roaming transparente. Los routers caseros eran redes aisladas en el mismo canal.'],
+['¿Qué es CAPWAP y qué puertos usa?','El túnel entre LAP y WLC. UDP 5246 para control (cifrado con DTLS) y UDP 5247 para datos.'],
+['¿Cómo encontraron los APs a la WLC?','Obtienen IP por DHCP en la VLAN 99 y envían un discovery por broadcast; la WLC está en la misma VLAN y responde. En otra subred se usaría DHCP opción 43 o DNS.'],
+['¿Por qué el puerto de la WLC es trunk y el de los APs access?','La WLC entrega tráfico de varias VLANs (10, 20, 40) más gestión. El AP solo envía CAPWAP en la VLAN 99; el tráfico de clientes va dentro del túnel.'],
+['¿Qué es un ESS y por qué permite roaming?','Varios APs con el mismo SSID en la misma infraestructura. El cliente ve una sola red y cambia de AP; como la WLC lo mantiene en la misma VLAN, conserva su IP.'],
+['¿Y si se cae la WLC?','Los APs en modo Local pierden el servicio: es un punto único de falla. En producción se usa una WLC redundante (N+1 o HA).'],
+['Diferencia entre WPA2-Personal y WPA2-Enterprise','Personal: una clave compartida para todos. Enterprise: cada usuario se autentica con sus credenciales contra RADIUS usando 802.1X; se puede revocar a una persona sin afectar al resto.'],
+['Explica el proceso de autenticación de un empleado','Laptop (suplicante) se asocia → WLC (autenticador) pide identidad por EAPOL → reenvía al RADIUS en un Access-Request con el shared secret → RADIUS responde Access-Accept → 4-way handshake → cifrado AES → DHCP en VLAN 10.'],
+['¿Qué pasa si el shared secret no coincide?','El RADIUS descarta las solicitudes y ningún empleado puede conectarse.'],
+['¿Cómo aislaron a los invitados?','VLAN 20 propia + ACL extendida in en G0/0.20 que niega todo hacia 192.168.0.0/20 y solo permite DHCP, ping a su gateway e Internet.'],
+['¿Por qué la wildcard es 0.0.15.255?','Cubre la /20 completa: 255.255.255.255 − 255.255.240.0 = 0.0.15.255.'],
+['¿Por qué la ACL de invitados va in en G0/0.20?','Es extendida: va lo más cerca del origen para descartar el tráfico en cuanto entra al router desde la VLAN de invitados.'],
+['¿Qué hace "permit udp any any eq bootps"?','Permite DHCP (puerto 67). Sin esa línea, el deny implícito bloquearía la solicitud de IP del invitado.'],
+['¿Qué es router-on-a-stick?','Un puerto físico del router con una subinterfaz 802.1Q por VLAN; cada una es el gateway de su VLAN. Se enruta entre VLANs con un solo cable.'],
+['¿Qué es la VLAN nativa y por qué la 99?','La que viaja sin etiqueta en el trunk; debe coincidir en ambos lados. La gestión de la WLC sale sin etiqueta, por eso la 99 es nativa en todos los trunks.'],
+['Explica el subneteo','La /20 tiene 4096 direcciones. Prestando 4 bits se obtienen 16 subredes /24 de 254 hosts. Usamos 7 y quedan 9 para crecer.'],
+['¿Qué es DORA?','Discover, Offer, Request, Acknowledge: los 4 pasos de DHCP.'],
+['¿Qué es una WSN y cómo funciona la automatización?','Red de sensores inalámbricos. Los sensores reportan al servidor IoT, que evalúa reglas SI/ENTONCES y ordena a los actuadores.'],
+['¿Por qué los sensores en una VLAN aparte?','Segmentación: los dispositivos IoT son vulnerables; si uno se compromete no debe alcanzar a empleados ni servidores.'],
+['¿Cómo llega el celular del chofer al servidor?','Celular → torre 4G → Central Office (IP 192.168.6.x) → backbone 192.168.5.2 → R-CORE G0/1 (ACL-CELULAR) → VLAN 30 → servidor. El regreso usa la ruta estática 192.168.6.0/24 vía 192.168.5.2.'],
+['¿Es seguro mandar datos por la red celular?','En el proyecto se limita con ACL y HTTPS. En una red real se agregaría VPN IPsec o un APN privado.'],
+['¿Por qué canales 1, 6 y 11?','En 2.4 GHz cada canal ocupa ~22 MHz con separación de 5 MHz; solo 1, 6 y 11 no se enciman.'],
+['¿Qué es split-MAC?','El AP hace lo de tiempo real (beacons, ACKs, cifrado del aire) y la WLC la gestión (asociación, autenticación, políticas, roaming).'],
+['¿Por qué no usaron WPA3?','Packet Tracer no lo soporta completamente. En una implementación real se recomienda WPA3-Enterprise.'],
+['¿Qué es AES-CCMP?','El cifrado de WPA2: AES en modo contador con CBC-MAC. Da confidencialidad e integridad.'],
+['¿Por qué SSH y no Telnet?','SSH cifra la sesión de administración; Telnet envía todo en texto plano, contraseñas incluidas.'],
+['¿Qué mejoras harías?','5 GHz, WPA3/EAP-TLS, switches PoE, WLC redundante, RADIUS secundario, portal cautivo para invitados, VPN para la flotilla, monitoreo SNMP/Syslog.'],
+['¿Qué es el BSSID?','La dirección MAC del radio de un AP; identifica a cada antena dentro del ESS.'],
+['Roles en 802.1X','Suplicante: la laptop. Autenticador: la WLC. Servidor de autenticación: RADIUS.'],
+['¿Qué es AAA?','Authentication (¿quién eres?), Authorization (¿qué puedes hacer?), Accounting (¿qué hiciste?).']
+];
+
+/* ---------- Plan de 20 minutos ---------- */
+const SEGS = [
+ ['Portada y la empresa',45],['Problemática: los 4 problemas',60],['Solución general y topología',60],['Direccionamiento /20 → /24 y VLANs',90],
+ ['WLC, CAPWAP y APs registrados (demo)',105],['SSIDs y roaming (demo con ping -t)',90],['802.1X y RADIUS (demo correcta e incorrecta)',90],
+ ['Invitados aislados con ACL (demo)',60],['IoT: reglas automáticas (demo)',90],['Red 4G para la flotilla (demo)',60],['Conclusiones y mejoras',30],
+ ['Preguntas y pruebas de falla del docente',420]
+];
+
+/* ---------- Recorridos de paquetes ---------- */
+const JOURNEYS = [
+ {n:'Un AP se enciende y se une a la WLC', steps:[
+  [['ap1'],'AP-1 recibe energía y arranca. No tiene configuración propia: es un AP ligero.'],
+  [['ap1','swc','r'],'Envía un DHCP Discover en la VLAN 99 (su puerto es access 99). Llega a R-CORE por el trunk sin etiqueta (VLAN nativa).'],
+  [['r','swc','ap1'],'R-CORE responde desde el pool GESTION-APs: IP 192.168.0.21, gateway 192.168.0.1.'],
+  [['ap1','swc','wlc'],'AP-1 envía un CAPWAP Discovery por broadcast. La WLC (192.168.0.10) está en la misma VLAN y responde.'],
+  [['ap1','swc','wlc'],'Se forma el túnel CAPWAP: control en UDP 5246 (con DTLS) y datos en UDP 5247. La WLC le envía SSIDs, canal y seguridad.']]},
+ {n:'Un empleado se autentica (802.1X)', steps:[
+  [['cli','ap1'],'La laptop (suplicante) se asocia al SSID INNOVA-CORP a través de AP-1.'],
+  [['cli','ap1','swc','wlc'],'La WLC (autenticador) le pide identidad con EAPOL. Los mensajes viajan por el túnel CAPWAP.'],
+  [['wlc','swc','r','rad'],'La WLC envía un RADIUS Access-Request a 192.168.3.10 (UDP 1812), firmado con el shared secret. Va de la VLAN 99 a la 30 a través del router.'],
+  [['rad','r','swc','wlc'],'El RADIUS encuentra al usuario jlopez y responde Access-Accept.'],
+  [['wlc','ap1','cli'],'4-way handshake: se derivan las llaves; desde aquí el aire va cifrado con AES.'],
+  [['cli','ap1','wlc','swc','r'],'La laptop pide IP. La WLC la saca en la VLAN 10 (interfaz CORP) y el pool CORPORATIVO le da 192.168.1.11.']]},
+ {n:'Un empleado abre el portal de entregas', steps:[
+  [['cli','ap1'],'La laptop envía el paquete por el aire, cifrado con AES, a AP-1.'],
+  [['ap1','swc','wlc'],'AP-1 lo mete al túnel CAPWAP (UDP 5247) y lo envía a la WLC por la VLAN 99.'],
+  [['wlc','swc'],'La WLC lo saca del túnel y lo pone en la VLAN 10 (interfaz CORP), con etiqueta 802.1Q 10 en el trunk.'],
+  [['swc','r'],'SW-CORE lo sube por el trunk G0/1 a R-CORE, subinterfaz G0/0.10 (gateway 192.168.1.1).'],
+  [['r','swc'],'R-CORE ve que el destino 192.168.3.12 está en G0/0.30 y lo baja con etiqueta 30.'],
+  [['swc','cen'],'SW-CORE quita la etiqueta y lo entrega por Fa0/12 al Servidor Central. Responde con la página.']]},
+ {n:'Un invitado intenta llegar al servidor', steps:[
+  [['cli','ap1','wlc'],'La laptop del visitante, en INNOVA-GUEST, envía un ping a 192.168.3.12. Viaja por CAPWAP hasta la WLC.'],
+  [['wlc','swc','r'],'La WLC lo pone en la VLAN 20 (interfaz GUEST). Llega a R-CORE por G0/0.20.'],
+  [['r'],'Antes de enrutar, la ACL-INVITADOS (in) lo revisa: línea 1 no (no es DHCP), línea 2 no (no va a 192.168.2.1), línea 3 sí: deny 192.168.2.0/24 → 192.168.0.0/20.'],
+  [['r','cli'],'El paquete se descarta. El visitante ve "Destination host unreachable". El servidor nunca se entera.']]},
+ {n:'Sube la temperatura en el almacén', steps:[
+  [['sens'],'El sensor de temperatura detecta 27 °C.'],
+  [['sens','ap2','swa','swc','wlc'],'Envía la lectura por el SSID INNOVA-IOT a AP-2; viaja en CAPWAP hasta la WLC.'],
+  [['wlc','swc','r','iot'],'La WLC la pone en la VLAN 40; R-CORE la enruta a la VLAN 30, al Servidor IoT.'],
+  [['iot'],'El servidor evalúa la regla: 27 > 25, se cumple "Temp-Alta".'],
+  [['iot','r','swc','swa','ap2','sens'],'Envía la orden de regreso al ventilador (también en la VLAN 40): Status = High. El ventilador arranca.']]},
+ {n:'Un chofer reporta una entrega por 4G', steps:[
+  [['cel','tower'],'El celular (192.168.6.10) abre https://entregas.innovalogistics.local por la red 4G.'],
+  [['tower','co'],'La torre lo envía por coaxial al Central Office, que lo saca por su Backbone (192.168.5.2).'],
+  [['co','r'],'Llega a R-CORE G0/1. La ACL-CELULAR lo revisa: TCP 443 hacia 192.168.3.12 → permitido.'],
+  [['r','swc','cen'],'R-CORE lo enruta a la VLAN 30 y llega al Servidor Central.'],
+  [['cen','swc','r','co','tower','cel'],'La respuesta va a 192.168.6.10. R-CORE usa la ruta estática 192.168.6.0/24 vía 192.168.5.2 y el portal aparece en el celular.']]}
+];
+
+/* ---------- Diagnóstico ---------- */
+const TROUBLE = [
+ ['Los APs no aparecen en la WLC',['¿El AP tiene energía? (Physical → Power Adapter)','¿El puerto del switch está en VLAN 99? show vlan brief','¿El AP tiene IP? R-CORE# show ip dhcp binding','¿La WLC tiene 192.168.0.10 y gateway 192.168.0.1?','¿El trunk Fa0/1 a la WLC tiene native vlan 99?']],
+ ['No puedo abrir la página de la WLC',['PC-ADMIN en Fa0/20, VLAN 99, IP 192.168.0.20, gateway 192.168.0.1','ping 192.168.0.10 desde PC-ADMIN','Prueba http:// y https://']],
+ ['La laptop corporativa no se conecta',['Authentication = WPA2 (no WPA2-PSK)','Usuario y contraseña tal como están en el servidor','Secret idéntico en WLC y SRV-RADIUS','Client IP en el servidor = 192.168.0.10','Servicio AAA On','ping de PC-ADMIN a 192.168.3.10']],
+ ['El cliente WiFi conecta pero no recibe IP',['Primary DHCP Server de la interfaz dinámica = su gateway','La VLAN está en "allowed vlan" del trunk de la WLC','El pool existe: show ip dhcp pool','La subinterfaz del router está up']],
+ ['El invitado no recibe IP',['La ACL debe tener permit udp any any eq bootps ANTES del deny','show access-lists para ver el orden']],
+ ['Ping entre VLANs falla',['IP, máscara y gateway del equipo','Puerto en la VLAN correcta','Trunks activos y con las VLANs permitidas','Subinterfaces up y G0/0 con no shutdown']],
+ ['Dispositivo IoT no dice Connected',['Tiene IP 192.168.4.x','Servicio IoT On en 192.168.3.11','Usuario admin / admin2026','Si aplicaste ACL-IOT, quítala y prueba']],
+ ['El celular no llega al servidor',['show ip route: S 192.168.6.0/24 via 192.168.5.2','Central Office con gateway 192.168.5.1','G0/1 up/up','Revisa que vaya a 443/80/53 (lo demás lo bloquea la ACL)']],
+ ['Native VLAN mismatch',['Todos los trunks con switchport trunk native vlan 99','Router con encapsulation dot1Q 99 native']]
+];
+
+/* =====================================================================
+   ESTADO (progreso local en este navegador)
+   ===================================================================== */
+const KEY='innova-lab-v1';
+let S={steps:{},quiz:{},notes:{},cards:{},evid:{}};
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+function prog(L){
+  const st=S.steps[L.id]||{}, qz=S.quiz[L.id]||{};
+  let sd=0; L.steps.forEach((_,i)=>{if(st[i])sd++;});
+  let qc=0, qa=0; L.quiz.forEach((q,i)=>{ if(qz[i]!==undefined){qa++; if(qz[i]===q.a) qc++;} });
+  const total=L.steps.length+L.quiz.length;
+  return {sd, qc, qa, frac:(sd+qc)/total, any:(sd+qa)>0};
+}
+function ledOf(L){const p=prog(L); return p.frac>=1?'on':(p.any?'mid':'');}
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+const $=(s,el=document)=>el.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function codeBox(key){ return `<div class="codebox"><button class="btn sm" data-act="copy" data-key="${key}">Copiar</button><pre class="code">${esc(CFG[key])}</pre></div>`; }
+function todayStr(){const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function countdown(){
+  const ms=DEADLINE-new Date();
+  const el=$('#cd');
+  if(ms<=0){el.textContent='Entrega: 13 nov 12:00'; return;}
+  const d=Math.floor(ms/864e5), h=Math.floor(ms%864e5/36e5), m=Math.floor(ms%36e5/6e4);
+  el.textContent=`Entrega en ${d} d ${h} h ${m} min`;
+  el.classList.toggle('hot', d<2);
+  const big=$('#bigcount'); if(big) big.innerHTML=`<div><span class="n">${d}</span><span class="u">días</span></div><div><span class="n">${h}</span><span class="u">horas</span></div><div><span class="n">${m}</span><span class="u">min</span></div>`;
+}
+function rubReady(k){ const ls=LESSONS.filter(l=>l.rubk===k); if(!ls.length) return 0; return ls.reduce((a,l)=>a+prog(l).frac,0)/ls.length; }
+
+/* =====================================================================
+   VISTA: MI RUTA
+   ===================================================================== */
+function renderHome(){
+  const done=LESSONS.filter(l=>ledOf(l)==='on').length;
+  const t=todayStr();
+  let today=DAYS.find(d=>d.d===t) || (t<DAYS[0].d?DAYS[0]:null);
+  const next=LESSONS.find(l=>ledOf(l)!=='on')||LESSONS[LESSONS.length-1];
+  const ports=LESSONS.map(l=>`<a class="port" href="#leccion-${l.id}" title="${esc(l.title)}"><span class="led ${ledOf(l)}"></span>${String(l.i+1).padStart(2,'0')}</a>`).join('');
+  const total=RUB.reduce((a,r)=>a+r.w*rubReady(r.k),0);
+  $('#main').innerHTML=`
+  <div class="stack">
+    <section class="hero">
+      <div class="card stack" style="gap:12px">
+        <span class="eyebrow">ICCS 260 · Redes inalámbricas · Proyecto integrador</span>
+        <h1>Rediseño inalámbrico e IoT para InnovaLogistics Puebla</h1>
+        <p class="muted">Expones el viernes 13 de noviembre a las 12:00 hrs. Tienes 20 minutos.</p>
+        <div class="count" id="bigcount"></div>
+        <div class="row">
+          <a class="btn" href="#leccion-${next.id}">Continuar: ${next.i+1}. ${esc(next.title)}</a>
+          <a class="btn ghost" href="#rubrica">Ver avance en la rúbrica</a>
+        </div>
+      </div>
+      <div class="faceplate">
+        <div class="lbl"><span>SW-PROGRESO · 18 PUERTOS = 18 LECCIONES</span><span>${done}/18 LINK UP</span></div>
+        <div class="ports">${ports}</div>
+        <div class="legend"><span><i class="led"></i>Sin empezar</span><span><i class="led mid"></i>En progreso</span><span><i class="led on"></i>Terminada (pasos + quiz)</span></div>
+        <div class="lbl" style="margin-top:12px"><span>PUNTOS DE RÚBRICA CUBIERTOS (ESTIMADO)</span><span>${Math.round(total)} / 100</span></div>
+      </div>
+    </section>
+
+    <div class="grid2">
+      <section class="card stack" style="gap:12px">
+        <h2>${today?'Hoy toca':'Plan de hoy'}</h2>
+        ${today?`<p><b>${today.name}:</b> ${esc(today.goal)}</p>
+          <div class="links">${today.lessons.map(id=>{const l=LBY[id];return `<a href="#leccion-${id}"><span class="led ${ledOf(l)}" style="margin-top:7px"></span><span><b>${l.i+1}. ${esc(l.title)}</b><br><span class="muted">${prog(l).sd}/${l.steps.length} pasos · ${prog(l).qc}/${l.quiz.length} quiz</span></span></a>`;}).join('') || '<p>Hoy expones. Abre tu .pkt 5 minutos antes.</p>'}</div>`
+        :`<p>Sigue con la siguiente lección pendiente: <a href="#leccion-${next.id}">${next.i+1}. ${esc(next.title)}</a>.</p>`}
+        <h3 style="margin-top:8px">Cómo usar esta app</h3>
+        <ol class="prose" style="padding-left:1.2em;margin:0">
+          <li>Cada lección empieza por el <b>problema</b> que resuelve y el <b>criterio de la rúbrica</b> que te da puntos.</li>
+          <li>Lees la <b>teoría</b> (con un ejemplo cotidiano) y ves en el <b>mapa</b> qué parte de la red estás tocando.</li>
+          <li>Haces los <b>pasos en Packet Tracer</b> y los marcas. Los comandos se copian con un botón.</li>
+          <li><b>Verificas</b> con los comandos indicados y respondes el <b>quiz</b>.</li>
+          <li>Memorizas el <b>"Dilo así"</b>: tu respuesta corta para la exposición.</li>
+        </ol>
+        <p class="muted" style="font-size:.85rem">Tu avance se guarda en este navegador. Si te atoras en un paso, copia el error y pégalo en el chat con Claude.</p>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-bottom:6px">Calendario hasta la entrega</h2>
+        <div class="days">${DAYS.map(d=>`<div class="day${d.d===t?' today':''}"><div><div class="d">${d.name}</div>${d.d===t?'<span class="eyebrow">hoy</span>':''}</div>
+          <div><div class="${d.lessons.length?'':'deadline'}">${esc(d.goal)}</div>
+          <ul>${d.lessons.map(id=>{const l=LBY[id];return `<li><a href="#leccion-${id}"><span class="led ${ledOf(l)}"></span>${l.i+1}. ${esc(l.title)}</a></li>`;}).join('')}</ul></div></div>`).join('')}</div>
+      </section>
+    </div>
+
+    <section class="stack" style="gap:10px">
+      <h2>Tu red completa</h2>
+      <p class="muted">Este es el mapa que vas a construir. Cada lección resalta la parte que estás configurando.</p>
+      ${topo([],'')}
+    </section>
+  </div>`;
+  countdown();
+}
+
+/* =====================================================================
+   VISTA: LECCIÓN
+   ===================================================================== */
+function sidebar(cur){
+  let h='<details open><summary>Todas las lecciones</summary>';
+  ETAPAS.forEach((e,i)=>{
+    h+=`<h4>Etapa ${e}</h4>`;
+    LESSONS.filter(l=>l.et===i).forEach(l=>{ h+=`<a href="#leccion-${l.id}" class="${l.id===cur?'cur':''}"><span class="led ${ledOf(l)}"></span><span class="num">${l.i+1}</span>${esc(l.title)}</a>`; });
+  });
+  return h+'</details>';
+}
+function quizBlock(L,i){
+  const q=L.quiz[i]; const ans=(S.quiz[L.id]||{})[i];
+  const answered=ans!==undefined;
+  return `<div class="q" id="q-${i}"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="opts">${q.o.map((o,j)=>{
+    let c=''; if(answered){ if(j===q.a) c='right'; else if(j===ans) c='wrong'; }
+    return `<button class="opt ${c}" data-act="ans" data-q="${i}" data-o="${j}" ${answered?'disabled':''}>${esc(o)}</button>`;}).join('')}</div>
+    ${answered?`<div class="exp ${ans===q.a?'right':'wrong'}">${ans===q.a?'Correcto. ':'No es esa. '}${esc(q.e)}${ans!==q.a?` <button class="btn sm ghost" data-act="retry" data-q="${i}">Reintentar</button>`:''}</div>`:''}</div>`;
+}
+function renderLesson(id){
+  const L=LBY[id]; if(!L){ location.hash='#ruta'; return; }
+  const st=S.steps[L.id]||{};
+  const day=DAYS.find(d=>d.lessons.includes(L.id));
+  const p=prog(L);
+  const prev=LESSONS[L.i-1], next=LESSONS[L.i+1];
+  $('#main').innerHTML=`
+  <div class="lesson">
+    <aside class="side" id="side">${sidebar(L.id)}</aside>
+    <article class="stack">
+      <header class="lhead">
+        <span class="eyebrow">Etapa ${ETAPAS[L.et]} · Lección ${L.i+1} de 18${day?' · '+day.name:''}</span>
+        <h1>${esc(L.title)}</h1>
+        <div class="row"><div class="pbar" style="flex:1;min-width:160px"><i id="pbar" style="width:${Math.round(p.frac*100)}%"></i></div><span class="muted" id="ptext" style="font-size:.85rem">${p.sd}/${L.steps.length} pasos · ${p.qc}/${L.quiz.length} quiz</span></div>
+      </header>
+      <div class="why">
+        <div><span class="eyebrow">Por qué importa</span><p>${esc(L.prob)}</p></div>
+        <div class="rub"><span class="eyebrow">Criterio de la rúbrica</span><p>${esc(L.rub)}</p></div>
+      </div>
+      ${topo(L.focus, L.focus.length&&L.focus.length<16?'En el mapa: la parte de la red que tocas en esta lección':'')}
+      <section class="sec"><h3><span class="tag">1</span>Teoría</h3><div class="prose">${L.theory}</div></section>
+      <section class="sec"><h3><span class="tag">2</span>Hazlo en Packet Tracer</h3>
+        <ol class="steps">${L.steps.map((s,i)=>`<li class="${st[i]?'ok':''}"><input type="checkbox" id="st-${L.id}-${i}" data-act="step" data-i="${i}" ${st[i]?'checked':''} aria-label="Paso ${i+1} hecho"><div class="body"><label for="st-${L.id}-${i}"><b>Paso ${i+1}.</b> </label><div>${s.t}</div>${s.code?codeBox(s.code):''}</div></li>`).join('')}</ol>
+      </section>
+      <section class="sec"><h3><span class="tag">3</span>Verifica</h3>
+        <div class="tbl verify"><table><thead><tr><th>Comando o prueba</th><th>Resultado esperado</th></tr></thead><tbody>${L.verify.map(v=>`<tr><td>${esc(v[0])}</td><td>${esc(v[1])}</td></tr>`).join('')}</tbody></table></div>
+        ${L.trouble?`<div class="stack" style="gap:8px"><b>Si no sale</b>${L.trouble.map(t=>`<div class="exp wrong"><b>${esc(t[0])}:</b> ${esc(t[1])}</div>`).join('')}</div>`:''}
+      </section>
+      <section class="sec"><h3><span class="tag">4</span>Quiz</h3><div class="stack" style="gap:12px" id="quiz">${L.quiz.map((_,i)=>quizBlock(L,i)).join('')}</div></section>
+      <section class="sec"><h3><span class="tag">5</span>Dilo así en la exposición</h3><p class="say">"${esc(L.say)}"</p><p class="muted" style="font-size:.85rem">Léelo, tápalo y dilo con tus palabras.</p></section>
+      <section class="sec"><h3><span class="tag">6</span>Se conecta con</h3><div class="links">${L.links.map(([lid,why])=>{const x=LBY[lid];return `<a href="#leccion-${lid}"><b>${x.i+1}.</b><span><b>${esc(x.title)}</b><br><span class="muted">${esc(why)}</span></span></a>`;}).join('')}</div></section>
+      <section class="sec"><h3>Mis notas</h3><textarea id="notes-${L.id}" data-act="notes" placeholder="Errores que te salieron, dudas para preguntar, cosas que quieres recordar…">${esc(S.notes[L.id]||'')}</textarea></section>
+      <nav class="pager">${prev?`<a class="btn ghost" href="#leccion-${prev.id}">← ${prev.i+1}. ${esc(prev.title)}</a>`:'<span></span>'}${next?`<a class="btn" href="#leccion-${next.id}">${next.i+1}. ${esc(next.title)} →</a>`:`<a class="btn" href="#rubrica">Revisar rúbrica →</a>`}</nav>
+    </article>
+  </div>`;
+  if(window.matchMedia('(max-width:900px)').matches){ const d=$('#side details'); if(d) d.open=false; }
+  mountWidgets();
+  CUR=L;
+}
+let CUR=null;
+function refreshLessonMeta(){
+  if(!CUR) return; const p=prog(CUR);
+  const b=$('#pbar'); if(b) b.style.width=Math.round(p.frac*100)+'%';
+  const t=$('#ptext'); if(t) t.textContent=`${p.sd}/${CUR.steps.length} pasos · ${p.qc}/${CUR.quiz.length} quiz`;
+  const sd=$('#side'); if(sd){ const open=$('#side details')?.open; sd.innerHTML=sidebar(CUR.id); const d=$('#side details'); if(d) d.open=open!==false; }
+}
+
+/* ---------- Widget: canales ---------- */
+function mountWidgets(){
+  document.querySelectorAll('[data-widget="canales"]').forEach(w=>{
+    const sel=(id,v)=>`<div class="field"><label for="${id}">${id.toUpperCase().replace('CH-','')}</label><select id="${id}">${Array.from({length:11},(_,i)=>`<option ${i+1===v?'selected':''}>${i+1}</option>`).join('')}</select></div>`;
+    w.innerHTML=`<div class="card stack" style="gap:12px;background:var(--surface-2)"><div class="fields">${sel('ch-ap-1',1)}${sel('ch-ap-2',1)}${sel('ch-ap-3',1)}</div>
+      <div id="chsvg"></div><div id="chmsg" class="verdict"></div>
+      <div class="row"><button class="btn sm ghost" data-act="ch-set" data-v="1,1,1">Como estaba la empresa (1/1/1)</button><button class="btn sm" data-act="ch-set" data-v="1,6,11">Diseño correcto (1/6/11)</button></div></div>`;
+    w.querySelectorAll('select').forEach(s=>s.addEventListener('change',drawCh));
+    drawCh();
+  });
+}
+function drawCh(){
+  const v=['ch-ap-1','ch-ap-2','ch-ap-3'].map(id=>+$('#'+id).value);
+  const cols=['var(--accent)','var(--led-mid)','var(--bad)'];
+  const X=c=>40+(c-1)*50+ (0); const W=55;
+  let s=`<svg class="chan" viewBox="0 0 640 150" role="img" aria-label="Canales elegidos ${v.join(', ')}"><line x1="20" y1="120" x2="620" y2="120" stroke="var(--line)" stroke-width="2"/>`;
+  for(let c=1;c<=11;c++){ s+=`<text x="${X(c)+35}" y="140" text-anchor="middle">${c}</text>`; }
+  v.forEach((c,i)=>{ const cx=X(c)+35; s+=`<path d="M ${cx-W} 120 Q ${cx} ${10+i*14} ${cx+W} 120" fill="${cols[i]}" fill-opacity=".18" stroke="${cols[i]}" stroke-width="2"/><text x="${cx}" y="${34+i*14}" text-anchor="middle" style="fill:${cols[i]};font-weight:600">AP-${i+1}</text>`; });
+  s+='</svg>'; $('#chsvg').innerHTML=s;
+  const bad=[]; [[0,1],[0,2],[1,2]].forEach(([a,b])=>{ if(Math.abs(v[a]-v[b])<5) bad.push(`AP-${a+1} y AP-${b+1}`); });
+  const m=$('#chmsg'); m.className='verdict '+(bad.length?'deny':'permit');
+  m.textContent=bad.length?`Se enciman: ${bad.join(', ')}. Necesitan al menos 5 canales de separación.`:'Sin traslape: cada AP tiene su espacio en el aire.';
+}
+
+/* =====================================================================
+   VISTA: HERRAMIENTAS
+   ===================================================================== */
+let TOOL='calc';
+const TOOLS=[['calc','Calculadora de subredes'],['acl','Simulador de ACL'],['paquete','Viaje del paquete'],['configs','Configuraciones'],['tabla','Direccionamiento'],['diag','Diagnóstico']];
+function renderTools(){
+  $('#main').innerHTML=`<div class="stack"><div><span class="eyebrow">Herramientas</span><h1>Practica sin miedo a romper nada</h1></div>
+   <div class="subnav" role="tablist">${TOOLS.map(([k,n])=>`<button role="tab" class="${k===TOOL?'on':''}" data-act="tool" data-k="${k}">${n}</button>`).join('')}</div><div id="tool"></div></div>`;
+  ({calc:toolCalc,acl:toolAcl,paquete:toolJourney,configs:toolConfigs,tabla:toolTabla,diag:toolDiag})[TOOL]();
+}
+const ip2n=s=>{const p=s.trim().split('.').map(Number); if(p.length!==4||p.some(x=>!Number.isInteger(x)||x<0||x>255)) return null; return ((p[0]<<24)>>>0)+(p[1]<<16)+(p[2]<<8)+p[3];};
+const n2ip=n=>[n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+const maskN=pre=>pre===0?0:((0xFFFFFFFF<<(32-pre))>>>0);
+const PROJ=[['192.168.0.0',24,'VLAN 99 · Gestión'],['192.168.1.0',24,'VLAN 10 · Corporativo'],['192.168.2.0',24,'VLAN 20 · Invitados'],['192.168.3.0',24,'VLAN 30 · Servidores'],['192.168.4.0',24,'VLAN 40 · IoT'],['192.168.5.0',24,'Enlace R-CORE ↔ Central Office'],['192.168.6.0',24,'Red celular 4G']];
+function toolCalc(){
+  $('#tool').innerHTML=`<div class="grid2"><section class="card stack" style="gap:14px"><h2>Calculadora</h2>
+   <div class="fields"><div class="field"><label for="cip">Dirección IP</label><input id="cip" value="192.168.2.30" inputmode="decimal"></div><div class="field"><label for="cpre">Prefijo (/)</label><input id="cpre" type="number" min="0" max="32" value="24"></div></div>
+   <dl class="kv" id="cout"></dl></section>
+   <section class="card stack" style="gap:12px"><h2>La /20 dividida en 16 /24</h2><p class="muted">Toca una subred para analizarla. Las resaltadas son las que usa tu proyecto.</p>
+   <div class="subgrid">${Array.from({length:16},(_,i)=>{const u=PROJ.find(p=>p[0]===`192.168.${i}.0`);return `<button class="sub ${u?'used':''}" data-act="pick-sub" data-i="${i}"><b>.${i}.0</b>${u?esc(u[2].split('·')[0]):'libre'}</button>`;}).join('')}</div></section></div>`;
+  ['cip','cpre'].forEach(id=>$('#'+id).addEventListener('input',calc)); calc();
+}
+function calc(){
+  const ip=ip2n($('#cip').value), pre=parseInt($('#cpre').value,10), out=$('#cout');
+  if(ip===null||!(pre>=0&&pre<=32)){ out.innerHTML='<dt>Error</dt><dd>Escribe una IP válida (4 números de 0 a 255) y un prefijo de 0 a 32.</dd>'; return; }
+  const m=maskN(pre), net=(ip&m)>>>0, bc=(net|(~m>>>0))>>>0, hosts=pre>=31?0:Math.pow(2,32-pre)-2;
+  const bin=n2ip(m).split('.').map(o=>(+o).toString(2).padStart(8,'0')).join('.');
+  const inProj=PROJ.find(p=>{const pm=maskN(p[1]);return ((ip&pm)>>>0)===ip2n(p[0]);});
+  const inCo=((ip&maskN(20))>>>0)===ip2n('192.168.0.0');
+  out.innerHTML=`<dt>Red</dt><dd>${n2ip(net)}/${pre}</dd><dt>Máscara</dt><dd>${n2ip(m)}</dd><dt>En binario</dt><dd>${bin}</dd><dt>Wildcard</dt><dd>${n2ip((~m)>>>0)}</dd>
+   <dt>Primer host</dt><dd>${pre>=31?'—':n2ip(net+1)}</dd><dt>Último host</dt><dd>${pre>=31?'—':n2ip(bc-1)}</dd><dt>Broadcast</dt><dd>${n2ip(bc)}</dd><dt>Hosts útiles</dt><dd>${hosts.toLocaleString('es-MX')}</dd>
+   <dt>En tu proyecto</dt><dd>${inProj?`${inProj[2]} (gateway ${inProj[0].replace(/0$/,'1')})`:(inCo?'Dentro de 192.168.0.0/20, subred libre':'Fuera de la red de la empresa')}</dd>`;
+}
+
+/* ---------- ACL ---------- */
+const ANY=['0.0.0.0','255.255.255.255'];
+const ACLS={
+ 'ACL-INVITADOS':{iface:'G0/0.20 in', src:['192.168.2.0','0.0.0.255'], rules:[
+   {a:'permit',p:'udp',s:ANY,d:ANY,port:67,txt:'permit udp any any eq bootps'},
+   {a:'permit',p:'icmp',s:['192.168.2.0','0.0.0.255'],d:['192.168.2.1','0.0.0.0'],txt:'permit icmp 192.168.2.0 0.0.0.255 host 192.168.2.1'},
+   {a:'deny',p:'ip',s:['192.168.2.0','0.0.0.255'],d:['192.168.0.0','0.0.15.255'],txt:'deny ip 192.168.2.0 0.0.0.255 192.168.0.0 0.0.15.255'},
+   {a:'permit',p:'ip',s:['192.168.2.0','0.0.0.255'],d:ANY,txt:'permit ip 192.168.2.0 0.0.0.255 any'}]},
+ 'ACL-CELULAR':{iface:'G0/1 in', src:['192.168.6.0','0.0.0.255'], extraSrc:['192.168.5.0','0.0.0.255'], rules:[
+   {a:'permit',p:'tcp',s:['192.168.6.0','0.0.0.255'],d:['192.168.3.12','0.0.0.0'],port:443,txt:'permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq 443'},
+   {a:'permit',p:'tcp',s:['192.168.6.0','0.0.0.255'],d:['192.168.3.12','0.0.0.0'],port:80,txt:'permit tcp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq www'},
+   {a:'permit',p:'udp',s:['192.168.6.0','0.0.0.255'],d:['192.168.3.12','0.0.0.0'],port:53,txt:'permit udp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq domain'},
+   {a:'permit',p:'icmp',s:['192.168.6.0','0.0.0.255'],d:['192.168.3.12','0.0.0.0'],txt:'permit icmp 192.168.6.0 0.0.0.255 host 192.168.3.12'},
+   {a:'deny',p:'ip',s:ANY,d:ANY,txt:'deny ip any any'}]},
+ 'ACL-IOT':{iface:'G0/0.40 in', src:['192.168.4.0','0.0.0.255'], rules:[
+   {a:'permit',p:'udp',s:ANY,d:ANY,port:67,txt:'permit udp any any eq bootps'},
+   {a:'permit',p:'icmp',s:['192.168.4.0','0.0.0.255'],d:['192.168.4.1','0.0.0.0'],txt:'permit icmp 192.168.4.0 0.0.0.255 host 192.168.4.1'},
+   {a:'permit',p:'ip',s:['192.168.4.0','0.0.0.255'],d:['192.168.3.11','0.0.0.0'],txt:'permit ip 192.168.4.0 0.0.0.255 host 192.168.3.11'},
+   {a:'deny',p:'ip',s:ANY,d:ANY,txt:'deny ip any any'}]}
+};
+const PRESETS=[
+ ['Invitado hace ping al Servidor Central','ACL-INVITADOS','192.168.2.15','192.168.3.12','icmp',''],
+ ['Invitado pide IP por DHCP','ACL-INVITADOS','0.0.0.0','255.255.255.255','udp','67'],
+ ['Invitado hace ping a su gateway','ACL-INVITADOS','192.168.2.15','192.168.2.1','icmp',''],
+ ['Invitado navega a Internet (8.8.8.8)','ACL-INVITADOS','192.168.2.15','8.8.8.8','tcp','443'],
+ ['Invitado intenta entrar a la WLC','ACL-INVITADOS','192.168.2.15','192.168.0.10','tcp','443'],
+ ['Chofer abre el portal por HTTPS','ACL-CELULAR','192.168.6.10','192.168.3.12','tcp','443'],
+ ['Chofer intenta llegar al RADIUS','ACL-CELULAR','192.168.6.10','192.168.3.10','icmp',''],
+ ['Sensor reporta al Servidor IoT','ACL-IOT','192.168.4.12','192.168.3.11','tcp','80'],
+ ['Sensor comprometido ataca a un empleado','ACL-IOT','192.168.4.12','192.168.1.11','tcp','445']
+];
+let ACLSEL='ACL-INVITADOS';
+function toolAcl(){
+  $('#tool').innerHTML=`<div class="grid2"><section class="card stack" style="gap:14px"><h2>Arma un paquete</h2>
+   <div class="fields"><div class="field"><label for="aacl">ACL</label><select id="aacl">${Object.keys(ACLS).map(k=>`<option ${k===ACLSEL?'selected':''}>${k}</option>`).join('')}</select></div>
+   <div class="field"><label for="aproto">Protocolo</label><select id="aproto"><option>icmp</option><option>tcp</option><option>udp</option></select></div></div>
+   <div class="fields"><div class="field"><label for="asrc">IP origen</label><input id="asrc" value="192.168.2.15"></div><div class="field"><label for="adst">IP destino</label><input id="adst" value="192.168.3.12"></div><div class="field"><label for="aport">Puerto destino</label><input id="aport" placeholder="ej. 443" inputmode="numeric"></div></div>
+   <div><span class="eyebrow">Ejemplos para practicar</span><div class="links" style="margin-top:6px">${PRESETS.map((p,i)=>`<a href="#herramientas" data-act="preset" data-i="${i}"><b>${i+1}</b><span>${esc(p[0])}</span></a>`).join('')}</div></div></section>
+   <section class="card stack" style="gap:12px"><h2 id="aname"></h2><p class="muted" id="aiface"></p><div class="acl" id="arules"></div><div id="averdict" class="verdict"></div><div id="aexp" class="muted" style="font-size:.9rem"></div></section></div>`;
+  ['aacl','aproto','asrc','adst','aport'].forEach(id=>$('#'+id).addEventListener('input',runAcl));
+  runAcl();
+}
+function inW(ip,[b,w]){ const B=ip2n(b),W=ip2n(w); return ((ip^B)&(~W>>>0))>>>0===0; }
+function runAcl(){
+  ACLSEL=$('#aacl').value; const A=ACLS[ACLSEL];
+  const proto=$('#aproto').value, src=ip2n($('#asrc').value), dst=ip2n($('#adst').value), port=parseInt($('#aport').value,10);
+  $('#aname').textContent=ACLSEL; $('#aiface').textContent=`Aplicada en R-CORE ${A.iface}. Se lee de arriba hacia abajo; la primera coincidencia decide.`;
+  const v=$('#averdict'), ex=$('#aexp');
+  if(src===null||dst===null){ $('#arules').innerHTML=A.rules.map(r=>`<div>${esc(r.txt)}</div>`).join('')+'<div class="muted">(deny any implícito)</div>'; v.className='verdict na'; v.textContent='Escribe IPs válidas.'; ex.textContent=''; return; }
+  const entra = src===0 || inW(src,A.src) || (A.extraSrc && inW(src,A.extraSrc));
+  let hit=-1;
+  if(entra){ for(let i=0;i<A.rules.length;i++){ const r=A.rules[i];
+    if(r.p!=='ip' && r.p!==proto) continue;
+    if(!inW(src,r.s)||!inW(dst,r.d)) continue;
+    if(r.port!==undefined && (proto==='icmp' || port!==r.port)) continue;
+    hit=i; break; } }
+  $('#arules').innerHTML=A.rules.map((r,i)=>`<div class="${i===hit?'hit '+r.a:'chk'}">${i+1}. ${esc(r.txt)}</div>`).join('')+`<div class="${hit===-1&&entra?'hit deny':'chk'}">(deny any implícito)</div>`;
+  if(!entra){ v.className='verdict na'; v.textContent='Esta ACL no revisa este paquete.'; ex.textContent=`El origen no está en la red que entra por ${A.iface.split(' ')[0]}. La ACL solo filtra el tráfico que entra por esa interfaz.`; return; }
+  const act=hit===-1?'deny':A.rules[hit].a;
+  v.className='verdict '+act; v.textContent=act==='permit'?'PERMITIDO':'DENEGADO';
+  ex.textContent=hit===-1?'Ninguna línea coincidió, así que aplica el deny implícito del final.':`Coincide con la línea ${hit+1}. Las líneas de abajo ya no se leen.`;
+}
+
+/* ---------- Viaje del paquete ---------- */
+let JI=0, JS=0;
+function toolJourney(){
+  $('#tool').innerHTML=`<section class="card journey"><div class="fields"><div class="field"><label for="jsel">Escenario</label><select id="jsel">${JOURNEYS.map((j,i)=>`<option value="${i}" ${i===JI?'selected':''}>${esc(j.n)}</option>`).join('')}</select></div></div>
+   <div id="jtopo"></div><div class="dots" id="jdots"></div><p class="jstep" id="jtext"></p>
+   <div class="row"><button class="btn ghost" data-act="jprev">← Anterior</button><button class="btn" data-act="jnext">Siguiente →</button></div></section>`;
+  $('#jsel').addEventListener('change',e=>{JI=+e.target.value; JS=0; drawJ();});
+  drawJ();
+}
+function drawJ(){ const J=JOURNEYS[JI], st=J.steps[JS];
+  $('#jtopo').innerHTML=topo(st[0],''); $('#jtext').innerHTML=`<b>Paso ${JS+1} de ${J.steps.length}.</b> ${esc(st[1])}`;
+  $('#jdots').innerHTML=J.steps.map((_,i)=>`<i class="${i<=JS?'on':''}"></i>`).join(''); }
+
+/* ---------- Configuraciones ---------- */
+function toolConfigs(){
+  const items=[['r_base','R-CORE · bloque 1: base y router-on-a-stick','Lección 6'],['r_dhcp','R-CORE · bloque 2: DHCP','Lección 7'],['r_acl_inv','R-CORE · bloque 3: ACL de invitados','Lección 13'],['r_cel','R-CORE · bloque 4: ruta y ACL de la red 4G','Lección 15'],['r_acl_iot','R-CORE · bloque 5 (opcional): ACL IoT','Lección 14'],['sw_core','SW-CORE','Lección 5'],['sw_alm','SW-ALMACEN','Lección 5']];
+  $('#tool').innerHTML=`<div class="stack"><p class="muted">Pega cada bloque en su lección para entenderlo. Aquí están todos juntos para el anexo del reporte.</p>${items.map(([k,n,l])=>`<section class="card stack" style="gap:10px"><div class="row" style="justify-content:space-between"><h3>${n}</h3><span class="eyebrow">${l}</span></div>${codeBox(k)}</section>`).join('')}
+   <section class="card stack" style="gap:10px"><h3>Datos que se configuran por interfaz gráfica</h3><div class="tbl"><table><thead><tr><th>Dónde</th><th>Dato</th></tr></thead><tbody>
+   <tr><td>WLC Management</td><td class="mono">192.168.0.10/24 · gw 192.168.0.1 · admin / Admin2026</td></tr>
+   <tr><td>WLC RADIUS</td><td class="mono">192.168.3.10 · UDP 1812 · secret RadiusInnova2026</td></tr>
+   <tr><td>SRV-RADIUS AAA</td><td class="mono">Client WLC 192.168.0.10 · Radius · jlopez / mgarcia / almacen01 → Corp2026</td></tr>
+   <tr><td>SSIDs</td><td class="mono">INNOVA-CORP (802.1X, VLAN 10) · INNOVA-GUEST (PSK Visitante2026, VLAN 20) · INNOVA-IOT (PSK SensorIoT2026, VLAN 40)</td></tr>
+   <tr><td>SRV-IOT</td><td class="mono">192.168.3.11 · admin / admin2026</td></tr>
+   <tr><td>Central Office</td><td class="mono">Backbone 192.168.5.2/24 gw .1 · Celular 192.168.6.0/24, inicio .10, DNS 192.168.3.12</td></tr></tbody></table></div></section></div>`;
+}
+function toolTabla(){ $('#tool').innerHTML=`<div class="stack"><section class="card stack" style="gap:10px"><h2>VLANs y subredes</h2>${T_VLANS}</section><section class="card stack" style="gap:10px"><h2>Tabla de direccionamiento</h2>${T_ADDR}</section></div>`; }
+function toolDiag(){
+  $('#tool').innerHTML=`<div class="stack"><p class="muted">Elige el síntoma. Revisa en orden; casi siempre el error está en los primeros puntos.</p>${TROUBLE.map(([s,l],i)=>`<details class="card"><summary style="cursor:pointer;font-weight:600">${esc(s)}</summary><ol style="margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px">${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}</div>`;
+}
+
+/* =====================================================================
+   VISTA: DEFENSA
+   ===================================================================== */
+let TM={run:false,t:0,id:null}; let FC=null, FCshow=false;
+function renderDefense(){
+  const known=FLASH.filter((_,i)=>S.cards[i]==='ok').length;
+  let acc=0;
+  $('#main').innerHTML=`<div class="stack"><div><span class="eyebrow">Viernes 13 de noviembre · 12:00 hrs · 20 minutos</span><h1>Ensaya tu defensa</h1></div>
+   <div class="grid2">
+    <section class="card stack" style="gap:14px"><h2>Cronómetro de 20 minutos</h2>
+     <div class="row" style="justify-content:space-between"><div class="timer" id="tclock">00:00</div><div class="row"><button class="btn" data-act="tstart" id="tbtn">Iniciar</button><button class="btn ghost" data-act="treset">Reiniciar</button></div></div>
+     <div class="pbar"><i id="tbar" style="width:0%"></i></div>
+     <div class="segs" id="segs">${SEGS.map(([n,s],i)=>{const a=acc; acc+=s; return `<div class="seg" data-i="${i}"><span class="t">${fmt(a)}</span><span>${esc(n)}</span><span class="t">${fmt(s)}</span></div>`;}).join('')}</div>
+     <p class="muted" style="font-size:.85rem">13 minutos de exposición con demostraciones y 7 para preguntas y pruebas de falla.</p></section>
+    <section class="card flash" id="flash"></section>
+   </div>
+   <section class="card stack" style="gap:10px"><h2>Pruebas de falla que puede pedir el docente</h2><div class="tbl"><table><thead><tr><th>Te pide</th><th>Qué debe pasar</th><th>Qué explicas</th></tr></thead><tbody>
+    <tr><td>Desconectar un AP</td><td>Los clientes se pasan a otro AP</td><td>ESS: varios APs con el mismo SSID; la WLC mantiene la VLAN</td></tr>
+    <tr><td>Ping de invitado a un servidor</td><td>Falla</td><td>ACL-INVITADOS línea 3; mostrar show access-lists</td></tr>
+    <tr><td>Contraseña incorrecta en INNOVA-CORP</td><td>No conecta</td><td>RADIUS responde Access-Reject</td></tr>
+    <tr><td>Apagar el servidor RADIUS</td><td>Solo la red corporativa no autentica</td><td>Invitados e IoT usan PSK; en producción, RADIUS secundario</td></tr>
+    <tr><td>Subir la temperatura / generar humo</td><td>Ventilador / sirena</td><td>Regla SI/ENTONCES en el servidor IoT</td></tr>
+    <tr><td>Celular al RADIUS</td><td>Falla</td><td>ACL-CELULAR solo permite el portal</td></tr>
+    <tr><td>Roaming en vivo</td><td>ping -t continúa, misma IP</td><td>Roaming de capa 2 en el mismo controlador</td></tr></tbody></table></div></section>
+  </div>`;
+  drawTimer(); drawFlash(known);
+}
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function drawTimer(){
+  const c=$('#tclock'); if(!c) return;
+  c.textContent=fmt(TM.t); $('#tbar').style.width=Math.min(100,TM.t/1200*100)+'%';
+  let acc=0; document.querySelectorAll('.seg').forEach((el,i)=>{ const s=SEGS[i][1]; el.classList.toggle('cur',TM.t>=acc&&TM.t<acc+s); el.classList.toggle('past',TM.t>=acc+s); acc+=s; });
+  $('#tbtn').textContent=TM.run?'Pausar':(TM.t?'Seguir':'Iniciar');
+}
+function drawFlash(){
+  const known=FLASH.filter((_,i)=>S.cards[i]==='ok').length;
+  if(FC===null){ const pend=FLASH.map((_,i)=>i).filter(i=>S.cards[i]!=='ok'); const pool=pend.length?pend:FLASH.map((_,i)=>i); FC=pool[Math.floor(Math.random()*pool.length)]; FCshow=false; }
+  const [q,a]=FLASH[FC];
+  $('#flash').innerHTML=`<div class="row" style="justify-content:space-between"><h2>Tarjetas de repaso</h2><span class="chip">${known}/${FLASH.length} las sé</span></div>
+   <p class="fq">${esc(q)}</p>
+   ${FCshow?`<p>${esc(a)}</p><div class="row"><button class="btn" data-act="fc-ok">La sé</button><button class="btn ghost" data-act="fc-rep">Repasar después</button></div>`
+   :`<p class="muted">Respóndela en voz alta antes de voltearla.</p><div class="row"><button class="btn" data-act="fc-show">Ver respuesta</button><button class="btn ghost" data-act="fc-skip">Otra</button></div>`}`;
+}
+
+/* =====================================================================
+   VISTA: RÚBRICA
+   ===================================================================== */
+const EVID=[['pkt','Archivo .pkt final guardado y respaldado'],['rep','Reporte en PDF con topología, tablas, configuraciones y capturas'],['ppt','Presentación con diapositivas de respaldo'],['ens','Ensayo cronometrado en 13 minutos o menos'],['day','Viernes 13: llegar antes y probar equipo']];
+function renderRubric(){
+  const total=RUB.reduce((a,r)=>a+r.w*rubReady(r.k),0);
+  $('#main').innerHTML=`<div class="stack"><div><span class="eyebrow">Cómo te van a calificar</span><h1>Rúbrica y entrega</h1></div>
+   <div class="grid2">
+   <section class="card"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h2>Avance por criterio</h2><span class="chip">${Math.round(total)} / 100 cubiertos</span></div>
+   ${RUB.map(r=>{const rd=rubReady(r.k); const ls=LESSONS.filter(l=>l.rubk===r.k); return `<div class="crit"><div class="stack" style="gap:6px"><b>${esc(r.n)}</b><div class="pbar"><i style="width:${Math.round(rd*100)}%"></i></div><div class="row" style="gap:6px 12px;font-size:.85rem">${ls.map(l=>`<a href="#leccion-${l.id}" style="display:inline-flex;gap:6px;align-items:center;text-decoration:none"><span class="led ${ledOf(l)}"></span>${l.i+1}. ${esc(l.title)}</a>`).join('')}</div></div><div class="pts">${(r.w*rd).toFixed(0)}<span class="muted" style="font-size:1rem"> / ${r.w}</span></div></div>`;}).join('')}
+   <p class="muted" style="font-size:.85rem;margin-top:8px">Es una estimación de tu preparación según las lecciones terminadas, no la calificación final.</p></section>
+   <section class="card stack" style="gap:8px"><h2>Evidencias de entrega</h2>
+   ${EVID.map(([k,n])=>`<label class="check"><input type="checkbox" data-act="evid" data-k="${k}" ${S.evid[k]?'checked':''}><span>${esc(n)}</span></label>`).join('')}
+   <h3 style="margin-top:12px">Lo que pide el "Excelente" de cada criterio</h3>
+   <ul style="margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.92rem">
+    <li><b>Base:</b> VLANs, trunking 802.1Q, inter-VLAN y DHCP sin errores de subneteo.</li>
+    <li><b>WLC:</b> LAPs en CAPWAP, SSIDs creados y roaming fluido sin pérdida de paquetes.</li>
+    <li><b>Seguridad:</b> WPA2-Enterprise con RADIUS funcional e invitados totalmente aislados por ACL.</li>
+    <li><b>IoT/WWAN:</b> sensores/actuadores con reglas automáticas y red 4G para clientes externos.</li>
+    <li><b>Documentación:</b> reporte con topología y tabla de direccionamiento, y defensa ante pruebas de falla.</li></ul>
+   <button class="btn ghost sm" data-act="reset-all" style="align-self:flex-start;margin-top:14px">Borrar todo mi avance</button><div id="resetq"></div></section></div></div>`;
+}
+
+/* =====================================================================
+   EVENTOS Y RUTEO
+   ===================================================================== */
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-goto-tool]'); if(g){ TOOL=g.dataset.gotoTool; if(location.hash==='#herramientas'){ e.preventDefault(); renderTools(); } return; }
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const act=t.dataset.act;
+  if(act==='copy'){ const txt=CFG[t.dataset.key];
+    const done=()=>{t.textContent='Copiado'; setTimeout(()=>t.textContent='Copiar',1500);};
+    try{ navigator.clipboard.writeText(txt).then(done,()=>selPre(t)); }catch(err){ selPre(t); } return; }
+  if(act==='ans'){ const i=+t.dataset.q; (S.quiz[CUR.id] ||= {})[i]=+t.dataset.o; save(); $('#q-'+i).outerHTML=quizBlock(CUR,i); refreshLessonMeta(); return; }
+  if(act==='retry'){ const i=+t.dataset.q; delete (S.quiz[CUR.id]||{})[i]; save(); $('#q-'+i).outerHTML=quizBlock(CUR,i); refreshLessonMeta(); return; }
+  if(act==='ch-set'){ t.dataset.v.split(',').forEach((v,i)=>$('#ch-ap-'+(i+1)).value=v); drawCh(); return; }
+  if(act==='tool'){ TOOL=t.dataset.k; renderTools(); return; }
+  if(act==='preset'){ e.preventDefault(); const p=PRESETS[+t.dataset.i]; $('#aacl').value=p[1]; $('#asrc').value=p[2]; $('#adst').value=p[3]; $('#aproto').value=p[4]; $('#aport').value=p[5]; runAcl(); $('#averdict').scrollIntoView({block:'nearest',behavior:'smooth'}); return; }
+  if(act==='jnext'){ JS=Math.min(JS+1,JOURNEYS[JI].steps.length-1); drawJ(); return; }
+  if(act==='jprev'){ JS=Math.max(JS-1,0); drawJ(); return; }
+  if(act==='tstart'){ if(TM.run){ clearInterval(TM.id); TM.run=false; } else { TM.run=true; TM.id=setInterval(()=>{ TM.t++; drawTimer(); if(TM.t>=1200){clearInterval(TM.id);TM.run=false;drawTimer();} },1000); } drawTimer(); return; }
+  if(act==='treset'){ clearInterval(TM.id); TM={run:false,t:0,id:null}; drawTimer(); return; }
+  if(act==='fc-show'){ FCshow=true; drawFlash(); return; }
+  if(act==='fc-skip'){ FC=null; drawFlash(); return; }
+  if(act==='fc-ok'){ S.cards[FC]='ok'; save(); FC=null; drawFlash(); return; }
+  if(act==='fc-rep'){ S.cards[FC]='rep'; save(); FC=null; drawFlash(); return; }
+  if(act==='reset-all'){ $('#resetq').innerHTML=`<div class="exp wrong" style="margin-top:8px">Se borrarán pasos, quizzes, notas y tarjetas de este navegador. <button class="btn sm" data-act="reset-yes">Sí, borrar</button></div>`; return; }
+  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{}}; save(); renderRubric(); return; }
+});
+function selPre(btn){ const pre=btn.parentElement.querySelector('pre'); const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='Selecciona y copia'; }
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.act==='step'){ const i=+t.dataset.i; (S.steps[CUR.id] ||= {})[i]=t.checked; save(); t.closest('li').classList.toggle('ok',t.checked); refreshLessonMeta(); }
+  if(t.dataset.act==='evid'){ S.evid[t.dataset.k]=t.checked; save(); }
+});
+document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.act==='notes'){ S.notes[CUR.id]=t.value; save(); } });
+
+function route(){
+  const h=(location.hash||'#ruta').slice(1);
+  CUR=null;
+  if(h.startsWith('leccion-')) renderLesson(h.slice(8));
+  else if(h==='herramientas') renderTools();
+  else if(h==='defensa') renderDefense();
+  else if(h==='rubrica') renderRubric();
+  else renderHome();
+  const tab=h.startsWith('leccion-')?'leccion':(['herramientas','defensa','rubrica'].includes(h)?h:'ruta');
+  document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.tab===tab));
+  const nx=CUR||LESSONS.find(l=>ledOf(l)!=='on')||LESSONS[0]; $('nav.tabs a[data-tab="leccion"]').href='#leccion-'+nx.id;
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+route(); countdown(); setInterval(countdown,30000);
+</script>

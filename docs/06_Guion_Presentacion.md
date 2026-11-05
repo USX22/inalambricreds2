@@ -1,4 +1,10 @@
-# 6. Guion de la Presentación (≈ 12–15 minutos)
+# 6. Guion de la Presentación (20 minutos en total)
+
+**Entrega:** ICCS 260 Redes inalámbricas · viernes 13 de noviembre, 12:00 hrs · 20 min por proyecto.
+
+Reparto del tiempo: **unos 13 minutos de exposición con demostraciones** y **7 minutos para preguntas
+y pruebas de falla del docente**. El cronómetro con cada bloque está en la app
+(`app/index.html` → pestaña *Defensa*).
 
 Reparte las diapositivas entre los integrantes. Cada bloque dice **qué poner en la diapositiva** y
 **qué decir**. Menos texto en pantalla, más imágenes (capturas de PT).

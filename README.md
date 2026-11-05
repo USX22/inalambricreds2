@@ -5,11 +5,28 @@ Solución completa para el caso de estudio: WLAN centralizada (WLC + 3 LAPs en E
 WPA2-Enterprise con RADIUS, SSID de invitados aislado por VLAN + ACL, red de sensores IoT con
 reglas automáticas y conectividad celular 4G hacia el servidor central.
 
+## 🚀 Empieza aquí: la app de estudio
+
+**[`app/index.html`](app/index.html)**: aplicación interactiva para aprender, implementar y defender
+el proyecto paso a paso. Funciona sin instalar nada: descarga el archivo y ábrelo con doble clic en
+Chrome, Edge o Firefox.
+
+Incluye:
+- **18 lecciones en orden** (6 etapas), repartidas día por día hasta la entrega del **13 de noviembre a las 12:00**.
+  Cada una tiene: problema que resuelve → criterio de la rúbrica → teoría con ejemplos → mapa de la red
+  resaltado → pasos en Packet Tracer con comandos para copiar → verificación → quiz → "Dilo así" para la exposición → conexiones con otras lecciones.
+- **Herramientas:** calculadora de subredes, simulador de ACL, recorrido de paquetes paso a paso,
+  configuraciones completas, tabla de direccionamiento y guía de diagnóstico.
+- **Defensa:** cronómetro de 20 minutos por bloques, tarjetas de repaso y pruebas de falla del docente.
+- **Rúbrica:** avance estimado por criterio y checklist de evidencias.
+
+El avance se guarda en el navegador donde la abras.
+
 ## ¿Qué hay en este repositorio?
 
 | # | Archivo | Para qué sirve |
 |---|---------|----------------|
-| ⭐ | [docs/00_Tutorial_Completo.md](docs/00_Tutorial_Completo.md) | **Empieza aquí.** Tutorial desde cero: cada concepto explicado y después cómo hacerlo en Packet Tracer. |
+| ⭐ | [docs/00_Tutorial_Completo.md](docs/00_Tutorial_Completo.md) | Versión en texto del tutorial (lo mismo que la app): cada concepto explicado y después cómo hacerlo en Packet Tracer. |
 | 1 | [docs/01_Diseno_y_Direccionamiento.md](docs/01_Diseno_y_Direccionamiento.md) | Topología, VLANs, subneteo y tabla de direccionamiento (lo primero que debes entender). |
 | 2 | [docs/02_Guia_Packet_Tracer.md](docs/02_Guia_Packet_Tracer.md) | Paso a paso para construir el archivo `.pkt` en Cisco Packet Tracer. |
 | 3 | [configs/](configs/) | Configuraciones CLI listas para copiar y pegar (router y switches). |
