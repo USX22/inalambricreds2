@@ -125,6 +125,37 @@ Trucos:
 - Los comandos se pueden abreviar: `conf t`, `int g0/0`, `sh ip int br`.
 - `no` antes de un comando lo deshace (`no shutdown` enciende una interfaz).
 - Los comandos `show ...` se ejecutan en modo `#`. Desde `(config)#` antepón `do`: `do show vlan brief`.
+- Para pegar un bloque de comandos: botón **Paste** debajo de la consola (o Ctrl+V dentro de ella).
+
+## 0.8 Conoce la pantalla de Packet Tracer
+
+| Zona | Dónde está | Para qué sirve |
+|------|-----------|----------------|
+| Área de trabajo | Centro | Aquí arrastras y conectas los equipos. Un clic sobre un equipo abre su ventana. |
+| Logical / Physical | Arriba a la izquierda | Logical = mapa de conexiones (donde trabajas casi siempre). Physical = edificios y distancias (ahí se decide el alcance del WiFi). |
+| Tipo de equipo | Abajo a la izquierda | Network Devices (routers, switches, inalámbricos), End Devices (PC, laptop, servidor, celular, IoT), WAN Emulation (torre celular, Central Office). El **rayo** son los cables. |
+| Modelos y reloj | Abajo al centro | Eliges el modelo exacto (2911, 2960…). El botón de adelantar tiempo hace que la red converja más rápido. |
+| Realtime / Simulation | Abajo a la derecha | Realtime = modo normal. Simulation = ves cada paquete paso a paso (útil para explicar). |
+
+**Pestañas de la ventana de cada equipo:**
+
+| Pestaña | Para qué sirve |
+|---------|----------------|
+| Physical | Ver el equipo por fuera: encender, poner tarjetas o el adaptador de corriente |
+| Config | Configuración con formularios: nombre, IP, WiFi |
+| CLI | Consola de comandos Cisco. Abajo tiene los botones **Copy** y **Paste** |
+| Desktop | Programas: IP Configuration, Command Prompt (para `ping`), Web Browser |
+| Services | Servicios de servidor: HTTP, DNS, AAA (RADIUS), IoT |
+
+Cuando la guía dice "PC-ADMIN → Desktop → Command Prompt" significa: clic en PC-ADMIN, pestaña
+Desktop, ícono Command Prompt.
+
+**Cómo colocar y conectar:** abajo a la izquierda elige la categoría (por ejemplo Network Devices →
+Switches), arrastra el modelo al área de trabajo. Para un cable: clic en el rayo, elige el tipo,
+clic en el primer equipo → elige el puerto, clic en el segundo equipo → elige el puerto.
+
+> Si un término no te queda claro, la app (`app/index.html`) tiene un glosario de 81 términos en
+> Herramientas → Glosario, y en las lecciones puedes tocar las palabras subrayadas.
 
 ---
 
@@ -169,6 +200,10 @@ El número después de la diagonal (el **prefijo**) dice cuántos bits de los 32
 /20 = 11111111.11111111.11110000.00000000 = 255.255.240.0
        (8 bits)  (8 bits)  (4 bits)
 ```
+**Binario en 30 segundos:** cada octeto son 8 casillas (bits) que valen, de izquierda a derecha,
+`128 64 32 16 8 4 2 1`. Un 1 significa "suma este valor": `11110000` = 128+64+32+16 = **240**, y
+`11111111` = 255.
+
 - Bits de red: 20. Bits de host: 32 − 20 = 12 → 2¹² = **4096 direcciones**.
 - El rango va de **192.168.0.0 a 192.168.15.255**.
 
@@ -415,7 +450,7 @@ Sigue la **FASE 3** de `02_Guia_Packet_Tracer.md`: IPs estáticas, AAA, HTTP/HTT
 ## ✅ Compruébalo
 Desde PC-ADMIN → Command Prompt:
 ```
-ping 192.168.0.1      → responde (su gateway)
+ping 192.168.0.1      → responde (su gateway; el primer intento puede fallar mientras la PC averigua la MAC del router con ARP, es normal)
 ping 192.168.3.12     → responde (otra VLAN: ¡el router-on-a-stick funciona!)
 ```
 Desde PC-ADMIN → Web Browser → `entregas.innovalogistics.local` → se ve el portal (DNS y HTTP funcionan).
@@ -650,6 +685,10 @@ interface GigabitEthernet0/0.20
    ↑ se aplica al tráfico que ENTRA al router desde la VLAN de invitados
 ```
 
+**¿Y el Internet?** Tu .pkt no tiene salida a Internet: la última línea (`permit ip ... any`) deja listo el acceso para
+cuando la empresa conecte un proveedor (por eso el DNS de invitados es 8.8.8.8). En la demostración se prueba
+que el invitado **no** llega a nada interno.
+
 **El orden importa:** si el `deny` estuviera antes del `permit udp ... bootps`, el DHCP también
 quedaría bloqueado.
 
@@ -727,6 +766,10 @@ Celular (192.168.6.10)
 ```
 **De regreso**, el router necesita saber dónde está la red 192.168.6.0. Para eso sirve la **ruta
 estática** `ip route 192.168.6.0 255.255.255.0 192.168.5.2`.
+
+> **Si el celular deja de llegar al aplicar ACL-CELULAR:** revisa `show access-lists ACL-CELULAR`. Si sube el
+> contador del `deny`, tu versión del Central Office podría estar cambiando la IP de origen. Quita la ACL de G0/1
+> y ajusta el origen permitido.
 
 ## 🎯 Comunicación segura
 - `ACL-CELULAR` solo permite que los celulares lleguen al Servidor Central por HTTPS, HTTP y DNS. Todo lo demás se bloquea.

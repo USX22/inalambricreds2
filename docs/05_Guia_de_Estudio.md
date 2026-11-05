@@ -208,7 +208,15 @@ El cifrado de WPA2: AES en modo contador con CBC-MAC; da confidencialidad e inte
 **27. ¿Qué es SSH y por qué no Telnet?**
 SSH cifra la sesión de administración; Telnet manda todo en texto plano (contraseñas incluidas).
 
-**28. ¿Qué mejoras harías?**
+**28. ¿Por qué la ACL de invitados dice "Internet permitido" si no hay Internet en el .pkt?**
+La última línea deja listo el acceso para cuando la empresa conecte un proveedor. Lo que se demuestra es
+que el invitado no alcanza nada de 192.168.0.0/20.
+
+**29. ¿Cómo demostraste el roaming en Packet Tracer?**
+Separé los tres APs en la vista Physical (donde se calcula el alcance del WiFi) y moví la laptop de AP-1 a
+AP-3 con un ping continuo: la conexión cambió de AP, conservó la IP y el ping siguió.
+
+**30. ¿Qué mejoras harías?**
 5 GHz, WPA3/EAP-TLS, PoE, WLC redundante, RADIUS secundario, portal cautivo para invitados, VPN para la
 flotilla, monitoreo SNMP/Syslog.
 

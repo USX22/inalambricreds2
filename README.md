@@ -16,11 +16,14 @@ Incluye:
   Cada una tiene: problema que resuelve → criterio de la rúbrica → teoría con ejemplos → mapa de la red
   resaltado → pasos en Packet Tracer con comandos para copiar → verificación → quiz → "Dilo así" para la exposición → conexiones con otras lecciones.
 - **Herramientas:** calculadora de subredes, simulador de ACL, recorrido de paquetes paso a paso,
-  configuraciones completas, tabla de direccionamiento y guía de diagnóstico.
+  configuraciones completas, tabla de direccionamiento, guía de diagnóstico y glosario de 81 términos.
+- **Para principiantes:** recorrido por la pantalla de Packet Tracer y palabras técnicas que muestran su definición al tocarlas.
 - **Defensa:** cronómetro de 20 minutos por bloques, tarjetas de repaso y pruebas de falla del docente.
 - **Rúbrica:** avance estimado por criterio y checklist de evidencias.
 
 El avance se guarda en el navegador donde la abras.
+
+**Entrega:** ICCS 260 Redes inalámbricas · viernes 13 de noviembre de 2026, 12:00 hrs · 20 minutos por proyecto.
 
 **Pruebas automáticas de la app:** `node tests/app.test.js` (requiere Node y Playwright con Chromium).
 Revisan 144 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
@@ -31,7 +34,7 @@ vistas se vean bien en celular y en modo oscuro.
 
 | # | Archivo | Para qué sirve |
 |---|---------|----------------|
-| ⭐ | [docs/00_Tutorial_Completo.md](docs/00_Tutorial_Completo.md) | Versión en texto del tutorial (lo mismo que la app): cada concepto explicado y después cómo hacerlo en Packet Tracer. |
+| ⭐ | [docs/00_Tutorial_Completo.md](docs/00_Tutorial_Completo.md) | Versión en texto del tutorial de la app (sin quizzes ni simuladores): cada concepto explicado y después cómo hacerlo en Packet Tracer. |
 | 1 | [docs/01_Diseno_y_Direccionamiento.md](docs/01_Diseno_y_Direccionamiento.md) | Topología, VLANs, subneteo y tabla de direccionamiento (lo primero que debes entender). |
 | 2 | [docs/02_Guia_Packet_Tracer.md](docs/02_Guia_Packet_Tracer.md) | Paso a paso para construir el archivo `.pkt` en Cisco Packet Tracer. |
 | 3 | [configs/](configs/) | Configuraciones CLI listas para copiar y pegar (router y switches). |
@@ -44,7 +47,7 @@ vistas se vean bien en celular y en modo oscuro.
 ## Evidencias que pide el docente
 
 - [ ] **Reporte** → `docs/04_Reporte_Tecnico.md` + capturas de tu `.pkt`
-- [ ] **Archivo .pkt** → constrúyelo con `docs/02_Guia_Packet_Tracer.md` (guárdalo en esta carpeta como `InnovaLogistics.pkt`)
+- [ ] **Archivo .pkt** → constrúyelo con `docs/02_Guia_Packet_Tracer.md` (guárdalo en esta carpeta como `InnovaLogistics_Final.pkt`)
 - [ ] **Presentación** → `docs/06_Guion_Presentacion.md`
 
 ## Resumen del diseño (en una tabla)
@@ -61,5 +64,6 @@ vistas se vean bien en celular y en modo oscuro.
 
 Red principal: **192.168.0.0/20** dividida en 16 subredes /24 (se usan 7, quedan 9 libres para crecimiento).
 
-> Probado como diseño para Cisco Packet Tracer 8.x. Si tu versión muestra menús con otro nombre,
-> revisa la sección "Problemas comunes" de la guía.
+> Diseño pensado para Cisco Packet Tracer 8.x. No se ha ejecutado dentro de Packet Tracer: los puntos que
+> dependen de tu versión y su plan B están en `docs/07_Revision_del_Proyecto.md` §7.5. Si un menú tiene
+> otro nombre, revisa "Problemas comunes" en `docs/02_Guia_Packet_Tracer.md`.

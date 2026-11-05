@@ -48,6 +48,9 @@ Usa **notas** (tecla N) o rectángulos de color para marcar las zonas: *Oficinas
 
 ## FASE 2 – Router y switches (VLANs, Trunks, Inter-VLAN, DHCP)
 
+> **Cómo pegar:** copia el texto del archivo y, en la pestaña CLI de Packet Tracer, usa el botón
+> **Paste** que está debajo de la consola (o Ctrl+V dentro de la consola).
+
 1. Abre **R-CORE → CLI**, presiona Enter, y pega todo el contenido de [`configs/R-CORE.txt`](../configs/R-CORE.txt).
 2. Abre **SW-CORE → CLI** y pega [`configs/SW-CORE.txt`](../configs/SW-CORE.txt).
 3. Abre **SW-ALMACEN → CLI** y pega [`configs/SW-ALMACEN.txt`](../configs/SW-ALMACEN.txt).
@@ -106,6 +109,8 @@ Desktop → IP Configuration → **Static**:
 
 WLC → **Config** → (Management / Interface):
 - IP Address: `192.168.0.10` · Subnet: `255.255.255.0` · Gateway: `192.168.0.1`
+
+Si tu modelo de WLC no muestra esos campos en Config, bórrala y usa la **WLC-2504**, que sí los tiene.
 
 ### 4.2 Entrar a la interfaz web
 
@@ -270,3 +275,6 @@ Desde el celular, `ping 192.168.3.10` (RADIUS) **debe fallar** (ACL-CELULAR solo
 | IoT no "Connected" | Sin IP o servidor IoT apagado | Verifica IP 192.168.4.x y que Services → IoT esté On. |
 | Celular no llega al servidor | Falta ruta en R-CORE o gateway del Central Office | `show ip route` debe mostrar `S 192.168.6.0/24 via 192.168.5.2`. |
 | "Native VLAN mismatch" | Un trunk sin `native vlan 99` | Todos los trunks deben tener nativa 99. |
+| El celular funcionaba y dejó de llegar tras aplicar ACL-CELULAR | El Central Office podría estar cambiando la IP de origen de los celulares | `show access-lists ACL-CELULAR`: si sube el contador del `deny`, quita la ACL de G0/1 (`no ip access-group ACL-CELULAR in`) y ajusta el origen permitido. |
+| La laptop no cambia de AP en el roaming | Se movió en la vista Logical o los APs están muy juntos | Separa los APs y mueve la laptop en la vista **Physical**. |
+| `ping -t` no funciona | Tu versión no acepta esa opción | Usa `ping -n 200 <IP>`. |
