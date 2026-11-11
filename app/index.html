@@ -570,15 +570,14 @@ ${[['R-CORE','G0/0.99 (nativa)','192.168.0.1','/24','—'],['R-CORE','G0/0.10','
 
 /* ---------- Plan por días ---------- */
 const DAYS = [
-  {d:'2026-11-05', name:'Jue 5 nov', goal:'Entender la red en papel', lessons:['fundamentos','caso','subneteo']},
-  {d:'2026-11-06', name:'Vie 6 nov', goal:'Red cableada funcionando', lessons:['cableado','vlans','router','dhcp']},
-  {d:'2026-11-07', name:'Sáb 7 nov', goal:'Servidores y teoría WiFi; APs unidos a la WLC', lessons:['servidores','wifi','wlc']},
-  {d:'2026-11-08', name:'Dom 8 nov', goal:'SSIDs, roaming y RADIUS', lessons:['ssids','radius']},
-  {d:'2026-11-09', name:'Lun 9 nov', goal:'Invitados aislados e IoT', lessons:['acl','iot']},
-  {d:'2026-11-10', name:'Mar 10 nov', goal:'Red 4G y todas las pruebas con capturas', lessons:['celular','pruebas']},
-  {d:'2026-11-11', name:'Mié 11 nov', goal:'Reporte y presentación terminados', lessons:['entregables']},
-  {d:'2026-11-12', name:'Jue 12 nov', goal:'Ensayo cronometrado y simulacro de preguntas', lessons:['defensa']},
-  {d:'2026-11-13', name:'Vie 13 nov', goal:'ENTREGA 12:00 hrs · 20 min por proyecto', lessons:[]}
+  {d:'2026-11-11', name:'Mié 11 · mañana', goal:'Teoría base (2–3 h): entiende la red en papel', lessons:['fundamentos','caso','subneteo']},
+  {d:'2026-11-11', name:'Mié 11 · tarde', goal:'Red cableada funcionando (3 h)', lessons:['cableado','vlans','router','dhcp','servidores']},
+  {d:'2026-11-11', name:'Mié 11 · noche', goal:'WiFi: WLC, APs y SSIDs (2–3 h)', lessons:['wifi','wlc','ssids']},
+  {d:'2026-11-12', name:'Jue 12 · mañana', goal:'Seguridad: RADIUS y ACL de invitados (2–3 h)', lessons:['radius','acl']},
+  {d:'2026-11-12', name:'Jue 12 · tarde', goal:'IoT, red 4G y pruebas con capturas (3–4 h)', lessons:['iot','celular','pruebas']},
+  {d:'2026-11-12', name:'Jue 12 · noche', goal:'Reporte y diapositivas (2–3 h)', lessons:['entregables']},
+  {d:'2026-11-13', name:'Vie 13 · temprano', goal:'Ensayo cronometrado y repaso (1–2 h)', lessons:['defensa']},
+  {d:'2026-11-13', name:'Vie 13 · 12:00', goal:'ENTREGA · 20 min por proyecto', lessons:[]}
 ];
 
 const ETAPAS = ['1 · Entender','2 · Red cableada','3 · Red inalámbrica','4 · Seguridad','5 · IoT y 4G','6 · Entrega y defensa'];
@@ -1575,7 +1574,8 @@ function rubReady(k){ const ls=LESSONS.filter(l=>l.rubk===k); if(!ls.length) ret
 function renderHome(){
   const done=LESSONS.filter(l=>ledOf(l)==='on').length;
   const t=todayStr();
-  let today=DAYS.find(d=>d.d===t) || (t<DAYS[0].d?DAYS[0]:null);
+  const todays=DAYS.filter(d=>d.d===t && d.lessons.length);
+  let today=todays.find(d=>d.lessons.some(id=>ledOf(LBY[id])!=='on')) || todays[todays.length-1] || (t<DAYS[0].d?DAYS[0]:null);
   const next=LESSONS.find(l=>ledOf(l)!=='on')||LESSONS[LESSONS.length-1];
   const ports=LESSONS.map(l=>`<a class="port" href="#leccion-${l.id}" title="${esc(l.title)}"><span class="led ${ledOf(l)}"></span>${String(l.i+1).padStart(2,'0')}</a>`).join('');
   const total=RUB.reduce((a,r)=>a+r.w*rubReady(r.k),0);
