@@ -559,11 +559,12 @@ ip default-gateway 192.168.0.1
 end
 write memory`;
 CFG.practica1 = `! Práctica de calentamiento (archivo aparte, NO es el proyecto)
-! PC-A: IP 10.0.0.1  máscara 255.255.255.0
-! PC-B: IP 10.0.0.2  máscara 255.255.255.0
-! En PC-A > Desktop > Command Prompt:
+! PC0: IP 10.0.0.1  máscara 255.255.255.0
+! PC1: IP 10.0.0.2  máscara 255.255.255.0
+! (Ojo: al escribir la IP, PT pone la máscara 255.0.0.0; cámbiala a 255.255.255.0)
+! En PC0 > Desktop > Command Prompt:
 ping 10.0.0.2
-! Ahora cambia PC-B a 10.0.1.2 y repite el ping.`;
+! Ahora cambia PC1 a 10.0.1.2 y haz: ping 10.0.1.2`;
 
 /* ---------- Tablas de referencia ---------- */
 const T_VLANS = `<div class="tbl"><table><thead><tr><th>VLAN</th><th>Nombre</th><th>Red</th><th>Gateway</th><th>Quién vive ahí</th></tr></thead><tbody>
@@ -654,10 +655,10 @@ const LESSONS = [
   {t:'Crea una carpeta <code>ProyectoInnova</code> donde guardarás todo: los <code>.pkt</code> de cada día, capturas, reporte y presentación.'},
   {t:'Recorre la pantalla de Packet Tracer con el esquema de arriba: encuentra el selector de tipo de equipo (abajo a la izquierda), el botón de cables (el rayo), y los botones <b>Realtime</b> y <b>Simulation</b> (abajo a la derecha).'},
   {t:'<b>Práctica de calentamiento</b> (en un archivo nuevo, <code>practica.pkt</code>): abajo a la izquierda elige <b>Network Devices → Switches</b> y arrastra un <b>2960</b> al área de trabajo. Luego <b>End Devices</b> y arrastra dos <b>PC</b>. Para conectar: clic en el rayo (Connections), elige el cable negro continuo (<b>Copper Straight-Through</b>), clic en la PC → FastEthernet0, clic en el switch → cualquier FastEthernet. Configura las IPs en cada PC: Desktop → IP Configuration.', code:'practica1'},
-  {t:'Haz el ping de PC-A a PC-B: debe responder. Luego cambia PC-B a <code>10.0.1.2</code> y repite: <b>falla</b>. Acabas de comprobar que equipos de redes distintas necesitan un router. Esa es la razón de existir de R-CORE en tu proyecto.'},
+  {t:'Haz el ping de PC0 a PC1 (<code>ping 10.0.0.2</code>): debe responder, porque están en la misma red (10.0.0). Luego cambia la IP de PC1 a <code>10.0.1.2</code> y haz <code>ping 10.0.1.2</code>: <b>falla</b>, porque ahora están en redes distintas (10.0.0 y 10.0.1) y no hay router que las una. Así comprobaste que el switch solo conecta equipos de la misma red; para unir redes distintas hace falta un router. En tu proyecto ese router es R-CORE: une las redes de empleados, invitados, servidores y sensores.'},
   {t:'Entra al CLI del switch y practica: <code>enable</code>, <code>configure terminal</code>, <code>hostname PRUEBA</code>, <code>end</code>, <code>show running-config</code>. Prueba <kbd>Tab</kbd> y <kbd>?</kbd>.'}
  ],
- verify:[['ping 10.0.0.2 (misma red)','Reply from 10.0.0.2'],['ping 10.0.1.2 (otra red, sin router)','Request timed out']],
+ verify:[['PC0> ping 10.0.0.2 (misma red)','Reply from 10.0.0.2 · Lost = 0'],['PC0> ping 10.0.1.2 (otra red, sin router)','Request timed out · Lost = 4 (100% loss)']],
  quiz:[
   {q:'Una laptop tiene la IP 192.168.2.30/24. ¿En qué red está?', o:['192.168.0.0','192.168.2.0','192.168.2.30','192.168.2.255'], a:1, e:'Con /24 los tres primeros octetos son la red: 192.168.2.0. El .30 es el número de host.'},
   {q:'Un empleado en 192.168.1.0/24 quiere llegar al servidor en 192.168.3.0/24. ¿Qué equipo lo hace posible?', o:['Un switch','Un access point','Un router','Un cable cruzado'], a:2, e:'Son redes distintas. Solo un router (capa 3) conecta redes distintas.'},
