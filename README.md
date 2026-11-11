@@ -12,7 +12,7 @@ el proyecto paso a paso. Funciona sin instalar nada: descarga el archivo y ábre
 Chrome, Edge o Firefox.
 
 Incluye:
-- **Lo básico:** 47 conceptos desde cero (red, IP, router, WiFi, VLAN…) explicados con el ejemplo de un edificio, marcados como *Esencial*, *Bueno saber* o *No te preocupes*, con prueba rápida y 6 tipos de ejercicios interactivos (¿misma red o router?, leer una IP, ¿en qué red va?, ¿quién lo hace?, sensor o actuador, ordenar pasos).
+- **Lo básico:** 47 conceptos desde cero (red, IP, router, WiFi, VLAN…) explicados con el ejemplo de un edificio, marcados como *Esencial*, *Bueno saber* o *No te preocupes*, con un diccionario de siglas (qué significa cada abreviatura, en inglés y en español), cómo leer los nombres de tus equipos, prueba rápida y 6 tipos de ejercicios interactivos (¿misma red o router?, leer una IP, ¿en qué red va?, ¿quién lo hace?, sensor o actuador, ordenar pasos).
 - **18 lecciones en orden** (6 etapas), repartidas día por día hasta la entrega del **13 de noviembre a las 12:00**.
   Cada una tiene: problema que resuelve → criterio de la rúbrica → teoría con ejemplos → mapa de la red
   resaltado → pasos en Packet Tracer con comandos para copiar → verificación → quiz → "Dilo así" para la exposición → conexiones con otras lecciones.

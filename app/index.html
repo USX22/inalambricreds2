@@ -226,8 +226,9 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
 .term:hover{color:var(--accent)}
 #gloss-pop{position:fixed;z-index:20;background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:.9rem;display:flex;flex-direction:column;gap:4px}
 #gloss-pop b{font-family:var(--f-display);font-size:1.05rem}
+.gfull{font-size:.85rem;color:var(--accent);font-style:italic}
 .glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px}
-.glist div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.glist > div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
 .ptwin{width:100%;min-width:560px;height:auto}
 .ptwin text{font:12px var(--f-body);fill:var(--ink)}
 .ptwin .lb{font:600 12px var(--f-body);fill:var(--accent-ink)}
@@ -1424,11 +1425,12 @@ const GLOSS = {
  'Realtime':'Modo normal de Packet Tracer: todo ocurre al instante.'
 };
 const GKEYS = Object.keys(GLOSS).sort((a,b)=>b.length-a.length);
-const GRE = new RegExp('(?<![\\wÁÉÍÓÚáéíóúñÑ./-])(' + GKEYS.map(k=>k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).join('|') + ')(?![\\wÁÉÍÓÚáéíóúñÑ-])', 'gi');
+let GRE = new RegExp('(?<![\\wÁÉÍÓÚáéíóúñÑ./-])(' + GKEYS.map(k=>k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).join('|') + ')(?![\\wÁÉÍÓÚáéíóúñÑ-])', 'gi');
+function buildGRE(){ GRE = new RegExp('(?<![\\wÁÉÍÓÚáéíóúñÑ./-])(' + GKEYS.map(k=>k.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).join('|') + ')(?![\\wÁÉÍÓÚáéíóúñÑ+-])', 'gi'); }
 function markTerms(root, seen=new Set()){
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode(n){
     const p = n.parentElement; if(!p) return NodeFilter.FILTER_REJECT;
-    if(p.closest('code,pre,kbd,a,button,h1,h2,h3,label,th,.term,.say,svg,select,textarea,[data-widget]')) return NodeFilter.FILTER_REJECT;
+    if(p.closest('code,pre,kbd,a,button,h1,h2,h3,label,th,.term,svg,select,textarea,[data-widget],.exitem,#gloss-pop')) return NodeFilter.FILTER_REJECT;
     return /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }});
   const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(n=>{
@@ -1446,15 +1448,97 @@ function markTerms(root, seen=new Set()){
     if(frag){ frag.appendChild(document.createTextNode(txt.slice(last))); n.parentNode.replaceChild(frag,n); }
   });
 }
+function markAll(sels){
+  // Cada sección marca la primera aparición de cada término, para que siempre tengas la definición a mano.
+  sels.forEach(sel=>document.querySelectorAll(sel).forEach(r=>markTerms(r,new Set())));
+}
 function showGloss(btn){
   const pop=document.getElementById('gloss-pop'); const k=btn.dataset.t;
-  pop.innerHTML=`<b>${esc(k)}</b><p>${esc(GLOSS[k])}</p>`; pop.hidden=false;
+  const lv=glv(k); pop.innerHTML=`<div class="row" style="justify-content:space-between;gap:8px"><b>${esc(k)}</b><span class="lvl ${NIV[lv][1]}">${NIV[lv][0]}</span></div>${GFULL[k]?`<p class="gfull">Significa: ${esc(GFULL[k])}</p>`:''}<p>${esc(GLOSS[k])}</p>`; pop.hidden=false;
   const r=btn.getBoundingClientRect(); const W=Math.min(320,innerWidth-32);
   pop.style.width=W+'px';
   pop.style.left=Math.max(16,Math.min(r.left,innerWidth-W-16))+'px';
   const below=r.bottom+8; pop.style.top=(below+pop.offsetHeight>innerHeight-8? Math.max(8,r.top-pop.offsetHeight-8): below)+'px';
 }
 
+
+
+/* ---------- Siglas: qué significan y cuánto importan ---------- */
+Object.assign(GLOSS, {
+ 'TCP':'Forma de enviar datos que confirma que todo llegó completo y en orden. Si algo se pierde, lo vuelve a mandar. Es como una carta certificada con acuse de recibo. Lo usan la web y SSH.',
+ 'UDP':'Forma de enviar datos rápida que no confirma si llegó. Es como un volante que repartes: lo mandas y ya. Lo usan DHCP, DNS, RADIUS y CAPWAP porque necesitan rapidez.',
+ 'SSH':'Programa para manejar un router o switch a distancia, escribiendo comandos, con todo cifrado. En tu proyecto ya viene en la configuración del router.',
+ 'DNS':'Servicio que traduce nombres a IPs, como la agenda de tu celular: escribes "entregas.innovalogistics.local" y te da 192.168.3.12.',
+ 'CAPWAP':'El "túnel" por el que cada antena (AP) habla con la WLC. Por ahí la WLC le manda su configuración y por ahí pasan los datos de los usuarios.',
+ 'LAN':'Red local cableada: la de un edificio u oficina.',
+ 'WAN':'Red que une redes lejanas (ciudades, países). Internet es la WAN más grande.',
+ 'OSI':'Modelo que divide en 7 capas el trabajo de una red (cables, switches, routers, programas). Sirve para ubicar dónde trabaja cada cosa.',
+ 'IEEE':'Organización que publica los estándares de redes, como 802.11 (WiFi) y 802.1Q (VLANs).',
+ '802.11':'El nombre técnico del WiFi. Las letras después (b, g, n, ac, ax) son versiones cada vez más rápidas.',
+ '802.11b':'WiFi antiguo de 2.4 GHz, hasta 11 Mbps.','802.11a':'WiFi antiguo de 5 GHz, hasta 54 Mbps.','802.11g':'WiFi de 2.4 GHz, hasta 54 Mbps.',
+ '802.11n':'WiFi 4: 2.4 y 5 GHz, hasta 600 Mbps.','802.11ac':'WiFi 5: 5 GHz, varios Gbps.','802.11ax':'WiFi 6: el más reciente, 2.4/5/6 GHz.',
+ '802.11r':'Mejora que hace más rápido el roaming en redes con usuario y contraseña.',
+ 'WEP':'La seguridad WiFi más antigua. Ya está rota: nunca se usa.','WPA':'Sucesor de WEP, ya obsoleto.','WPA3':'La seguridad WiFi más nueva. Packet Tracer no la soporta completa.',
+ 'TKIP':'Cifrado viejo de WPA, ya inseguro.','RC4':'Algoritmo de cifrado viejo que usaba WEP; está roto.','SAE':'Método de WPA3 para proteger la contraseña WiFi.',
+ 'AES-CCMP':'El cifrado completo de WPA2: AES para ocultar los datos y CCMP para revisar que nadie los cambió.',
+ 'CSMA/CD':'El método de los cables Ethernet antiguos para detectar choques. El WiFi usa CSMA/CA.','TDMA':'Método de turnos por tiempo de redes celulares viejas. No lo necesitas.',
+ 'BTS':'Nombre de la antena celular en 2G. En 4G se llama eNodeB.','gNodeB':'Nombre de la antena celular en 5G.',
+ 'TACACS+':'Alternativa de Cisco a RADIUS, usada para administrar equipos. Solo por si te preguntan la diferencia.',
+ 'RSA':'Tipo de llave de cifrado que el router genera para poder usar SSH.','IBSS':'Red WiFi entre equipos sin AP (modo ad-hoc).',
+ 'BLE':'Bluetooth de bajo consumo, usado en sensores.','Zigbee':'Tecnología inalámbrica de bajo consumo para sensores.','LoRaWAN':'Tecnología inalámbrica de largo alcance y bajo consumo para sensores.',
+ 'PC':'Computadora de escritorio.','PT':'Abreviatura de Packet Tracer.','ID':'Identificador: un número o nombre que distingue algo (VLAN ID 10 = la VLAN número 10).',
+ 'FastEthernet':'Puerto de 100 Mbps. En los nombres de puerto aparece como Fa (Fa0/1 = módulo 0, puerto 1).',
+ 'GigabitEthernet':'Puerto de 1000 Mbps. Aparece como G o Gig (G0/1 = módulo 0, puerto 1).',
+ 'ISP':'Proveedor de Internet (Telmex, Totalplay…). Tu proyecto no tiene.',
+ 'HA':'Alta disponibilidad: tener un equipo de respaldo listo por si falla el principal.','N+1':'Tener un equipo extra de respaldo (por ejemplo, una segunda WLC).',
+ 'SNMP':'Protocolo para monitorear equipos de red a distancia. Solo como mejora futura.','Syslog':'Sistema para guardar los registros (logs) de los equipos. Solo como mejora futura.',
+ 'EAP-TLS':'Forma de 802.1X que usa certificados digitales en vez de contraseña. Es una mejora futura.','PEAP':'Forma de 802.1X con usuario y contraseña dentro de un túnel cifrado.',
+ 'RRM':'Función de la WLC que ajusta sola los canales y la potencia de los APs.','OKC':'Técnica para que el roaming con 802.1X sea más rápido.',
+ 'Mbps':'Megabits por segundo: mide la velocidad. 1000 Mbps = 1 Gbps.',
+ 'WPA2-PSK':'WPA2 con una sola contraseña para todos (modo Personal). Lo usan invitados y sensores.',
+ 'WPC300N':'Nombre de la tarjeta WiFi que le pones a las laptops en Packet Tracer.',
+ 'PT-IOT-NM-1W':'Nombre de la tarjeta WiFi que le pones a los sensores IoT en Packet Tracer.','GHz':'Gigahertz: la frecuencia de radio. El WiFi usa 2.4 y 5 GHz.'
+});
+const GFULL = {
+ 'IP':'Internet Protocol · Protocolo de Internet','TCP':'Transmission Control Protocol · Protocolo de Control de Transmisión','UDP':'User Datagram Protocol · Protocolo de Datagramas de Usuario',
+ 'DHCP':'Dynamic Host Configuration Protocol · Protocolo de Configuración Dinámica de Equipos','DNS':'Domain Name System · Sistema de Nombres de Dominio',
+ 'HTTP':'HyperText Transfer Protocol · Protocolo de Transferencia de Hipertexto (páginas web)','HTTPS':'HTTP Secure · HTTP seguro (cifrado)',
+ 'SSH':'Secure Shell · Consola segura','TLS':'Transport Layer Security · Seguridad de la Capa de Transporte','ICMP':'Internet Control Message Protocol · Protocolo de Mensajes de Control',
+ 'ARP':'Address Resolution Protocol · Protocolo de Resolución de Direcciones','MAC':'Media Access Control · Control de Acceso al Medio',
+ 'CLI':'Command Line Interface · Interfaz de Línea de Comandos','VLAN':'Virtual LAN · Red Local Virtual','STP':'Spanning Tree Protocol · Protocolo de Árbol de Expansión',
+ 'ACL':'Access Control List · Lista de Control de Acceso','LAN':'Local Area Network · Red de Área Local','WAN':'Wide Area Network · Red de Área Amplia',
+ 'WLAN':'Wireless LAN · Red Local Inalámbrica','WWAN':'Wireless WAN · Red Inalámbrica de Área Amplia','WSN':'Wireless Sensor Network · Red de Sensores Inalámbricos',
+ 'OSI':'Open Systems Interconnection · Interconexión de Sistemas Abiertos','IEEE':'Institute of Electrical and Electronics Engineers · Instituto de Ingenieros Eléctricos y Electrónicos',
+ 'SSID':'Service Set Identifier · Identificador del Conjunto de Servicio (el nombre del WiFi)','BSSID':'Basic Service Set Identifier · Identificador de cada AP',
+ 'BSS':'Basic Service Set · Conjunto de Servicio Básico','ESS':'Extended Service Set · Conjunto de Servicio Extendido','IBSS':'Independent BSS · BSS independiente',
+ 'AP':'Access Point · Punto de Acceso','LAP':'Lightweight Access Point · Punto de Acceso Ligero','WLC':'Wireless LAN Controller · Controlador de la Red Inalámbrica',
+ 'CAPWAP':'Control And Provisioning of Wireless Access Points · Control y Aprovisionamiento de Puntos de Acceso',
+ 'DTLS':'Datagram TLS · TLS para UDP','CSMA/CA':'Carrier Sense Multiple Access with Collision Avoidance · Acceso múltiple con escucha y prevención de colisiones',
+ 'CSMA/CD':'Carrier Sense Multiple Access with Collision Detection · Acceso múltiple con escucha y detección de colisiones','PoE':'Power over Ethernet · Energía por el cable de red',
+ 'WEP':'Wired Equivalent Privacy · Privacidad Equivalente al Cable','WPA':'WiFi Protected Access · Acceso Protegido WiFi','WPA2':'WiFi Protected Access 2 · Acceso Protegido WiFi, versión 2','WPA3':'WiFi Protected Access 3 · versión 3',
+ 'PSK':'Pre-Shared Key · Clave Precompartida','AES':'Advanced Encryption Standard · Estándar de Cifrado Avanzado','AES-CCMP':'AES con CCMP (protocolo que revisa que los datos no se alteren)',
+ 'TKIP':'Temporal Key Integrity Protocol · Protocolo de Integridad de Clave Temporal','SAE':'Simultaneous Authentication of Equals · Autenticación Simultánea de Iguales',
+ 'EAP':'Extensible Authentication Protocol · Protocolo de Autenticación Extensible','EAPOL':'EAP over LAN · EAP sobre la red local',
+ 'RADIUS':'Remote Authentication Dial-In User Service · Servicio de Autenticación Remota de Usuarios','AAA':'Authentication, Authorization, Accounting · Autenticación, Autorización y Registro',
+ 'TACACS+':'Terminal Access Controller Access-Control System Plus','PMK':'Pairwise Master Key · Llave Maestra por Pareja','RSA':'Rivest–Shamir–Adleman (los apellidos de sus inventores)',
+ 'IoT':'Internet of Things · Internet de las Cosas','LTE':'Long Term Evolution · Evolución a Largo Plazo (la tecnología del 4G)','EPC':'Evolved Packet Core · Núcleo de Paquetes Evolucionado (centro de la red 4G)',
+ 'eNodeB':'evolved Node B · Nodo B evolucionado (antena 4G)','gNodeB':'next generation Node B · antena 5G','BTS':'Base Transceiver Station · Estación Base',
+ 'VPN':'Virtual Private Network · Red Privada Virtual','APN':'Access Point Name · Nombre del Punto de Acceso (configuración del operador celular)',
+ 'BLE':'Bluetooth Low Energy · Bluetooth de Bajo Consumo','LoRaWAN':'Long Range Wide Area Network · Red de largo alcance','ISP':'Internet Service Provider · Proveedor de Servicios de Internet',
+ 'HA':'High Availability · Alta Disponibilidad','SNMP':'Simple Network Management Protocol · Protocolo Simple de Administración de Red','RRM':'Radio Resource Management · Administración de Recursos de Radio',
+ 'OKC':'Opportunistic Key Caching · Guardado oportunista de llaves','PEAP':'Protected EAP · EAP protegido','EAP-TLS':'EAP con certificados TLS',
+ 'DORA':'Discover, Offer, Request, Acknowledge · Descubrir, Ofrecer, Solicitar, Confirmar','PC':'Personal Computer · Computadora Personal','PT':'Packet Tracer','ID':'Identifier · Identificador',
+ 'RC4':'Rivest Cipher 4 · Cifrado Rivest 4','TDMA':'Time Division Multiple Access · Acceso por División de Tiempo','Mbps':'Megabits por segundo','GHz':'Gigahertz',
+ '802.11':'Estándar IEEE 802.11 (WiFi)','WPA2-PSK':'WPA2 con Pre-Shared Key · WPA2 con clave compartida','802.1Q':'Estándar IEEE 802.1Q (etiquetas de VLAN)','802.1X':'Estándar IEEE 802.1X (autenticación por usuario)',
+ '4-way handshake':'Saludo de 4 mensajes','split-MAC':'MAC dividida','router-on-a-stick':'Router en un palo (un solo cable)','PortFast':'Puerto rápido','Telnet':'Teletype Network',
+ 'beacon':'Baliza o faro','wildcard':'Comodín','shared secret':'Secreto compartido','pool':'Grupo o reserva (de IPs)','trunk':'Troncal','broadcast':'Difusión','gateway':'Puerta de enlace','host':'Anfitrión o equipo','roaming':'Itinerancia (moverse entre antenas)'
+};
+const GL3 = new Set(['IP','máscara','gateway','DHCP','VLAN','trunk','802.1Q','VLAN nativa','subinterfaz','router-on-a-stick','router','switch','AP','LAP','WLC','CAPWAP','SSID','ESS','roaming','canal','WPA2','PSK','802.1X','RADIUS','suplicante','autenticador','shared secret','ACL','wildcard','IoT','sensor','actuador','WSN','WWAN','WLAN','LAN','802.11','ping','CLI','ruta estática','DORA','subred','prefijo','host','broadcast','DNS']);
+const GL1 = new Set(['DTLS','PMK','4-way handshake','TKIP','RC4','SAE','CSMA/CD','TDMA','BTS','gNodeB','TACACS+','RSA','IBSS','BLE','Zigbee','LoRaWAN','HA','N+1','SNMP','Syslog','EAP-TLS','PEAP','RRM','OKC','802.11b','802.11a','802.11g','802.11n','802.11ac','802.11ax','802.11r','PT','ID','ISP','Realtime','APN','MAC','STP','ARP','beacon','EAPOL','BSSID','octeto','trama','Mbps','GHz','PC']);
+const glv = k => GL3.has(k)?3:(GL1.has(k)?1:2);
+const GKEYS2 = Object.keys(GLOSS).sort((a,b)=>b.length-a.length);
+GKEYS.length = 0; GKEYS2.forEach(k=>GKEYS.push(k));
+buildGRE();
 
 /* ---------- Lo básico: conceptos desde cero ---------- */
 // n: 3 = esencial, 2 = bueno saber, 1 = no te preocupes
@@ -1784,7 +1868,7 @@ function renderLesson(id){
   </div>`;
   if(window.matchMedia('(max-width:900px)').matches){ const d=$('#side details'); if(d) d.open=false; }
   mountWidgets();
-  { const seen=new Set(); document.querySelectorAll('#main .prose, #main .steps .body > div:not(.codebox)').forEach(r=>markTerms(r,seen)); }
+  markAll(['#main .why > div','#main .prose','#main .steps .body > div:not(.codebox)','#main .verify','#main .exp','#main .say','#main .links']);
   CUR=L;
 }
 let CUR=null;
@@ -1853,6 +1937,7 @@ function renderTools(){
   $('#main').innerHTML=`<div class="stack"><div><span class="eyebrow">Herramientas</span><h1>Practica sin miedo a romper nada</h1></div>
    <div class="subnav" role="tablist">${TOOLS.map(([k,n])=>`<button role="tab" class="${k===TOOL?'on':''}" data-act="tool" data-k="${k}">${n}</button>`).join('')}</div><div id="tool"></div></div>`;
   ({calc:toolCalc,acl:toolAcl,paquete:toolJourney,configs:toolConfigs,tabla:toolTabla,diag:toolDiag,glosario:toolGloss})[TOOL]();
+  if(TOOL!=='glosario') markAll(['#tool td','#tool .jstep','#tool details','#tool p']);
 }
 const ip2n=s=>{const p=s.trim().split('.').map(Number); if(p.length!==4||p.some(x=>!Number.isInteger(x)||x<0||x>255)) return null; return ((p[0]<<24)>>>0)+(p[1]<<16)+(p[2]<<8)+p[3];};
 const n2ip=n=>[n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
@@ -1950,7 +2035,7 @@ function toolJourney(){
   $('#jsel').addEventListener('change',e=>{JI=+e.target.value; JS=0; drawJ();});
   drawJ();
 }
-function drawJ(){ const J=JOURNEYS[JI], st=J.steps[JS];
+function drawJ(){ const J=JOURNEYS[JI], st=J.steps[JS]; setTimeout(()=>markAll(['#jtext']),0);
   $('#jtopo').innerHTML=topo(st[0],''); $('#jtext').innerHTML=`<b>Paso ${JS+1} de ${J.steps.length}.</b> ${esc(st[1])}`;
   $('#jdots').innerHTML=J.steps.map((_,i)=>`<i class="${i<=JS?'on':''}"></i>`).join(''); }
 
@@ -1970,8 +2055,8 @@ function toolTabla(){ $('#tool').innerHTML=`<div class="stack"><section class="c
 function toolGloss(){
   const keys=Object.keys(GLOSS).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
   $('#tool').innerHTML=`<div class="stack"><div class="field" style="max-width:420px"><label for="gq">Buscar un término</label><input id="gq" placeholder="ej. trunk, RADIUS, wildcard"></div><p class="muted" id="gn"></p><div class="glist" id="gl"></div></div>`;
-  const draw=()=>{ const q=$('#gq').value.trim().toLowerCase(); const ks=keys.filter(k=>!q||k.toLowerCase().includes(q)||GLOSS[k].toLowerCase().includes(q));
-    $('#gl').innerHTML=ks.map(k=>`<div><b>${esc(k)}</b><p>${esc(GLOSS[k])}</p></div>`).join(''); $('#gn').textContent=`${ks.length} de ${keys.length} términos`; };
+  const draw=()=>{ const q=$('#gq').value.trim().toLowerCase(); const ks=keys.filter(k=>!q||k.toLowerCase().includes(q)||GLOSS[k].toLowerCase().includes(q)||(GFULL[k]||'').toLowerCase().includes(q));
+    $('#gl').innerHTML=ks.map(k=>`<div><div class="row" style="justify-content:space-between;gap:8px"><b>${esc(k)}</b><span class="lvl ${NIV[glv(k)][1]}">${NIV[glv(k)][0]}</span></div>${GFULL[k]?`<p class="gfull">Significa: ${esc(GFULL[k])}</p>`:''}<p>${esc(GLOSS[k])}</p></div>`).join(''); $('#gn').textContent=`${ks.length} de ${keys.length} términos`; };
   $('#gq').addEventListener('input',draw); draw();
 }
 function toolDiag(){
@@ -2003,7 +2088,7 @@ function renderDefense(){
     <tr><td>Celular al RADIUS</td><td>Falla</td><td>ACL-CELULAR solo permite el portal</td></tr>
     <tr><td>Roaming en vivo</td><td>ping -t continúa, misma IP</td><td>Roaming de capa 2 en el mismo controlador</td></tr></tbody></table></div></section>
   </div>`;
-  drawTimer(); drawFlash(known);
+  drawTimer(); drawFlash(known); markAll(['#main td','#main .segs']);
 }
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 function drawTimer(){
@@ -2041,9 +2126,34 @@ function renderBasics(){
        return `<article class="bcard${k?' ok':''}"><div class="row" style="justify-content:space-between;gap:6px"><h3>${esc(x.t)}</h3><span class="lvl ${NIV[x.n][1]}">${NIV[x.n][0]}</span></div>
         <p>${esc(x.s)}</p><p class="bed"><b>En el edificio:</b> ${esc(x.e)}</p><p class="bpr"><b>En tu proyecto:</b> ${esc(x.p)}</p>
         <label class="check" style="padding:0"><input type="checkbox" data-act="bknow" data-t="${esc(x.t)}" ${k?'checked':''}><span>Ya lo entiendo</span></label></article>`;}).join('')}</div></section>`; }).join('')}
+   <section class="card stack" style="gap:12px"><h2>Cómo leer los nombres de tus equipos</h2>
+    <p class="muted">Los nombres como SW-CORE o SRV-RADIUS no son términos técnicos: son etiquetas que inventamos para tu proyecto. Se forman así:</p>
+    <div class="tbl"><table><thead><tr><th>Empieza con</th><th>Significa</th><th>Ejemplos</th></tr></thead><tbody>
+    <tr><td class="mono">R-</td><td>Router</td><td>R-CORE (el router principal; "core" = núcleo o centro)</td></tr>
+    <tr><td class="mono">SW-</td><td>Switch</td><td>SW-CORE (el de oficinas), SW-ALMACEN</td></tr>
+    <tr><td class="mono">AP-</td><td>Antena WiFi (Access Point)</td><td>AP-1, AP-2, AP-3</td></tr>
+    <tr><td class="mono">SRV-</td><td>Servidor</td><td>SRV-RADIUS, SRV-IOT, SRV-CENTRAL</td></tr>
+    <tr><td class="mono">LAP-</td><td>Laptop (aquí no es "AP ligero")</td><td>LAP-EMPLEADO-1, LAP-VISITANTE</td></tr>
+    <tr><td class="mono">TAB-</td><td>Tablet</td><td>TAB-ALMACEN</td></tr>
+    <tr><td class="mono">CEL-</td><td>Celular</td><td>CEL-CHOFER-1, CEL-VENTAS</td></tr>
+    <tr><td class="mono">PC-</td><td>Computadora de escritorio</td><td>PC-ADMIN (la de administración)</td></tr>
+    <tr><td class="mono">INNOVA-</td><td>Nombre de una red WiFi</td><td>INNOVA-CORP (corporativa), INNOVA-GUEST (invitados), INNOVA-IOT (sensores)</td></tr>
+    <tr><td class="mono">ACL-</td><td>Lista de reglas del router</td><td>ACL-INVITADOS, ACL-CELULAR</td></tr>
+    <tr><td class="mono">Fa0/1, G0/1</td><td>Nombre de un puerto: Fa = 100 Mbps, G = 1000 Mbps; 0/1 = módulo 0, puerto 1</td><td>G0/0.10 = subinterfaz 10 del puerto G0/0</td></tr>
+    </tbody></table></div></section>
+   <section class="card stack" style="gap:12px" id="bsig"></section>
    <div class="row"><a class="btn" href="#leccion-fundamentos">Siguiente: lección 1 →</a></div>
   </div>`;
-  drawBQ(); drawEx();
+  drawBQ(); drawEx(); markAll(['#main .bcard .bpr','#main .bcard .bed']);
+  drawSig();
+}
+let SIGF=3;
+function drawSig(){
+  const box=$('#bsig'); if(!box) return;
+  const ks=Object.keys(GFULL).filter(k=>GLOSS[k] && glv(k)>=SIGF).sort((a,b)=>glv(b)-glv(a)||a.localeCompare(b,'es',{sensitivity:'base'}));
+  box.innerHTML=`<h2>Diccionario de siglas</h2><p class="muted">Qué significa cada abreviatura y qué hace. Empieza por las esenciales.</p>
+   <div class="row">${[[3,'Solo esenciales'],[2,'Esenciales y bueno saber'],[1,'Todas']].map(([v,n])=>`<button class="btn sm ${SIGF===v?'':'ghost'}" data-act="sigf" data-v="${v}">${n}</button>`).join('')}<span class="muted" style="font-size:.85rem">${ks.length} siglas</span></div>
+   <div class="glist">${ks.map(k=>`<div><div class="row" style="justify-content:space-between;gap:8px"><b class="mono" style="font-size:1.05rem">${esc(k)}</b><span class="lvl ${NIV[glv(k)][1]}">${NIV[glv(k)][0]}</span></div><p class="gfull">${esc(GFULL[k])}</p><p>${esc(GLOSS[k])}</p></div>`).join('')}</div>`;
 }
 function drawBQ(){
   const pool = BALL.filter(x=>x.n>=2);
@@ -2211,6 +2321,7 @@ document.addEventListener('click',e=>{
   if(act==='bfilter'){ BF=+t.dataset.i; renderBasics(); return; }
   if(act==='bq-ans'){ BQans=t.dataset.o; if(BQans===BQ.t){ S.bq=(S.bq||0)+1; save(); } drawBQ(); return; }
   if(act==='bq-next'){ BQ=null; drawBQ(); return; }
+  if(act==='sigf'){ SIGF=+t.dataset.v; drawSig(); return; }
   if(act==='ex-tab'){ EXK=t.dataset.k; EQ=null; EA=null; drawEx(); return; }
   if(act==='ex-ans'){ EA=t.dataset.o; if(EA===EQ.a) exPoint(); drawEx(); return; }
   if(act==='ex-next'){ EQ=null; EA=null; drawEx(); return; }
@@ -2233,6 +2344,7 @@ document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.act==='not
 
 function route(){
   const h=(location.hash||'#ruta').slice(1);
+  const gp=document.getElementById('gloss-pop'); if(gp) gp.hidden=true;
   CUR=null;
   if(h.startsWith('leccion-')) renderLesson(h.slice(8));
   else if(h==='herramientas') renderTools();
