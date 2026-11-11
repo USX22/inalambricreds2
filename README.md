@@ -12,6 +12,7 @@ el proyecto paso a paso. Funciona sin instalar nada: descarga el archivo y ábre
 Chrome, Edge o Firefox.
 
 Incluye:
+- **Lo básico:** 47 conceptos desde cero (red, IP, router, WiFi, VLAN…) explicados con el ejemplo de un edificio, marcados como *Esencial*, *Bueno saber* o *No te preocupes*, con prueba rápida.
 - **18 lecciones en orden** (6 etapas), repartidas día por día hasta la entrega del **13 de noviembre a las 12:00**.
   Cada una tiene: problema que resuelve → criterio de la rúbrica → teoría con ejemplos → mapa de la red
   resaltado → pasos en Packet Tracer con comandos para copiar → verificación → quiz → "Dilo así" para la exposición → conexiones con otras lecciones.
@@ -26,7 +27,7 @@ El avance se guarda en el navegador donde la abras.
 **Entrega:** ICCS 260 Redes inalámbricas · viernes 13 de noviembre de 2026, 12:00 hrs · 20 minutos por proyecto.
 
 **Pruebas automáticas de la app:** `node tests/app.test.js` (requiere Node y Playwright con Chromium).
-Revisan 144 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
+Revisan 154 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
 simulador de ACL y calculadora con resultados correctos, que el avance se guarde, y que todas las
 vistas se vean bien en celular y en modo oscuro.
 

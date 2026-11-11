@@ -71,7 +71,7 @@ function cfgLines(txt) {
   eqSet(rApp, rRepo, 'R-CORE igual en app y repo (por bloques)');
 
   // ---------- 3. Cada vista se dibuja sin errores ni textos rotos ----------
-  const hashes = ['#ruta', '#herramientas', '#defensa', '#rubrica', ...(await page.evaluate(() => LESSONS.map(l => '#leccion-' + l.id)))];
+  const hashes = ['#ruta', '#basicos', '#herramientas', '#defensa', '#rubrica', ...(await page.evaluate(() => LESSONS.map(l => '#leccion-' + l.id)))];
   for (const h of hashes) {
     await page.evaluate(x => location.hash = x, h); await page.waitForTimeout(150);
     const txt = await page.evaluate(() => document.getElementById('main').innerText);
@@ -84,7 +84,7 @@ function cfgLines(txt) {
   }
   // Enlaces internos válidos
   const badLinks = await page.evaluate(async () => {
-    const valid = new Set(['#ruta', '#herramientas', '#defensa', '#rubrica', ...LESSONS.map(l => '#leccion-' + l.id)]);
+    const valid = new Set(['#ruta', '#basicos', '#herramientas', '#defensa', '#rubrica', ...LESSONS.map(l => '#leccion-' + l.id)]);
     const bad = [];
     for (const h of [...valid]) { location.hash = h; await new Promise(r => setTimeout(r, 30));
       document.querySelectorAll('a[href^="#"]').forEach(a => { if (!valid.has(a.getAttribute('href'))) bad.push(h + ' → ' + a.getAttribute('href')); }); }
@@ -160,6 +160,20 @@ function cfgLines(txt) {
   const terms = await page.$$('#main .term');
   ok(terms.length > 3, 'las lecciones marcan términos del glosario', String(terms.length));
   if (terms.length) { await terms[0].click(); ok(!!(await page.$('#gloss-pop:not([hidden])')), 'tocar un término muestra su definición'); }
+
+  // Lo básico: tarjetas, prueba rápida y marcar "ya lo entiendo"
+  await page.evaluate(() => location.hash = '#basicos'); await page.waitForTimeout(150);
+  const nb = await page.evaluate(() => ({ cards: document.querySelectorAll('.bcard').length, total: BALL.length, sinTexto: BALL.filter(x => !x.s || !x.e || !x.p || ![1,2,3].includes(x.n)).map(x => x.t) }));
+  ok(nb.cards === nb.total && nb.total >= 40, 'Lo básico muestra todos los conceptos', JSON.stringify(nb));
+  ok(!nb.sinTexto.length, 'cada concepto básico tiene definición, ejemplo, uso y nivel', nb.sinTexto.join(', '));
+  const correct = await page.evaluate(() => BQ.t);
+  await page.click(`#bquiz .opt[data-o="${correct}"]`);
+  ok(!!(await page.$('#bquiz .exp.right')), 'la prueba rápida marca la respuesta correcta');
+  await page.click('#bquiz [data-act="bq-next"]'); ok(!(await page.$('#bquiz .exp')), 'la prueba rápida pasa a otra pregunta');
+  await page.check('.bcard input >> nth=0'); await page.reload(); await page.waitForTimeout(150);
+  ok(await page.isChecked('.bcard input >> nth=0'), '"Ya lo entiendo" se guarda al recargar');
+  await page.click('[data-act="bfilter"][data-i="1"]');
+  ok(await page.evaluate(() => document.querySelectorAll('.bcard').length === BALL.filter(x => x.n === 3).length), 'el filtro "Solo esenciales" funciona');
 
   // ---------- 7. Celular y modo oscuro ----------
   for (const scheme of ['light', 'dark']) {

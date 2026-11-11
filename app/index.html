@@ -231,6 +231,16 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
 .ptwin{width:100%;min-width:560px;height:auto}
 .ptwin text{font:12px var(--f-body);fill:var(--ink)}
 .ptwin .lb{font:600 12px var(--f-body);fill:var(--accent-ink)}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.bcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bcard.ok{background:var(--good-soft);border-color:transparent}
+.bcard h3{font-size:1.15rem}
+.bcard .bed{font-size:.9rem;background:var(--warn-soft);padding:6px 10px;border-radius:6px}
+.bcard .bpr{font-size:.9rem;color:var(--muted)}
+.lvl{font-family:var(--f-mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.lvl.good{background:var(--good-soft);color:var(--good)}
+.lvl.mid{background:var(--warn-soft);color:var(--ink)}
+.lvl.off{background:var(--surface-2);color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -241,6 +251,7 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
   </div>
   <nav class="tabs" aria-label="Secciones"><div class="wrap">
     <a href="#ruta" data-tab="ruta">Mi ruta</a>
+    <a href="#basicos" data-tab="basicos">Lo básico</a>
     <a href="#leccion-fundamentos" data-tab="leccion">Lecciones</a>
     <a href="#herramientas" data-tab="herramientas">Herramientas</a>
     <a href="#defensa" data-tab="defensa">Defensa (20 min)</a>
@@ -598,6 +609,7 @@ const LESSONS = [
  prob:'Todo el proyecto se apoya en estas ideas. Sin ellas, los comandos son magia; con ellas, son lógica.',
  rub:'Base para todos los criterios',
  theory:`
+<p class="exp right">Si alguna palabra no te suena, primero pasa por <a href="#basicos">Lo básico</a>: ahí está todo explicado con el ejemplo de un edificio.</p>
 <p>Una <b>red</b> es un grupo de equipos que intercambian información. En este proyecto hay cinco tipos: <b>LAN</b> (red local cableada), <b>WLAN</b> (red local inalámbrica, el WiFi), <b>WAN</b> (redes grandes, Internet), <b>WWAN</b> (inalámbrica de área amplia: la red celular 4G) y <b>WSN</b> (red de sensores inalámbricos).</p>
 <h3>IP, máscara y gateway</h3>
 <p>La <b>dirección IP</b> identifica a un equipo en la red, por ejemplo <code>192.168.1.15</code>. Son 4 números de 0 a 255 (32 bits).</p>
@@ -1437,6 +1449,74 @@ function showGloss(btn){
   const below=r.bottom+8; pop.style.top=(below+pop.offsetHeight>innerHeight-8? Math.max(8,r.top-pop.offsetHeight-8): below)+'px';
 }
 
+
+/* ---------- Lo básico: conceptos desde cero ---------- */
+// n: 3 = esencial, 2 = bueno saber, 1 = no te preocupes
+const BASICS = [
+ {g:'Lo más básico', items:[
+  {t:'Red', n:3, s:'Varios equipos conectados que pueden mandarse información.', e:'Un piso del edificio: las oficinas de ese piso se pueden visitar entre sí.', p:'Tu proyecto tiene 7 redes: empleados, invitados, servidores, sensores, gestión, enlace 4G y celulares.'},
+  {t:'Equipo o dispositivo', n:3, s:'Cualquier aparato conectado a la red: PC, laptop, celular, impresora, sensor, router…', e:'Cada persona u objeto que está en el edificio.', p:'En Packet Tracer arrastras los equipos al área de trabajo.'},
+  {t:'Cable de red', n:2, s:'El cable que conecta físicamente dos equipos. Hay de varios tipos (directo, cruzado, coaxial).', e:'Los pasillos físicos por donde caminas.', p:'Lección 4: cada cable va a un puerto exacto.'},
+  {t:'Puerto', n:3, s:'El hueco donde se conecta un cable. Cada uno tiene nombre: Fa0/1, G0/1…', e:'Las puertas de cada oficina.', p:'Las configuraciones dicen "el AP va en el puerto Fa0/2". Si conectas en otro, no funciona.'},
+  {t:'Protocolo', n:2, s:'Las reglas o el idioma que siguen los equipos para entenderse.', e:'El reglamento del edificio: todos saben cómo pedir algo en recepción.', p:'DHCP, DNS, HTTP, RADIUS y CAPWAP son protocolos.'},
+  {t:'Servidor', n:3, s:'Computadora que da un servicio a las demás (páginas web, contraseñas, datos).', e:'Oficinas especiales: seguridad, archivo, mantenimiento.', p:'Tienes 3: RADIUS (contraseñas), IoT (sensores) y Central (portal de entregas).'},
+  {t:'Cliente', n:2, s:'El equipo que usa un servicio que da un servidor.', e:'El empleado que va a pedir algo a una oficina.', p:'Las laptops y celulares son clientes.'},
+  {t:'Internet', n:1, s:'La red de redes de todo el mundo.', e:'Las calles de la ciudad fuera del edificio.', p:'Tu .pkt no tiene Internet. No lo necesitas.'}
+ ]},
+ {g:'Direcciones: cómo se encuentra cada equipo', items:[
+  {t:'Dirección IP', n:3, s:'La dirección de cada equipo en la red. Son 4 números del 0 al 255: 192.168.1.15.', e:'El número de oficina: piso 1, oficina 15.', p:'Cada equipo de tu red tiene una IP; están en la tabla de direccionamiento.'},
+  {t:'Máscara', n:3, s:'Dice qué parte de la IP es la red y qué parte es el equipo. 255.255.255.0 (o /24) significa: los 3 primeros números son la red.', e:'Separa el número de piso del número de oficina.', p:'Todas tus redes usan /24 (255.255.255.0).'},
+  {t:'Subred', n:3, s:'Una red pequeña que sale de dividir una grande.', e:'Dividir el edificio en pisos.', p:'De 192.168.0.0/20 sacas 16 subredes /24 y usas 7.'},
+  {t:'Host', n:2, s:'El equipo con IP (PC, laptop, sensor). Es el último número de la IP.', e:'Una oficina concreta.', p:'En una /24 caben 254 hosts.'},
+  {t:'Gateway (puerta de enlace)', n:3, s:'La IP del router. A él le entregas todo lo que va a otra red.', e:'La puerta del elevador de tu piso.', p:'En tu proyecto siempre es el .1: 192.168.1.1, 192.168.2.1…'},
+  {t:'Broadcast', n:2, s:'Un mensaje para todos los equipos de una red a la vez. También se llama así a la última IP (.255).', e:'Un anuncio por el altavoz del piso.', p:'Los APs encuentran a la WLC mandando un broadcast.'},
+  {t:'DHCP', n:3, s:'Servicio que reparte IPs automáticamente a los equipos que se conectan.', e:'Recepción: llegas y te asigna una oficina.', p:'El router reparte IPs a laptops, celulares, sensores y APs (lección 7).'},
+  {t:'IP fija (estática)', n:3, s:'Una IP que escribes tú a mano y no cambia.', e:'Oficinas que siempre tienen el mismo número.', p:'Router, switches, WLC y servidores llevan IP fija porque los demás los buscan ahí.'},
+  {t:'DNS', n:2, s:'Traduce nombres a IPs: escribes entregas.innovalogistics.local y te da 192.168.3.12.', e:'El directorio del edificio.', p:'Lo tiene el Servidor Central (lección 8).'},
+  {t:'MAC', n:1, s:'El número de serie de la tarjeta de red. Lo usan los switches por dentro.', e:'La credencial interna de cada persona.', p:'No necesitas configurarla.'}
+ ]},
+ {g:'Los aparatos de tu red', items:[
+  {t:'Switch', n:3, s:'Aparato con muchos puertos que conecta equipos de la misma red por cable.', e:'El pasillo que une las oficinas de un piso.', p:'Tienes 2: SW-CORE (oficinas) y SW-ALMACEN.'},
+  {t:'Router', n:3, s:'Aparato que conecta redes distintas y decide por dónde va cada mensaje.', e:'El elevador que une los pisos.', p:'R-CORE: une todas tus redes y reparte IPs.'},
+  {t:'Módem', n:1, s:'El aparato que conecta tu casa con el proveedor de Internet.', e:'La entrada de la calle.', p:'No está en tu proyecto.'},
+  {t:'Access Point (AP)', n:3, s:'La antena que da señal WiFi a laptops, celulares y sensores.', e:'Las bocinas del WiFi en el techo.', p:'Tienes 3: uno en oficinas y dos en el almacén.'},
+  {t:'WLC (controlador WiFi)', n:3, s:'El aparato jefe de todas las antenas: las configura y controla desde un solo lugar.', e:'El gerente que coordina las bocinas.', p:'Ahí se crean las redes WiFi y su seguridad (lecciones 10 a 12).'},
+  {t:'Torre celular', n:3, s:'La antena de la compañía de celular (4G).', e:'Una antena en la calle para los que están fuera del edificio.', p:'Los choferes se conectan por aquí (lección 15).'},
+  {t:'Central Office', n:2, s:'En Packet Tracer simula la central de la compañía celular: da IP a los celulares y los conecta con tu router.', e:'La oficina de la compañía telefónica.', p:'Se conecta a la torre con cable coaxial.'}
+ ]},
+ {g:'WiFi', items:[
+  {t:'WiFi (WLAN)', n:3, s:'Red local sin cables, por ondas de radio.', e:'Poder hablar con otra oficina sin caminar.', p:'Es el corazón del proyecto: vale 25 % de la calificación.'},
+  {t:'SSID', n:3, s:'El nombre de una red WiFi, el que ves en la lista del celular.', e:'El letrero con el nombre del WiFi.', p:'Tienes 3: INNOVA-CORP (empleados), INNOVA-GUEST (invitados) e INNOVA-IOT (sensores).'},
+  {t:'Canal', n:2, s:'La "frecuencia" por la que transmite una antena. Si dos antenas cercanas usan el mismo, se estorban.', e:'Dos personas hablando por el mismo walkie-talkie al mismo tiempo.', p:'Los APs usan los canales 1, 6 y 11 para no estorbarse.'},
+  {t:'Roaming', n:3, s:'Cambiar de una antena a otra sin que se corte la conexión.', e:'Caminar por el edificio y seguir escuchando las bocinas sin cortes.', p:'Lo demuestras moviendo una laptop de AP-1 a AP-3 (lección 11).'},
+  {t:'Contraseña compartida (PSK)', n:3, s:'Una sola contraseña de WiFi para todos.', e:'Una sola llave para todo el edificio.', p:'La usan invitados y sensores. Para empleados era el problema original.'},
+  {t:'Cifrado', n:2, s:'Convertir los datos en algo ilegible para quien no tenga la llave.', e:'Mandar cartas en sobre cerrado.', p:'Tu WiFi usa cifrado AES.'}
+ ]},
+ {g:'Organizar y proteger', items:[
+  {t:'VLAN', n:3, s:'Dividir un switch en varias redes separadas, aunque compartan los mismos cables.', e:'Pisos distintos con puertas cerradas, aunque compartan el elevador.', p:'Tienes 5: empleados (10), invitados (20), servidores (30), sensores (40) y gestión (99).'},
+  {t:'Trunk', n:3, s:'Un cable que lleva varias VLANs a la vez.', e:'El elevador que lleva gente de todos los pisos.', p:'Los cables entre switches, al router y a la WLC son trunks.'},
+  {t:'Usuario y contraseña por empleado (WPA2-Enterprise)', n:3, s:'Cada empleado entra al WiFi con su propio usuario, no con una clave compartida.', e:'Cada empleado tiene su propio gafete.', p:'Resuelve la fuga de información (lección 12).'},
+  {t:'RADIUS', n:3, s:'Servidor que revisa usuario y contraseña cuando alguien se conecta.', e:'El guardia con la lista de empleados.', p:'Está en 192.168.3.10 (lección 12).'},
+  {t:'ACL', n:3, s:'Lista de reglas en el router: "este tráfico pasa, este no".', e:'El guardia que no deja subir a los visitantes al piso de servidores.', p:'Aísla a los invitados y protege el acceso de los celulares (lecciones 13 y 15).'},
+  {t:'SSH', n:1, s:'Manejar un router a distancia de forma cifrada.', e:'Dar órdenes al edificio por teléfono seguro.', p:'Viene incluido en la configuración; no tienes que estudiarlo a fondo.'}
+ ]},
+ {g:'Sensores y celulares', items:[
+  {t:'IoT (Internet de las Cosas)', n:3, s:'Objetos con sensores o motores conectados a la red.', e:'Termostatos y alarmas inteligentes del edificio.', p:'Los sensores del almacén (lección 14).'},
+  {t:'Sensor', n:3, s:'Dispositivo que mide algo: temperatura, puerta abierta, humo.', e:'Los sentidos del edificio.', p:'Tienes 3: temperatura, puerta y humo.'},
+  {t:'Actuador', n:3, s:'Dispositivo que hace algo: ventilador, sirena, luz.', e:'Los músculos del edificio.', p:'Ventilador, sirena y luz.'},
+  {t:'Regla automática', n:3, s:'Una instrucción del tipo SI pasa esto, ENTONCES haz aquello.', e:'"Si hace calor, enciende el aire".', p:'Si la temperatura pasa de 25 °C, se enciende el ventilador.'},
+  {t:'4G / red celular (WWAN)', n:3, s:'Internet por la red del celular, que funciona en la calle.', e:'Los que están fuera del edificio usan su celular.', p:'Los choferes reportan entregas por 4G.'}
+ ]},
+ {g:'Packet Tracer', items:[
+  {t:'Packet Tracer', n:3, s:'Programa gratuito de Cisco para armar y probar redes en la computadora.', e:'Una maqueta del edificio donde puedes probar todo.', p:'Ahí construyes el proyecto.'},
+  {t:'Archivo .pkt', n:3, s:'El archivo donde Packet Tracer guarda tu red.', e:'El plano guardado de la maqueta.', p:'Es una de las 3 evidencias que entregas.'},
+  {t:'CLI', n:3, s:'La pantalla de comandos de routers y switches: escribes órdenes en texto.', e:'Dar órdenes por escrito al edificio.', p:'Ahí pegas las configuraciones del router y los switches.'},
+  {t:'Comando', n:2, s:'Una orden escrita que le das a un equipo.', e:'Una instrucción concreta.', p:'Ejemplo: show vlan brief muestra las VLANs.'},
+  {t:'Ping', n:3, s:'Prueba que manda un mensaje a otro equipo y espera respuesta. Si responde, hay comunicación.', e:'Tocar la puerta de otra oficina para ver si contestan.', p:'Es tu prueba principal: ping 192.168.3.12.'}
+ ]}
+];
+const BALL = BASICS.flatMap(g=>g.items.map(x=>Object.assign({g:g.g},x)));
+
 /* ---------- Tarjetas de repaso ---------- */
 const FLASH = [
 ['¿Por qué usaron una WLC en lugar de routers inalámbricos?','Centraliza la configuración de los 3 APs, coordina canales, aplica la misma seguridad en todos y permite roaming transparente. Los routers caseros eran redes aisladas en el mismo canal.'],
@@ -1537,7 +1617,7 @@ const TROUBLE = [
    ESTADO (progreso local en este navegador)
    ===================================================================== */
 const KEY='innova-lab-v1';
-let S={steps:{},quiz:{},notes:{},cards:{},evid:{}};
+let S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
@@ -1587,6 +1667,7 @@ function renderHome(){
         <h1>Rediseño inalámbrico e IoT para InnovaLogistics Puebla</h1>
         <p class="muted">Expones el viernes 13 de noviembre a las 12:00 hrs. Tienes 20 minutos.</p>
         <div class="count" id="bigcount"></div>
+        <a href="#basicos" class="exp right" style="text-decoration:none;color:inherit;display:block"><b>¿No sabes nada de redes?</b> Empieza por <u>Lo básico</u>: 47 conceptos explicados con el ejemplo de un edificio (20 min).</a>
         <div class="row">
           <a class="btn" href="#leccion-${next.id}">Continuar: ${next.i+1}. ${esc(next.title)}</a>
           <a class="btn ghost" href="#rubrica">Ver avance en la rúbrica</a>
@@ -1935,6 +2016,41 @@ function drawFlash(){
    :`<p class="muted">Respóndela en voz alta antes de voltearla.</p><div class="row"><button class="btn" data-act="fc-show">Ver respuesta</button><button class="btn ghost" data-act="fc-skip">Otra</button></div>`}`;
 }
 
+
+/* =====================================================================
+   VISTA: LO BÁSICO
+   ===================================================================== */
+const NIV = {3:['Esencial','good'],2:['Bueno saber','mid'],1:['No te preocupes','off']};
+let BF = 0, BQ = null, BQans = null;
+function renderBasics(){
+  const known = BALL.filter(x=>(S.basics||{})[x.t]==='ok').length;
+  $('#main').innerHTML = `<div class="stack">
+   <div class="stack" style="gap:8px"><span class="eyebrow">Empieza aquí si no sabes nada de redes · 20 minutos</span><h1>Lo básico, en palabras simples</h1>
+   <p class="muted" style="max-width:72ch">Imagina la empresa como un <b>edificio de oficinas</b>. Cada concepto tiene qué es, cómo se ve en el edificio y dónde aparece en tu proyecto. La etiqueta te dice cuánto importa: <span class="lvl good">Esencial</span> apréndelo, <span class="lvl mid">Bueno saber</span> con la idea basta, <span class="lvl off">No te preocupes</span> no te lo van a evaluar.</p></div>
+   <section class="card stack" style="gap:12px" id="bquiz"></section>
+   <div class="row">${['Todos','Solo esenciales'].map((n,i)=>`<button class="btn sm ${BF===i?'':'ghost'}" data-act="bfilter" data-i="${i}">${n}</button>`).join('')}<span class="muted" style="font-size:.85rem">${BALL.length} conceptos · ${known} marcados como "ya lo entiendo"</span></div>
+   ${BASICS.map(g=>{ const its=g.items.filter(x=>BF===0||x.n===3); if(!its.length) return '';
+     return `<section class="stack" style="gap:10px"><h2>${esc(g.g)}</h2><div class="bgrid">${its.map(x=>{const k=(S.basics||{})[x.t]==='ok';
+       return `<article class="bcard${k?' ok':''}"><div class="row" style="justify-content:space-between;gap:6px"><h3>${esc(x.t)}</h3><span class="lvl ${NIV[x.n][1]}">${NIV[x.n][0]}</span></div>
+        <p>${esc(x.s)}</p><p class="bed"><b>En el edificio:</b> ${esc(x.e)}</p><p class="bpr"><b>En tu proyecto:</b> ${esc(x.p)}</p>
+        <label class="check" style="padding:0"><input type="checkbox" data-act="bknow" data-t="${esc(x.t)}" ${k?'checked':''}><span>Ya lo entiendo</span></label></article>`;}).join('')}</div></section>`; }).join('')}
+   <div class="row"><a class="btn" href="#leccion-fundamentos">Siguiente: lección 1 →</a></div>
+  </div>`;
+  drawBQ();
+}
+function drawBQ(){
+  const pool = BALL.filter(x=>x.n>=2);
+  if(BQ===null){ BQ = pool[Math.floor(Math.random()*pool.length)]; BQans=null;
+    const others = pool.filter(x=>x.t!==BQ.t).sort(()=>Math.random()-.5).slice(0,3);
+    BQ.opts = [BQ, ...others].sort(()=>Math.random()-.5).map(x=>x.t); }
+  const ok = BQans===BQ.t;
+  $('#bquiz').innerHTML = `<div class="row" style="justify-content:space-between"><h2>Prueba rápida</h2><span class="chip">${(S.bq||0)} aciertos</span></div>
+   <p style="font-size:1.05rem">¿Qué concepto es este? <b>"${esc(BQ.s)}"</b></p>
+   <div class="opts">${BQ.opts.map(o=>{ let c=''; if(BQans!==null){ if(o===BQ.t) c='right'; else if(o===BQans) c='wrong'; }
+     return `<button class="opt ${c}" data-act="bq-ans" data-o="${esc(o)}" ${BQans!==null?'disabled':''}>${esc(o)}</button>`; }).join('')}</div>
+   ${BQans!==null?`<div class="exp ${ok?'right':'wrong'}">${ok?'Correcto.':'Era <b>'+esc(BQ.t)+'</b>.'} En el edificio: ${esc(BQ.e)}</div><div><button class="btn sm" data-act="bq-next">Otra pregunta</button></div>`:''}`;
+}
+
 /* =====================================================================
    VISTA: RÚBRICA
    ===================================================================== */
@@ -1983,13 +2099,17 @@ document.addEventListener('click',e=>{
   if(act==='fc-skip'){ FC=null; drawFlash(); return; }
   if(act==='fc-ok'){ S.cards[FC]='ok'; save(); FC=null; drawFlash(); return; }
   if(act==='fc-rep'){ S.cards[FC]='rep'; save(); FC=null; drawFlash(); return; }
+  if(act==='bfilter'){ BF=+t.dataset.i; renderBasics(); return; }
+  if(act==='bq-ans'){ BQans=t.dataset.o; if(BQans===BQ.t){ S.bq=(S.bq||0)+1; save(); } drawBQ(); return; }
+  if(act==='bq-next'){ BQ=null; drawBQ(); return; }
   if(act==='reset-all'){ $('#resetq').innerHTML=`<div class="exp wrong" style="margin-top:8px">Se borrarán pasos, quizzes, notas y tarjetas de este navegador. <button class="btn sm" data-act="reset-yes">Sí, borrar</button></div>`; return; }
-  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{}}; save(); renderRubric(); return; }
+  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0}; save(); renderRubric(); return; }
 });
 function selPre(btn){ const pre=btn.parentElement.querySelector('pre'); const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='Selecciona y copia'; }
 document.addEventListener('change',e=>{
   const t=e.target;
   if(t.dataset.act==='step'){ const i=+t.dataset.i; (S.steps[CUR.id] ||= {})[i]=t.checked; save(); t.closest('li').classList.toggle('ok',t.checked); refreshLessonMeta(); }
+  if(t.dataset.act==='bknow'){ (S.basics ||= {})[t.dataset.t]=t.checked?'ok':''; save(); t.closest('.bcard').classList.toggle('ok',t.checked); }
   if(t.dataset.act==='evid'){ S.evid[t.dataset.k]=t.checked; save(); }
 });
 document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.act==='notes'){ S.notes[CUR.id]=t.value; save(); } });
@@ -2001,8 +2121,9 @@ function route(){
   else if(h==='herramientas') renderTools();
   else if(h==='defensa') renderDefense();
   else if(h==='rubrica') renderRubric();
+  else if(h==='basicos') renderBasics();
   else renderHome();
-  const tab=h.startsWith('leccion-')?'leccion':(['herramientas','defensa','rubrica'].includes(h)?h:'ruta');
+  const tab=h.startsWith('leccion-')?'leccion':(['herramientas','defensa','rubrica','basicos'].includes(h)?h:'ruta');
   document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.tab===tab));
   const nx=CUR||LESSONS.find(l=>ledOf(l)!=='on')||LESSONS[0]; $('nav.tabs a[data-tab="leccion"]').href='#leccion-'+nx.id;
   window.scrollTo(0,0);
