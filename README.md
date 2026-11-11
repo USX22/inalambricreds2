@@ -65,6 +65,6 @@ vistas se vean bien en celular y en modo oscuro.
 
 Red principal: **192.168.0.0/20** dividida en 16 subredes /24 (se usan 7, quedan 9 libres para crecimiento).
 
-> Diseño pensado para Cisco Packet Tracer 8.x. No se ha ejecutado dentro de Packet Tracer: los puntos que
+> Diseño pensado para Cisco Packet Tracer 8.x y 9.x (la 9.0 agrega sobre todo equipos industriales; lo que usa este proyecto no cambia). Un .pkt guardado en 9.x no abre en 8.x. No se ha ejecutado dentro de Packet Tracer: los puntos que
 > dependen de tu versión y su plan B están en `docs/07_Revision_del_Proyecto.md` §7.5. Si un menú tiene
 > otro nombre, revisa "Problemas comunes" en `docs/02_Guia_Packet_Tracer.md`.
