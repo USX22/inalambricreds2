@@ -241,6 +241,12 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
 .lvl.good{background:var(--good-soft);color:var(--good)}
 .lvl.mid{background:var(--warn-soft);color:var(--ink)}
 .lvl.off{background:var(--surface-2);color:var(--muted)}
+#eosel{font-family:var(--f-body);font-size:.95rem}
+.exitem{font-family:var(--f-mono);font-size:1.05rem;background:var(--surface-2);padding:10px 12px;border-radius:8px;overflow-wrap:anywhere}
+.eolist{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.eolist li{padding:6px 10px;border-radius:6px;border:1px solid var(--line)}
+.eolist li.right{background:var(--good-soft);border-color:var(--good)}
+.eolist li.wrong{background:var(--bad-soft);border-color:var(--bad)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -1617,7 +1623,7 @@ const TROUBLE = [
    ESTADO (progreso local en este navegador)
    ===================================================================== */
 const KEY='innova-lab-v1';
-let S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0};
+let S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{}};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
@@ -2028,6 +2034,7 @@ function renderBasics(){
    <div class="stack" style="gap:8px"><span class="eyebrow">Empieza aquí si no sabes nada de redes · 20 minutos</span><h1>Lo básico, en palabras simples</h1>
    <p class="muted" style="max-width:72ch">Imagina la empresa como un <b>edificio de oficinas</b>. Cada concepto tiene qué es, cómo se ve en el edificio y dónde aparece en tu proyecto. La etiqueta te dice cuánto importa: <span class="lvl good">Esencial</span> apréndelo, <span class="lvl mid">Bueno saber</span> con la idea basta, <span class="lvl off">No te preocupes</span> no te lo van a evaluar.</p></div>
    <section class="card stack" style="gap:12px" id="bquiz"></section>
+   <section class="card stack" style="gap:12px" id="bex"></section>
    <div class="row">${['Todos','Solo esenciales'].map((n,i)=>`<button class="btn sm ${BF===i?'':'ghost'}" data-act="bfilter" data-i="${i}">${n}</button>`).join('')}<span class="muted" style="font-size:.85rem">${BALL.length} conceptos · ${known} marcados como "ya lo entiendo"</span></div>
    ${BASICS.map(g=>{ const its=g.items.filter(x=>BF===0||x.n===3); if(!its.length) return '';
      return `<section class="stack" style="gap:10px"><h2>${esc(g.g)}</h2><div class="bgrid">${its.map(x=>{const k=(S.basics||{})[x.t]==='ok';
@@ -2036,7 +2043,7 @@ function renderBasics(){
         <label class="check" style="padding:0"><input type="checkbox" data-act="bknow" data-t="${esc(x.t)}" ${k?'checked':''}><span>Ya lo entiendo</span></label></article>`;}).join('')}</div></section>`; }).join('')}
    <div class="row"><a class="btn" href="#leccion-fundamentos">Siguiente: lección 1 →</a></div>
   </div>`;
-  drawBQ();
+  drawBQ(); drawEx();
 }
 function drawBQ(){
   const pool = BALL.filter(x=>x.n>=2);
@@ -2050,6 +2057,108 @@ function drawBQ(){
      return `<button class="opt ${c}" data-act="bq-ans" data-o="${esc(o)}" ${BQans!==null?'disabled':''}>${esc(o)}</button>`; }).join('')}</div>
    ${BQans!==null?`<div class="exp ${ok?'right':'wrong'}">${ok?'Correcto.':'Era <b>'+esc(BQ.t)+'</b>.'} En el edificio: ${esc(BQ.e)}</div><div><button class="btn sm" data-act="bq-next">Otra pregunta</button></div>`:''}`;
 }
+
+
+/* ---------- Ejercicios interactivos de Lo básico ---------- */
+const NETS = [[0,'VLAN 99 · Gestión'],[1,'VLAN 10 · Empleados'],[2,'VLAN 20 · Invitados'],[3,'VLAN 30 · Servidores'],[4,'VLAN 40 · Sensores'],[5,'Enlace router ↔ Central Office'],[6,'Red celular 4G']];
+const WHERE = [
+ ['Laptop de un empleado','VLAN 10 · Empleados','Los empleados entran por el WiFi INNOVA-CORP, que la WLC deja en la VLAN 10.'],
+ ['Tablet del almacenista','VLAN 10 · Empleados','Es de un empleado: entra con su usuario por INNOVA-CORP.'],
+ ['Laptop de un visitante','VLAN 20 · Invitados','Los visitantes usan INNOVA-GUEST, que va a la VLAN 20 y está aislada.'],
+ ['Servidor RADIUS','VLAN 30 · Servidores','Todos los servidores viven juntos en la VLAN 30, con IP fija.'],
+ ['Servidor IoT','VLAN 30 · Servidores','Es un servidor: VLAN 30, IP 192.168.3.11.'],
+ ['Servidor Central (portal de entregas)','VLAN 30 · Servidores','Es un servidor: VLAN 30, IP 192.168.3.12.'],
+ ['Sensor de temperatura','VLAN 40 · Sensores','Los sensores y actuadores van aparte en la VLAN 40, por seguridad.'],
+ ['Sirena del almacén','VLAN 40 · Sensores','Es un actuador IoT: VLAN 40.'],
+ ['AP-2 (antena del almacén)','VLAN 99 · Gestión','Las antenas, la WLC y los switches se administran en la VLAN 99.'],
+ ['WLC (su IP de administración)','VLAN 99 · Gestión','La WLC se administra en 192.168.0.10, VLAN 99.'],
+ ['PC-ADMIN','VLAN 99 · Gestión','Es la PC desde donde se administra la WLC: VLAN 99.'],
+ ['Celular de un chofer en la calle','Red celular 4G','Está fuera del WiFi: recibe una IP 192.168.6.x de la red celular.']
+];
+const WHO = [
+ ['Reparte IPs automáticamente a los equipos','Router (DHCP)','En tu proyecto, el router R-CORE es el servidor DHCP.'],
+ ['Conecta redes distintas entre sí','Router','El router es el "elevador" entre pisos (redes).'],
+ ['Conecta por cable equipos de la misma red','Switch','El switch es el "pasillo" de un piso.'],
+ ['Da señal WiFi','Access Point (AP)','Los APs son las antenas.'],
+ ['Configura y controla todas las antenas','WLC','La WLC es el jefe de los APs.'],
+ ['Revisa el usuario y contraseña de un empleado','Servidor RADIUS','El RADIUS tiene la lista de empleados.'],
+ ['Decide encender el ventilador','Servidor IoT','El servidor IoT aplica las reglas SI/ENTONCES.'],
+ ['Da señal 4G en la calle','Torre celular','La torre es la antena de la compañía celular.'],
+ ['Le da IP a los celulares de los choferes','Central Office','En Packet Tracer, el Central Office simula la central celular.'],
+ ['Traduce un nombre a una IP','DNS (Servidor Central)','El DNS convierte entregas.innovalogistics.local en 192.168.3.12.'],
+ ['Impide que los invitados lleguen a los servidores','ACL en el router','La ACL es la lista de reglas "este sí, este no".']
+];
+const SENS = [
+ ['Monitor de temperatura','Sensor','Mide la temperatura.'],['Sensor de puerta','Sensor','Detecta si la puerta está abierta.'],
+ ['Detector de humo','Sensor','Detecta humo.'],['Ventilador','Actuador','Hace algo: gira para enfriar.'],
+ ['Sirena','Actuador','Hace algo: suena.'],['Luz indicadora','Actuador','Hace algo: se enciende.'],
+ ['Servidor IoT','Ninguno: es el cerebro','No mide ni actúa: recibe las lecturas y decide qué hacer.']
+];
+const ORDERS = [
+ {n:'Cómo recibe IP una laptop (DHCP)', steps:['La laptop pregunta a todos: ¿quién da IPs? (Discover)','El router le ofrece una IP (Offer)','La laptop responde: la quiero (Request)','El router confirma: es tuya (Acknowledge)']},
+ {n:'Un empleado abre el portal de entregas', steps:['La laptop envía el mensaje por WiFi','El AP lo recibe y lo manda a la WLC','La WLC lo pone en la VLAN de empleados','El switch lo lleva al router','El router lo pasa a la VLAN de servidores','El Servidor Central recibe y responde']},
+ {n:'Un empleado se conecta al WiFi', steps:['La laptop elige la red INNOVA-CORP','La WLC le pide usuario y contraseña','La WLC le pregunta al servidor RADIUS','El RADIUS responde que el usuario es válido','Se activa el cifrado','La laptop recibe su IP por DHCP']},
+ {n:'Sube la temperatura en el almacén', steps:['El sensor mide 27 °C','Envía la lectura por WiFi','El servidor IoT revisa la regla (más de 25 °C)','El servidor ordena encender el ventilador','El ventilador se enciende']},
+ {n:'Orden para construir tu proyecto', steps:['Colocar y cablear los equipos','Crear las VLANs en los switches','Configurar el router','Configurar los servidores','Configurar la WLC y unir los APs','Crear las redes WiFi','Seguridad: RADIUS y ACL','Sensores IoT','Red 4G','Pruebas y capturas']}
+];
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function pickItem(list, q){
+  const [txt, ans, e] = list[rnd(list.length)];
+  const others = shuffle([...new Set(list.map(x=>x[1]))].filter(x=>x!==ans)).slice(0,3);
+  return {q:q, item:txt, opts:shuffle([ans,...others]), a:ans, e:e};
+}
+function genSame(){
+  const a=rnd(5), same=Math.random()<.5; let b=a; if(!same){ do{ b=rnd(5); }while(b===a); }
+  const h1=2+rnd(250); let h2; do{ h2=2+rnd(250); }while(h2===h1);
+  const A=`192.168.${a}.${h1}`, B=`192.168.${b}.${h2}`;
+  return {q:'Las dos con máscara /24. ¿Cómo se comunican?', item:`PC-A: ${A}   ·   PC-B: ${B}`,
+    opts:['Misma red: se hablan por el switch','Redes distintas: necesitan el router'], a: same?'Misma red: se hablan por el switch':'Redes distintas: necesitan el router',
+    e: same?`Los tres primeros números son iguales (192.168.${a}): están en la misma red.`:`Los tres primeros números son distintos (192.168.${a} y 192.168.${b}): son redes diferentes y el router las une.`};
+}
+function genIP(){
+  const n=NETS[rnd(NETS.length)], s=n[0]; let h; do{ h=11+rnd(240); }while(h===168||h===192);
+  const ip=`192.168.${s}.${h}`; const k=rnd(4); const o=(s+1+rnd(5))%7;
+  if(k===0) return {q:'¿En qué red está esta IP (/24)?', item:ip, opts:shuffle([`192.168.${s}.0`,ip,`192.168.${s}.255`,`192.168.${o}.0`]), a:`192.168.${s}.0`, e:`Con /24, los tres primeros números son la red y el último se cambia por 0: 192.168.${s}.0.`};
+  if(k===1) return {q:'En tu proyecto, ¿cuál es el gateway (router) de esta IP?', item:ip, opts:shuffle([`192.168.${s}.1`,`192.168.${s}.0`,`192.168.${s}.255`,`192.168.${o}.1`]), a:`192.168.${s}.1`, e:`El gateway es el router, y en tu proyecto siempre es el .1 de cada red: 192.168.${s}.1.`};
+  if(k===2) return {q:'¿Cuál es el número del equipo (host)?', item:ip+'/24', opts:shuffle([String(h),'192','168',String(s)]), a:String(h), e:`Con /24, el último número es el equipo: ${h}. Los tres primeros (192.168.${s}) son la red.`};
+  return {q:'¿A qué red de tu proyecto pertenece?', item:ip, opts:shuffle([n[1],...shuffle(NETS.filter(x=>x[0]!==s)).slice(0,3).map(x=>x[1])]), a:n[1], e:`El tercer número (${s}) dice la red: 192.168.${s}.0 es ${n[1]}.`};
+}
+const EXS = [
+ {k:'misma', n:'¿Misma red o router?', d:'Decide si dos equipos se hablan directo o necesitan el router.', gen:genSame},
+ {k:'ip', n:'Lee una IP', d:'Encuentra la red, el gateway, el host y la VLAN de una dirección.', gen:genIP},
+ {k:'donde', n:'¿En qué red va?', d:'Coloca cada equipo en su VLAN o red.', gen:()=>pickItem(WHERE,'¿En qué red va este equipo?')},
+ {k:'quien', n:'¿Quién lo hace?', d:'Relaciona cada tarea con el equipo que la hace.', gen:()=>pickItem(WHO,'¿Qué equipo o servicio hace esto?')},
+ {k:'sensor', n:'Sensor o actuador', d:'Distingue lo que mide de lo que actúa.', gen:()=>pickItem(SENS,'¿Qué es?')},
+ {k:'orden', n:'Ordena los pasos', d:'Pon en orden lo que pasa dentro de la red.', order:true}
+];
+let EXK='misma', EQ=null, EA=null, EO=null;
+function newOrder(i){ const O=ORDERS[i]; EO={i:i, pool:shuffle(O.steps.map((_,j)=>j)), picked:[], checked:false}; }
+function drawEx(){
+  const box=$('#bex'); if(!box) return;
+  const X=EXS.find(x=>x.k===EXK); const sc=(S.ex||{})[EXK]||0;
+  let body='';
+  if(X.order){
+    if(!EO) newOrder(0);
+    const O=ORDERS[EO.i]; const all=EO.picked.length===O.steps.length; const good=EO.checked && EO.picked.every((v,i)=>v===i);
+    body=`<div class="field" style="max-width:420px"><label for="eosel">Proceso</label><select id="eosel">${ORDERS.map((o,i)=>`<option value="${i}" ${i===EO.i?'selected':''}>${esc(o.n)}</option>`).join('')}</select></div>
+     <p class="muted">Toca los pasos en el orden en que ocurren.</p>
+     <div class="opts">${EO.pool.filter(j=>!EO.picked.includes(j)).map(j=>`<button class="opt" data-act="eo-pick" data-j="${j}">${esc(O.steps[j])}</button>`).join('') || '<p class="muted">Ya elegiste todos los pasos.</p>'}</div>
+     <ol class="eolist">${EO.picked.map((j,i)=>`<li class="${EO.checked?(j===i?'right':'wrong'):''}">${esc(O.steps[j])}${EO.checked&&j!==i?`<span class="muted"> · aquí iba: ${esc(O.steps[i])}</span>`:''}</li>`).join('')}</ol>
+     ${EO.checked?`<div class="exp ${good?'right':'wrong'}">${good?'¡Perfecto! Ese es el orden correcto.':'Algunos pasos están fuera de lugar; arriba ves cuál iba en cada posición.'}</div>`:''}
+     <div class="row">${all&&!EO.checked?'<button class="btn" data-act="eo-check">Revisar</button>':''}${EO.picked.length&&!EO.checked?'<button class="btn ghost" data-act="eo-undo">Quitar el último</button>':''}${EO.checked?'<button class="btn" data-act="eo-next">Otro proceso</button><button class="btn ghost" data-act="eo-retry">Intentar de nuevo</button>':''}</div>`;
+  } else {
+    if(!EQ){ EQ=X.gen(); EA=null; }
+    body=`<p>${esc(EQ.q)}</p><p class="exitem">${esc(EQ.item)}</p>
+     <div class="opts">${EQ.opts.map(o=>{ let c=''; if(EA!==null){ if(o===EQ.a) c='right'; else if(o===EA) c='wrong'; } return `<button class="opt ${c}" data-act="ex-ans" data-o="${esc(o)}" ${EA!==null?'disabled':''}>${esc(o)}</button>`; }).join('')}</div>
+     ${EA!==null?`<div class="exp ${EA===EQ.a?'right':'wrong'}">${EA===EQ.a?'Correcto. ':'Era: <b>'+esc(EQ.a)+'</b>. '}${esc(EQ.e)}</div><div><button class="btn sm" data-act="ex-next">Siguiente</button></div>`:''}`;
+  }
+  box.innerHTML=`<div class="row" style="justify-content:space-between"><h2>Ejercicios</h2><span class="chip">${sc} aciertos aquí</span></div>
+   <div class="subnav">${EXS.map(x=>`<button class="${x.k===EXK?'on':''}" data-act="ex-tab" data-k="${x.k}">${esc(x.n)}</button>`).join('')}</div>
+   <p class="muted" style="font-size:.9rem">${esc(X.d)}</p>${body}`;
+  const sel=$('#eosel'); if(sel) sel.addEventListener('change',e=>{ newOrder(+e.target.value); drawEx(); });
+}
+function exPoint(){ (S.ex ||= {})[EXK]=((S.ex||{})[EXK]||0)+1; save(); }
 
 /* =====================================================================
    VISTA: RÚBRICA
@@ -2102,8 +2211,16 @@ document.addEventListener('click',e=>{
   if(act==='bfilter'){ BF=+t.dataset.i; renderBasics(); return; }
   if(act==='bq-ans'){ BQans=t.dataset.o; if(BQans===BQ.t){ S.bq=(S.bq||0)+1; save(); } drawBQ(); return; }
   if(act==='bq-next'){ BQ=null; drawBQ(); return; }
+  if(act==='ex-tab'){ EXK=t.dataset.k; EQ=null; EA=null; drawEx(); return; }
+  if(act==='ex-ans'){ EA=t.dataset.o; if(EA===EQ.a) exPoint(); drawEx(); return; }
+  if(act==='ex-next'){ EQ=null; EA=null; drawEx(); return; }
+  if(act==='eo-pick'){ EO.picked.push(+t.dataset.j); drawEx(); return; }
+  if(act==='eo-undo'){ EO.picked.pop(); drawEx(); return; }
+  if(act==='eo-check'){ EO.checked=true; if(EO.picked.every((v,i)=>v===i)) exPoint(); drawEx(); return; }
+  if(act==='eo-retry'){ newOrder(EO.i); drawEx(); return; }
+  if(act==='eo-next'){ newOrder((EO.i+1)%ORDERS.length); drawEx(); return; }
   if(act==='reset-all'){ $('#resetq').innerHTML=`<div class="exp wrong" style="margin-top:8px">Se borrarán pasos, quizzes, notas y tarjetas de este navegador. <button class="btn sm" data-act="reset-yes">Sí, borrar</button></div>`; return; }
-  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0}; save(); renderRubric(); return; }
+  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{}}; save(); renderRubric(); return; }
 });
 function selPre(btn){ const pre=btn.parentElement.querySelector('pre'); const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='Selecciona y copia'; }
 document.addEventListener('change',e=>{

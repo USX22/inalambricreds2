@@ -175,6 +175,31 @@ function cfgLines(txt) {
   await page.click('[data-act="bfilter"][data-i="1"]');
   ok(await page.evaluate(() => document.querySelectorAll('.bcard').length === BALL.filter(x => x.n === 3).length), 'el filtro "Solo esenciales" funciona');
 
+  // Ejercicios interactivos: 300 preguntas generadas por ejercicio, todas válidas
+  const gen = await page.evaluate(() => { const bad = [];
+    EXS.filter(x => !x.order).forEach(x => { for (let i = 0; i < 300; i++) { const q = x.gen();
+      if (!q.opts.includes(q.a)) bad.push(x.k + ': respuesta fuera de las opciones');
+      if (new Set(q.opts).size !== q.opts.length) bad.push(x.k + ': opciones repetidas ' + q.opts.join('|'));
+      if (q.opts.length < 2 || !q.e || !q.item) bad.push(x.k + ': pregunta incompleta'); } });
+    return [...new Set(bad)]; });
+  ok(!gen.length, 'los ejercicios generan preguntas válidas', gen.slice(0, 5).join(' / '));
+  for (const k of ['misma', 'ip', 'donde', 'quien', 'sensor']) {
+    await page.click(`[data-act="ex-tab"][data-k="${k}"]`);
+    const a = await page.evaluate(() => EQ.a);
+    await page.click(`#bex .opt[data-o="${a.replace(/"/g, '\\"')}"]`);
+    ok(!!(await page.$('#bex .exp.right')), `ejercicio ${k}: respuesta correcta reconocida`);
+  }
+  await page.click('[data-act="ex-tab"][data-k="orden"]');
+  const nsteps = await page.evaluate(() => ORDERS[EO.i].steps.length);
+  for (let j = 0; j < nsteps; j++) await page.click(`#bex [data-act="eo-pick"][data-j="${j}"]`);
+  await page.click('#bex [data-act="eo-check"]');
+  ok(!!(await page.$('#bex .exp.right')), 'ordenar pasos: el orden correcto se reconoce');
+  await page.click('#bex [data-act="eo-retry"]');
+  await page.click('#bex [data-act="eo-pick"] >> nth=0');
+  for (let j = 1; j < nsteps; j++) await page.click('#bex [data-act="eo-pick"] >> nth=0');
+  await page.click('#bex [data-act="eo-check"]');
+  ok(!!(await page.$('#bex .exp')), 'ordenar pasos: se revisa cualquier orden');
+
   // ---------- 7. Celular y modo oscuro ----------
   for (const scheme of ['light', 'dark']) {
     const m = await browser.newPage({ viewport: { width: 375, height: 800 }, colorScheme: scheme });
