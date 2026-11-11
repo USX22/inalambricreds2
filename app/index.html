@@ -627,6 +627,18 @@ const LESSONS = [
 <h3>Switch y router</h3>
 <ul><li><b>Switch (capa 2):</b> une equipos de la <b>misma red</b>. Usa direcciones <b>MAC</b> (el número de serie de la tarjeta de red).</li>
 <li><b>Router (capa 3):</b> une <b>redes distintas</b>. Usa direcciones <b>IP</b> y una tabla de rutas.</li></ul>
+<h3>"Pero yo creía que un router solo extendía la red…"</h3>
+<p>Es una confusión muy común, porque en casa le decimos "router" a cosas distintas:</p>
+<ul><li><b>La caja de Telmex (o Totalplay, Izzi…)</b> son <b>cuatro aparatos en uno</b>: un <b>módem</b> (habla con la compañía por el cable o la fibra), un <b>router</b>, un <b>switch</b> (los puertos de atrás) y un <b>AP</b> (la antena WiFi).</li>
+<li><b>Los "extensores" o "repetidores" de WiFi</b> no son routers: son antenas (APs) que amplían el WiFi de <b>la misma red</b>.</li></ul>
+<p>La parte que de verdad es <b>router</b> en la caja de tu casa hace una sola cosa: <b>estar en medio de dos redes</b>, la de tu casa (192.168.1.x) e Internet (la red de la compañía), y pasar los mensajes de una a otra. Por eso tu celular puede abrir páginas de Internet: el router las conecta.</p>
+<div class="tbl"><table><thead><tr><th></th><th>Router de tu casa</th><th>R-CORE (tu proyecto)</th></tr></thead><tbody>
+<tr><td>¿Qué es?</td><td>Una parte de la caja de Telmex</td><td>Un router Cisco 2911 dedicado solo a eso</td></tr>
+<tr><td>¿Cuántas redes une?</td><td>2: tu casa e Internet</td><td>7 redes internas de la empresa</td></tr>
+<tr><td>¿Tiene Internet?</td><td>Sí</td><td>No, en tu proyecto no hace falta</td></tr>
+<tr><td>¿Puede bloquear?</td><td>Poco</td><td>Sí: con reglas (ACL) decide quién pasa y quién no</td></tr></tbody></table></div>
+<div class="analogy">El router tiene <b>una puerta en cada red</b>. En tu proyecto, R-CORE tiene la puerta 192.168.1.1 en la red de empleados, la 192.168.2.1 en la de invitados, la 192.168.3.1 en la de servidores, y así. Cada equipo sabe cuál es "su" puerta (el <b>gateway</b>). Cuando quiere hablar con alguien de otra red, le entrega el mensaje a su puerta; el router lo cruza y lo saca por la puerta de la otra red.</div>
+<p><b>¿Por qué no poner a todos en una sola red y ya?</b> Porque así estaba la empresa y ese era el problema: el visitante estaba en la misma red que los servidores y podía llegar a ellos. Al separar en varias redes, todo lo que va de una a otra <b>tiene que pasar por el router</b>, y ahí se pueden poner reglas: "empleados sí pasan a servidores; invitados no".</p>
 <h3>El modelo OSI, versión útil</h3>
 <div class="tbl"><table><thead><tr><th>Capa</th><th>Qué maneja</th><th>En tu proyecto</th></tr></thead><tbody>
 <tr><td>1 Física</td><td>Cables y ondas de radio</td><td>Cables, WiFi, 4G</td></tr>
@@ -674,6 +686,13 @@ const LESSONS = [
  rub:'Documentación y sustentación (10 %) y la lógica de todos los demás',
  theory:`
 <p>InnovaLogistics distribuye insumos médicos e industriales en el Parque Industrial Chachapa, Puebla. Tiene <b>Oficinas Corporativas</b>, un <b>Almacén Central</b> y una <b>flotilla</b> en ruta.</p>
+<h3>La historia del problema, en palabras simples</h3>
+<p><b>1. El WiFi falla todo el tiempo.</b> Cada área compró un router de casa y lo conectó por su lado. Todos transmiten en el mismo "carril" de radio (el mismo canal de 2.4 GHz), así que se estorban, como varias personas gritando en el mismo cuarto: la señal se corta. Además, el almacén es grande y hay zonas sin señal.</p>
+<p><b>2. Una sola contraseña para todos.</b> Todos los empleados usan la misma clave del WiFi. Si alguien renuncia, se la lleva y puede seguir entrando; para sacarlo habría que cambiar la clave en todos los equipos. Eso es una "fuga de información".</p>
+<p><b>3. Los visitantes ven los servidores.</b> Clientes y proveedores se conectan al mismo WiFi que los empleados, y esa red llega a los servidores de la empresa. Un visitante podría ver o atacar información interna.</p>
+<p><b>4. Nadie vigila el almacén.</b> Ahí se guardan insumos médicos que se echan a perder con el calor, y no hay sensores. Si sube la temperatura o empieza un incendio, nadie se entera hasta que es tarde.</p>
+<p><b>5. Los camiones están desconectados.</b> Cuando los choferes salen a repartir, quedan fuera del WiFi y no pueden avisar al sistema que entregaron un pedido.</p>
+<p class="muted">El PDF los agrupa en 4 problemas: el 1 y el 2 aparecen juntos como "Saturación e inseguridad inalámbrica".</p>
 <h3>Cuatro problemas, cuatro soluciones</h3>
 <div class="tbl"><table><thead><tr><th>Problema</th><th>Por qué pasa</th><th>Tu solución</th></tr></thead><tbody>
 <tr><td>WiFi saturado, caídas, sin cobertura, fuga de información</td><td>Routers caseros independientes, todos en el mismo canal de 2.4 GHz, y una sola clave para todos</td><td><b>WLC + 3 APs</b> coordinados en canales 1/6/11, mismo SSID (ESS) con roaming, y <b>WPA2-Enterprise</b> con usuario propio por empleado</td></tr>
@@ -682,7 +701,7 @@ const LESSONS = [
 <tr><td>Flotilla desconectada</td><td>El WiFi no llega a la calle</td><td><b>Torre celular 4G</b> + Central Office conectado al router, con ACL que solo deja llegar al portal de entregas</td></tr>
 </tbody></table></div>
 <h3>Cómo leer el mapa</h3>
-<ol><li><b>R-CORE</b> está en el centro: conecta todas las redes (VLANs y red celular).</li>
+<ol><li><b>R-CORE</b> ("R" de router y "CORE" de núcleo o centro) es el router principal y está en el centro: conecta todas las redes de la empresa (empleados, invitados, servidores, sensores) y la red celular.</li>
 <li>Del router sale un cable al <b>SW-CORE</b> (oficinas): ahí están la WLC, el AP-1, los 3 servidores y la PC de administración.</li>
 <li>Del SW-CORE sale un cable al <b>SW-ALMACEN</b>, con el AP-2 y el AP-3.</li>
 <li>Por WiFi se conectan laptops, tablet y sensores.</li>
