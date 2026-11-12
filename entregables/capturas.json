@@ -1,23 +1,170 @@
 [
-  {"id":"C01","archivo":"C01_topologia.png","leccion":"cableado","que":"Topología completa en la vista Logical, con las 3 zonas y todos los cables","reporte":"5. Topología","diapositiva":4},
-  {"id":"C02","archivo":"C02_vlan_brief.png","leccion":"vlans","que":"SW-CORE: resultado de show vlan brief","reporte":"7.2 Switches","diapositiva":5},
-  {"id":"C03","archivo":"C03_trunk.png","leccion":"vlans","que":"SW-CORE: resultado de show interfaces trunk","reporte":"7.2 Switches","diapositiva":null},
-  {"id":"C04","archivo":"C04_ip_int_brief.png","leccion":"router","que":"R-CORE: resultado de show ip interface brief (subinterfaces up)","reporte":"7.1 Router R-CORE","diapositiva":null},
-  {"id":"C05","archivo":"C05_ping_intervlan.png","leccion":"servidores","que":"PC-ADMIN: ping 192.168.3.12 respondiendo y el portal de entregas en el navegador","reporte":"8. Pruebas y resultados","diapositiva":5},
-  {"id":"C06","archivo":"C06_wlc_aps.png","leccion":"wlc","que":"WLC → Wireless → All APs con los 3 APs registrados","reporte":"7.3 WLC","diapositiva":6},
-  {"id":"C07","archivo":"C07_roaming.png","leccion":"ssids","que":"Laptop con ping continuo mientras cambia de AP (misma IP)","reporte":"8. Pruebas y resultados","diapositiva":7},
-  {"id":"C08","archivo":"C08_wlc_wlans.png","leccion":"radius","que":"WLC → WLANs con las 3 redes WiFi (INNOVA-CORP, INNOVA-GUEST, INNOVA-IOT)","reporte":"7.3 WLC","diapositiva":7},
-  {"id":"C09","archivo":"C09_radius_aaa.png","leccion":"radius","que":"SRV-RADIUS → Services → AAA: cliente WLC y usuarios de empleados","reporte":"7.4 Servidores","diapositiva":null},
-  {"id":"C10","archivo":"C10_empleado_ok.png","leccion":"radius","que":"Laptop de empleado conectada a INNOVA-CORP con IP 192.168.1.x","reporte":"8. Pruebas y resultados","diapositiva":8},
-  {"id":"C11","archivo":"C11_empleado_rechazado.png","leccion":"radius","que":"Laptop con contraseña incorrecta: no se conecta","reporte":"8. Pruebas y resultados","diapositiva":8},
-  {"id":"C12","archivo":"C12_invitado_antes.png","leccion":"acl","que":"Laptop de visitante: ping al servidor ANTES de la ACL (responde)","reporte":"8. Pruebas y resultados","diapositiva":9},
-  {"id":"C13","archivo":"C13_invitado_despues.png","leccion":"acl","que":"Laptop de visitante: ping al servidor DESPUÉS de la ACL (falla)","reporte":"8. Pruebas y resultados","diapositiva":9},
-  {"id":"C14","archivo":"C14_access_lists.png","leccion":"acl","que":"R-CORE: show access-lists con coincidencias en la línea deny","reporte":"7.1 Router R-CORE","diapositiva":null},
-  {"id":"C15","archivo":"C15_iot_dispositivos.png","leccion":"iot","que":"Servidor IoT: lista de dispositivos registrados","reporte":"7.4 Servidores","diapositiva":null},
-  {"id":"C16","archivo":"C16_iot_reglas.png","leccion":"iot","que":"Servidor IoT: lista de reglas (Conditions)","reporte":"7.4 Servidores","diapositiva":10},
-  {"id":"C17","archivo":"C17_iot_accion.png","leccion":"iot","que":"Ventilador o sirena encendidos automáticamente por una regla","reporte":"8. Pruebas y resultados","diapositiva":10},
-  {"id":"C18","archivo":"C18_central_office.png","leccion":"celular","que":"Central Office: configuración del Backbone y de la red celular","reporte":"7.5 Central Office y torre celular","diapositiva":null},
-  {"id":"C19","archivo":"C19_ip_route.png","leccion":"celular","que":"R-CORE: show ip route con la ruta S 192.168.6.0/24","reporte":"7.1 Router R-CORE","diapositiva":null},
-  {"id":"C20","archivo":"C20_celular_portal.png","leccion":"celular","que":"Celular del chofer abriendo el portal de entregas","reporte":"8. Pruebas y resultados","diapositiva":11},
-  {"id":"C21","archivo":"C21_celular_bloqueado.png","leccion":"celular","que":"Celular del chofer: ping al RADIUS falla (ACL)","reporte":"8. Pruebas y resultados","diapositiva":11}
+  {
+    "id": "C01",
+    "archivo": "C01_topologia.png",
+    "leccion": "cableado",
+    "que": "Topología completa en la vista Logical, con las 3 zonas y todos los cables",
+    "reporte": "5. Topología",
+    "diapositiva": 4
+  },
+  {
+    "id": "C02",
+    "archivo": "C02_vlan_brief.png",
+    "leccion": "vlans",
+    "que": "SW-CORE: resultado de show vlan brief",
+    "reporte": "7.2 Switches",
+    "diapositiva": 5
+  },
+  {
+    "id": "C03",
+    "archivo": "C03_trunk.png",
+    "leccion": "router",
+    "que": "SW-CORE: show interfaces trunk con los 3 trunks (Fa0/1, Gig0/1 y Gig0/2), tomada después de encender el router",
+    "reporte": "7.2 Switches",
+    "diapositiva": null
+  },
+  {
+    "id": "C04",
+    "archivo": "C04_ip_int_brief.png",
+    "leccion": "router",
+    "que": "R-CORE: resultado de show ip interface brief (subinterfaces up)",
+    "reporte": "7.1 Router R-CORE",
+    "diapositiva": null
+  },
+  {
+    "id": "C05",
+    "archivo": "C05_ping_intervlan.png",
+    "leccion": "servidores",
+    "que": "PC-ADMIN: ping 192.168.3.12 respondiendo y el portal de entregas en el navegador",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 5
+  },
+  {
+    "id": "C06",
+    "archivo": "C06_wlc_aps.png",
+    "leccion": "wlc",
+    "que": "WLC → Wireless → All APs con los 3 APs registrados",
+    "reporte": "7.3 WLC",
+    "diapositiva": 6
+  },
+  {
+    "id": "C07",
+    "archivo": "C07_roaming.png",
+    "leccion": "ssids",
+    "que": "Laptop con ping continuo mientras cambia de AP (misma IP)",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 7
+  },
+  {
+    "id": "C08",
+    "archivo": "C08_wlc_wlans.png",
+    "leccion": "radius",
+    "que": "WLC → WLANs con las 3 redes WiFi (INNOVA-CORP, INNOVA-GUEST, INNOVA-IOT)",
+    "reporte": "7.3 WLC",
+    "diapositiva": 7
+  },
+  {
+    "id": "C09",
+    "archivo": "C09_radius_aaa.png",
+    "leccion": "radius",
+    "que": "SRV-RADIUS → Services → AAA: cliente WLC y usuarios de empleados",
+    "reporte": "7.4 Servidores",
+    "diapositiva": null
+  },
+  {
+    "id": "C10",
+    "archivo": "C10_empleado_ok.png",
+    "leccion": "radius",
+    "que": "Laptop de empleado conectada a INNOVA-CORP con IP 192.168.1.x",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 8
+  },
+  {
+    "id": "C11",
+    "archivo": "C11_empleado_rechazado.png",
+    "leccion": "radius",
+    "que": "Laptop con contraseña incorrecta: no se conecta",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 8
+  },
+  {
+    "id": "C12",
+    "archivo": "C12_invitado_antes.png",
+    "leccion": "acl",
+    "que": "Laptop de visitante: ping al servidor ANTES de la ACL (responde)",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 9
+  },
+  {
+    "id": "C13",
+    "archivo": "C13_invitado_despues.png",
+    "leccion": "acl",
+    "que": "Laptop de visitante: ping al servidor DESPUÉS de la ACL (falla)",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 9
+  },
+  {
+    "id": "C14",
+    "archivo": "C14_access_lists.png",
+    "leccion": "acl",
+    "que": "R-CORE: show access-lists con coincidencias en la línea deny",
+    "reporte": "7.1 Router R-CORE",
+    "diapositiva": null
+  },
+  {
+    "id": "C15",
+    "archivo": "C15_iot_dispositivos.png",
+    "leccion": "iot",
+    "que": "Servidor IoT: lista de dispositivos registrados",
+    "reporte": "7.4 Servidores",
+    "diapositiva": null
+  },
+  {
+    "id": "C16",
+    "archivo": "C16_iot_reglas.png",
+    "leccion": "iot",
+    "que": "Servidor IoT: lista de reglas (Conditions)",
+    "reporte": "7.4 Servidores",
+    "diapositiva": 10
+  },
+  {
+    "id": "C17",
+    "archivo": "C17_iot_accion.png",
+    "leccion": "iot",
+    "que": "Ventilador o sirena encendidos automáticamente por una regla",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 10
+  },
+  {
+    "id": "C18",
+    "archivo": "C18_central_office.png",
+    "leccion": "celular",
+    "que": "Central Office: configuración del Backbone y de la red celular",
+    "reporte": "7.5 Central Office y torre celular",
+    "diapositiva": null
+  },
+  {
+    "id": "C19",
+    "archivo": "C19_ip_route.png",
+    "leccion": "celular",
+    "que": "R-CORE: show ip route con la ruta S 192.168.6.0/24",
+    "reporte": "7.1 Router R-CORE",
+    "diapositiva": null
+  },
+  {
+    "id": "C20",
+    "archivo": "C20_celular_portal.png",
+    "leccion": "celular",
+    "que": "Celular del chofer abriendo el portal de entregas",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 11
+  },
+  {
+    "id": "C21",
+    "archivo": "C21_celular_bloqueado.png",
+    "leccion": "celular",
+    "que": "Celular del chofer: ping al RADIUS falla (ACL)",
+    "reporte": "8. Pruebas y resultados",
+    "diapositiva": 11
+  }
 ]
