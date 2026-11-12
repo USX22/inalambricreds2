@@ -109,6 +109,7 @@ const children = [
   H2('4.1 Infraestructura WLAN centralizada'),
   P('Se sustituyen los routers caseros por una Wireless LAN Controller (WLC) y tres Access Points ligeros (LAP): AP-1 en Oficinas y AP-2 y AP-3 en el Almacén. Los APs se registran en la WLC mediante el protocolo CAPWAP, por lo que las redes WiFi, la seguridad y los canales se administran desde un solo punto.'),
   P('Los tres APs anuncian las mismas redes WiFi y forman un ESS (Extended Service Set), lo que permite el roaming: un usuario se desplaza entre edificios sin perder la conexión ni cambiar de IP. Se asignan los canales no traslapados 1, 6 y 11 para eliminar la interferencia.'),
+  ...captura('C22'),
   H2('4.2 Seguridad'),
   LI([B('INNOVA-CORP (empleados): '), T('WPA2-Enterprise (802.1X) con cifrado AES. La WLC actúa como autenticador y consulta al servidor RADIUS (192.168.3.10). Cada empleado tiene usuario y contraseña propios; para revocar el acceso de alguien solo se elimina su cuenta.')]),
   LI([B('INNOVA-GUEST (invitados): '), T('WPA2-PSK en la VLAN 20. La ACL extendida ACL-INVITADOS, aplicada de entrada en la subinterfaz G0/0.20 del router, niega todo el tráfico hacia la red interna 192.168.0.0/20 y solo permite DHCP, ping al gateway y salida a Internet.')]),

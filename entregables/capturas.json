@@ -166,5 +166,13 @@
     "que": "Celular del chofer: ping al RADIUS falla (ACL)",
     "reporte": "8. Pruebas y resultados",
     "diapositiva": 11
+  },
+  {
+    "id": "C22",
+    "archivo": "C22_canales.png",
+    "leccion": "wifi",
+    "que": "Simulador de canales de la app: antes (1/1/1, encimados) y después (1/6/11, separados)",
+    "reporte": "4.1 Infraestructura WLAN centralizada",
+    "diapositiva": 6
   }
 ]

@@ -146,9 +146,10 @@ bullets(s, [
   [{ text: 'APs ligeros: ', b: true }, { text: 'AP-1 en oficinas, AP-2 y AP-3 en el almacén' }],
   [{ text: 'CAPWAP: ', b: true }, { text: 'túnel antena ↔ WLC (UDP 5246 control, 5247 datos)' }],
   [{ text: 'Canales 1, 6 y 11: ', b: true }, { text: 'no se enciman, se acaba la interferencia' }]
-], 0.5, 1.2, 4.3, 3.8, 15);
-cap(s, 'C06', 5.0, 1.15, 4.5, 3.85);
-s.addNotes('Tiempo: 1 minuto 45 segundos. "Las tres antenas son ligeras: no se configuran solas. Al encender piden IP, encuentran a la WLC y forman un túnel CAPWAP. Toda la configuración vive en la WLC. Pusimos los canales 1, 6 y 11, los únicos de 2.4 GHz que no se enciman." DEMO: muestra en la WLC los 3 APs registrados.');
+], 0.5, 1.15, 4.3, 2.2, 13);
+cap(s, 'C22', 0.5, 3.45, 4.3, 1.6);
+cap(s, 'C06', 5.0, 1.15, 4.5, 3.9);
+s.addNotes('Tiempo: 1 minuto 45 segundos. "Las tres antenas son ligeras: no se configuran solas. Al encender piden IP, encuentran a la WLC y forman un túnel CAPWAP. Toda la configuración vive en la WLC. Pusimos los canales 1, 6 y 11, los únicos de 2.4 GHz que no se enciman." Muestra la imagen de los canales: antes encimados (1/1/1) y después separados (1/6/11). DEMO: muestra en la WLC los 3 APs registrados.');
 
 // ---------- 7 WiFi y roaming ----------
 s = content('Red inalámbrica');
