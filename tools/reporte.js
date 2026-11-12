@@ -169,6 +169,7 @@ const children = [
   P('La WLC (192.168.0.10) tiene una interfaz dinámica por VLAN de usuarios y tres WLANs:'),
   table(['Red WiFi', 'VLAN', 'Seguridad'], [['INNOVA-CORP', '10', 'WPA2-Enterprise (802.1X) contra RADIUS 192.168.3.10'], ['INNOVA-GUEST', '20', 'WPA2-PSK'], ['INNOVA-IOT', '40', 'WPA2-PSK']], [2600, 1200, 5560]),
   P(' '),
+  P('Los tres APs obtuvieron su dirección por DHCP en la VLAN 99 (192.168.0.22, .23 y .24) y se registraron en la WLC (estado REG). Durante la implementación, las antenas no volvieron a conectarse tras un reinicio: el switch mostraba sus puertos en estado down/down, lo que indicaba una falla del lado del AP. Se reemplazaron por APs nuevos que, sin ninguna configuración manual, obtuvieron IP, descubrieron la WLC y descargaron su configuración, lo que demuestra la ventaja de los APs ligeros administrados de forma centralizada.'),
   ...captura('C06'), ...captura('C08'),
   H2('7.4 Servidores'),
   P('SRV-RADIUS tiene el servicio AAA con la WLC como cliente y una cuenta por empleado. SRV-IOT ejecuta el servicio IoT con las reglas de automatización. SRV-CENTRAL ofrece HTTP, HTTPS (portal de entregas) y DNS.'),
