@@ -200,6 +200,16 @@ function cfgLines(txt) {
   await page.click('#bex [data-act="eo-check"]');
   ok(!!(await page.$('#bex .exp')), 'ordenar pasos: se revisa cualquier orden');
 
+  // Capturas: la app usa la misma lista que el Word y el PowerPoint
+  const capsFile = JSON.parse(fs.readFileSync(path.join(ROOT, 'entregables', 'capturas.json'), 'utf8'));
+  const capsApp = await page.evaluate(() => ({ caps: CAPS, ids: LESSONS.map(l => l.id) }));
+  ok(JSON.stringify(capsApp.caps) === JSON.stringify(capsFile), 'la lista de capturas de la app es igual a entregables/capturas.json');
+  ok(capsApp.caps.every(c => capsApp.ids.includes(c.leccion)), 'cada captura pertenece a una lección existente');
+  await page.evaluate(() => location.hash = '#leccion-acl'); await page.waitForTimeout(150);
+  ok((await page.$$('#main .capitem')).length === capsFile.filter(c => c.leccion === 'acl').length, 'la lección muestra sus capturas');
+  await page.check('#main .capitem input >> nth=0'); await page.reload(); await page.waitForTimeout(150);
+  ok(await page.isChecked('#main .capitem input >> nth=0'), 'marcar una captura se guarda');
+
   // ---------- 7. Celular y modo oscuro ----------
   for (const scheme of ['light', 'dark']) {
     const m = await browser.newPage({ viewport: { width: 375, height: 800 }, colorScheme: scheme });

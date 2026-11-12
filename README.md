@@ -27,7 +27,7 @@ El avance se guarda en el navegador donde la abras.
 **Entrega:** ICCS 260 Redes inalámbricas · viernes 13 de noviembre de 2026, 12:00 hrs · 20 minutos por proyecto.
 
 **Pruebas automáticas de la app:** `node tests/app.test.js` (requiere Node y Playwright con Chromium).
-Revisan 162 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
+Revisan 166 puntos: datos coherentes, configuraciones de la app idénticas a las de `configs/`,
 simulador de ACL y calculadora con resultados correctos, que el avance se guarde, y que todas las
 vistas se vean bien en celular y en modo oscuro.
 
@@ -44,6 +44,19 @@ vistas se vean bien en celular y en modo oscuro.
 | 6 | [docs/05_Guia_de_Estudio.md](docs/05_Guia_de_Estudio.md) | Teoría explicada + banco de preguntas con respuestas para la defensa. |
 | 7 | [docs/06_Guion_Presentacion.md](docs/06_Guion_Presentacion.md) | Diapositivas sugeridas y qué decir en cada una. |
 | 8 | [docs/07_Revision_del_Proyecto.md](docs/07_Revision_del_Proyecto.md) | Revisión contra el PDF y la rúbrica: requisito por requisito, problemas corregidos y lo que se confirma en Packet Tracer. |
+
+## 📦 Entregables listos para completar
+
+| Archivo | Qué es | Qué te falta |
+|---|---|---|
+| [`entregables/Reporte_InnovaLogistics.docx`](entregables/Reporte_InnovaLogistics.docx) | Reporte en Word (19 páginas): portada, índice, problemática, solución, topología, direccionamiento, configuración, pruebas, conclusiones y anexos | Tu nombre, el del docente y pegar las 21 capturas |
+| [`entregables/Presentacion_InnovaLogistics.pptx`](entregables/Presentacion_InnovaLogistics.pptx) | Presentación de 14 diapositivas para 20 minutos, con lo que debes decir en las notas | Tu nombre y pegar 14 capturas |
+| [`entregables/capturas.json`](entregables/capturas.json) | Lista de las 21 capturas: nombre de archivo, lección, sección del reporte y diapositiva | — |
+
+Cada captura tiene un nombre (C01_topologia.png, C02_vlan_brief.png…). La app te dice en qué lección tomarla,
+y el Word y el PowerPoint tienen un recuadro "Pega aquí" con ese mismo nombre.
+
+Para volver a generarlos: `node tools/reporte.js` (requiere el paquete `docx`) y `node tools/presentacion.js` (requiere `pptxgenjs`).
 
 ## Evidencias que pide el docente
 

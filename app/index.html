@@ -248,6 +248,9 @@ textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);bo
 .eolist li{padding:6px 10px;border-radius:6px;border:1px solid var(--line)}
 .eolist li.right{background:var(--good-soft);border-color:var(--good)}
 .eolist li.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.capbox{display:flex;flex-direction:column;gap:8px;border:2px dashed var(--accent);border-radius:10px;padding:14px;background:var(--accent-soft)}
+.capitem{background:var(--surface);border-radius:8px;padding:8px 10px}
+.capitem.ok{background:var(--good-soft)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -1297,20 +1300,21 @@ permit ip 192.168.2.0 0.0.0.255 any <span class="cmt">! todo lo demás (Internet
  rub:'Documentación y sustentación (10 %): "reporte estructurado con topología, tabla de direccionamiento"',
  theory:`
 <h3>El reporte</h3>
-<p>En el repositorio está el borrador completo: <code>docs/04_Reporte_Tecnico.md</code>. Estructura:</p>
+<p><b>Ya está hecho en Word:</b> <code>entregables/Reporte_InnovaLogistics.docx</code> en el repositorio. Tiene todo el texto y un recuadro "Pega aquí" con el nombre de cada captura (C01, C02…). Solo pon tu nombre y pega las imágenes. Estructura:</p>
 <ol><li>Portada</li><li>Introducción</li><li>Objetivos</li><li>Análisis de la problemática</li><li>Solución propuesta (los 4 pilares)</li><li>Topología (captura lógica y física)</li><li>Direccionamiento (tablas de VLANs y de direcciones)</li><li>Configuración de cada equipo (con capturas)</li><li>Pruebas y resultados</li><li>Conclusiones y recomendaciones</li><li>Anexos: configuraciones completas</li></ol>
 <p>La tabla de direccionamiento completa está en <a href="#herramientas" data-goto-tool="tabla">Herramientas → Direccionamiento</a>.</p>
 <h3>La presentación para 20 minutos</h3>
+<p><b>Ya está hecha en PowerPoint:</b> <code>entregables/Presentacion_InnovaLogistics.pptx</code>. 14 diapositivas con recuadros "Pega aquí" para las capturas y, en las notas de cada diapositiva, lo que debes decir.</p>
 <p>El tiempo total es de 20 minutos, incluyendo las preguntas y pruebas del docente. Plan: unos 13 minutos de exposición con demostraciones integradas y 7 minutos para preguntas. En la pestaña <a href="#defensa">Defensa</a> tienes el cronómetro con cada bloque.</p>
 <ul><li>Pocas palabras por diapositiva; capturas grandes de PT.</li>
 <li>Una diapositiva por pilar, con su "problema → solución → demostración".</li>
 <li>Diapositivas de respaldo con capturas por si algo falla en vivo.</li></ul>`,
  steps:[
-  {t:'Copia el contenido de <code>docs/04_Reporte_Tecnico.md</code> a Word (o Google Docs). Pon tu nombre, materia ICCS 260, docente y fecha 13/11/2026.'},
-  {t:'Pega cada captura donde dice [Captura]. Pon pie de foto a cada una ("Figura 5. Roaming entre AP-1 y AP-2").'},
+  {t:'Descarga <code>entregables/Reporte_InnovaLogistics.docx</code> del repositorio (en GitHub: abre el archivo y presiona "Download raw file"). Pon tu nombre y el del docente en la portada.'},
+  {t:'En cada recuadro "Pega aquí C0X", borra el recuadro y pega la captura con ese nombre. El pie de figura ya está escrito debajo.'},
   {t:'Agrega las tablas de VLANs y de direccionamiento completas. Agrega las configuraciones como anexo (Herramientas → Configuraciones).'},
   {t:'Exporta el reporte a PDF.'},
-  {t:'Haz las diapositivas siguiendo los bloques del cronómetro de la pestaña Defensa (12 bloques).'},
+  {t:'Descarga <code>entregables/Presentacion_InnovaLogistics.pptx</code>, pon tu nombre en la portada y pega las capturas en sus recuadros. Lee las notas de cada diapositiva: ahí está lo que debes decir.'},
   {t:'Agrega 3 diapositivas de respaldo al final: captura de roaming, de RADIUS rechazando y de la ACL bloqueando.'},
   {t:'Revisa que tengas las 3 evidencias en la carpeta: reporte PDF, .pkt final y presentación.'}
  ],
@@ -1627,6 +1631,10 @@ const BASICS = [
 ];
 const BALL = BASICS.flatMap(g=>g.items.map(x=>Object.assign({g:g.g},x)));
 
+/* CAPS-INICIO (generado desde entregables/capturas.json) */
+const CAPS = [{"id": "C01", "archivo": "C01_topologia.png", "leccion": "cableado", "que": "Topología completa en la vista Logical, con las 3 zonas y todos los cables", "reporte": "5. Topología", "diapositiva": 4}, {"id": "C02", "archivo": "C02_vlan_brief.png", "leccion": "vlans", "que": "SW-CORE: resultado de show vlan brief", "reporte": "7.2 Switches", "diapositiva": 5}, {"id": "C03", "archivo": "C03_trunk.png", "leccion": "vlans", "que": "SW-CORE: resultado de show interfaces trunk", "reporte": "7.2 Switches", "diapositiva": null}, {"id": "C04", "archivo": "C04_ip_int_brief.png", "leccion": "router", "que": "R-CORE: resultado de show ip interface brief (subinterfaces up)", "reporte": "7.1 Router R-CORE", "diapositiva": null}, {"id": "C05", "archivo": "C05_ping_intervlan.png", "leccion": "servidores", "que": "PC-ADMIN: ping 192.168.3.12 respondiendo y el portal de entregas en el navegador", "reporte": "8. Pruebas y resultados", "diapositiva": 5}, {"id": "C06", "archivo": "C06_wlc_aps.png", "leccion": "wlc", "que": "WLC → Wireless → All APs con los 3 APs registrados", "reporte": "7.3 WLC", "diapositiva": 6}, {"id": "C07", "archivo": "C07_roaming.png", "leccion": "ssids", "que": "Laptop con ping continuo mientras cambia de AP (misma IP)", "reporte": "8. Pruebas y resultados", "diapositiva": 7}, {"id": "C08", "archivo": "C08_wlc_wlans.png", "leccion": "radius", "que": "WLC → WLANs con las 3 redes WiFi (INNOVA-CORP, INNOVA-GUEST, INNOVA-IOT)", "reporte": "7.3 WLC", "diapositiva": 7}, {"id": "C09", "archivo": "C09_radius_aaa.png", "leccion": "radius", "que": "SRV-RADIUS → Services → AAA: cliente WLC y usuarios de empleados", "reporte": "7.4 Servidores", "diapositiva": null}, {"id": "C10", "archivo": "C10_empleado_ok.png", "leccion": "radius", "que": "Laptop de empleado conectada a INNOVA-CORP con IP 192.168.1.x", "reporte": "8. Pruebas y resultados", "diapositiva": 8}, {"id": "C11", "archivo": "C11_empleado_rechazado.png", "leccion": "radius", "que": "Laptop con contraseña incorrecta: no se conecta", "reporte": "8. Pruebas y resultados", "diapositiva": 8}, {"id": "C12", "archivo": "C12_invitado_antes.png", "leccion": "acl", "que": "Laptop de visitante: ping al servidor ANTES de la ACL (responde)", "reporte": "8. Pruebas y resultados", "diapositiva": 9}, {"id": "C13", "archivo": "C13_invitado_despues.png", "leccion": "acl", "que": "Laptop de visitante: ping al servidor DESPUÉS de la ACL (falla)", "reporte": "8. Pruebas y resultados", "diapositiva": 9}, {"id": "C14", "archivo": "C14_access_lists.png", "leccion": "acl", "que": "R-CORE: show access-lists con coincidencias en la línea deny", "reporte": "7.1 Router R-CORE", "diapositiva": null}, {"id": "C15", "archivo": "C15_iot_dispositivos.png", "leccion": "iot", "que": "Servidor IoT: lista de dispositivos registrados", "reporte": "7.4 Servidores", "diapositiva": null}, {"id": "C16", "archivo": "C16_iot_reglas.png", "leccion": "iot", "que": "Servidor IoT: lista de reglas (Conditions)", "reporte": "7.4 Servidores", "diapositiva": 10}, {"id": "C17", "archivo": "C17_iot_accion.png", "leccion": "iot", "que": "Ventilador o sirena encendidos automáticamente por una regla", "reporte": "8. Pruebas y resultados", "diapositiva": 10}, {"id": "C18", "archivo": "C18_central_office.png", "leccion": "celular", "que": "Central Office: configuración del Backbone y de la red celular", "reporte": "7.5 Central Office y torre celular", "diapositiva": null}, {"id": "C19", "archivo": "C19_ip_route.png", "leccion": "celular", "que": "R-CORE: show ip route con la ruta S 192.168.6.0/24", "reporte": "7.1 Router R-CORE", "diapositiva": null}, {"id": "C20", "archivo": "C20_celular_portal.png", "leccion": "celular", "que": "Celular del chofer abriendo el portal de entregas", "reporte": "8. Pruebas y resultados", "diapositiva": 11}, {"id": "C21", "archivo": "C21_celular_bloqueado.png", "leccion": "celular", "que": "Celular del chofer: ping al RADIUS falla (ACL)", "reporte": "8. Pruebas y resultados", "diapositiva": 11}];
+/* CAPS-FIN */
+
 /* ---------- Tarjetas de repaso ---------- */
 const FLASH = [
 ['¿Por qué usaron una WLC en lugar de routers inalámbricos?','Centraliza la configuración de los 3 APs, coordina canales, aplica la misma seguridad en todos y permite roaming transparente. Los routers caseros eran redes aisladas en el mismo canal.'],
@@ -1727,7 +1735,7 @@ const TROUBLE = [
    ESTADO (progreso local en este navegador)
    ===================================================================== */
 const KEY='innova-lab-v1';
-let S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{}};
+let S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{},caps:{}};
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
@@ -1879,6 +1887,7 @@ function renderLesson(id){
         <div class="tbl verify"><table><thead><tr><th>Comando o prueba</th><th>Resultado esperado</th></tr></thead><tbody>${L.verify.map(v=>`<tr><td>${esc(v[0])}</td><td>${esc(v[1])}</td></tr>`).join('')}</tbody></table></div>
         ${L.trouble?`<div class="stack" style="gap:8px"><b>Si no sale</b>${L.trouble.map(t=>`<div class="exp wrong"><b>${esc(t[0])}:</b> ${esc(t[1])}</div>`).join('')}</div>`:''}
       </section>
+      ${capBox(CAPS.filter(c=>c.leccion===L.id),'📸 Capturas de esta lección')?`<section class="sec">${capBox(CAPS.filter(c=>c.leccion===L.id),'📸 Capturas de esta lección')}</section>`:''}
       <section class="sec"><h3><span class="tag">4</span>Quiz</h3><div class="stack" style="gap:12px" id="quiz">${L.quiz.map((_,i)=>quizBlock(L,i)).join('')}</div></section>
       <section class="sec"><h3><span class="tag">5</span>Dilo así en la exposición</h3><p class="say">"${esc(L.say)}"</p><p class="muted" style="font-size:.85rem">Léelo, tápalo y dilo con tus palabras.</p></section>
       <section class="sec"><h3><span class="tag">6</span>Se conecta con</h3><div class="links">${L.links.map(([lid,why])=>{const x=LBY[lid];return `<a href="#leccion-${lid}"><b>${x.i+1}.</b><span><b>${esc(x.title)}</b><br><span class="muted">${esc(why)}</span></span></a>`;}).join('')}</div></section>
@@ -2290,6 +2299,14 @@ function drawEx(){
 }
 function exPoint(){ (S.ex ||= {})[EXK]=((S.ex||{})[EXK]||0)+1; save(); }
 
+
+function capBox(caps, title){
+  if(!caps.length) return '';
+  return `<div class="capbox"><b>${title}</b>
+   <p class="muted" style="font-size:.85rem">Win + Shift + S para recortar la pantalla. Guarda cada imagen en tu carpeta <code>capturas</code> con el nombre exacto: el Word y el PowerPoint tienen un espacio marcado con ese mismo nombre.</p>
+   ${caps.map(c=>{const ok=(S.caps||{})[c.id]; return `<label class="check capitem${ok?' ok':''}"><input type="checkbox" data-act="cap" data-id="${c.id}" ${ok?'checked':''}><span><b class="mono">${esc(c.archivo)}</b><br>${esc(c.que)}<br><span class="muted" style="font-size:.85rem">Va en: Reporte → ${esc(c.reporte)}${c.diapositiva?` · Presentación → diapositiva ${c.diapositiva}`:' · (solo en el reporte)'}</span></span></label>`;}).join('')}</div>`;
+}
+
 /* =====================================================================
    VISTA: RÚBRICA
    ===================================================================== */
@@ -2303,6 +2320,8 @@ function renderRubric(){
    <p class="muted" style="font-size:.85rem;margin-top:8px">Es una estimación de tu preparación según las lecciones terminadas, no la calificación final.</p></section>
    <section class="card stack" style="gap:8px"><h2>Evidencias de entrega</h2>
    ${EVID.map(([k,n])=>`<label class="check"><input type="checkbox" data-act="evid" data-k="${k}" ${S.evid[k]?'checked':''}><span>${esc(n)}</span></label>`).join('')}
+   <h3 style="margin-top:12px">Capturas: ${CAPS.filter(c=>(S.caps||{})[c.id]).length} de ${CAPS.length}</h3>
+   <details><summary style="cursor:pointer">Ver la lista completa</summary>${capBox(CAPS,'')}</details>
    <h3 style="margin-top:12px">Lo que pide el "Excelente" de cada criterio</h3>
    <ul style="margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.92rem">
     <li><b>Base:</b> VLANs, trunking 802.1Q, inter-VLAN y DHCP sin errores de subneteo.</li>
@@ -2351,13 +2370,14 @@ document.addEventListener('click',e=>{
   if(act==='eo-retry'){ newOrder(EO.i); drawEx(); return; }
   if(act==='eo-next'){ newOrder((EO.i+1)%ORDERS.length); drawEx(); return; }
   if(act==='reset-all'){ $('#resetq').innerHTML=`<div class="exp wrong" style="margin-top:8px">Se borrarán pasos, quizzes, notas y tarjetas de este navegador. <button class="btn sm" data-act="reset-yes">Sí, borrar</button></div>`; return; }
-  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{}}; save(); renderRubric(); return; }
+  if(act==='reset-yes'){ S={steps:{},quiz:{},notes:{},cards:{},evid:{},basics:{},bq:0,ex:{},caps:{}}; save(); renderRubric(); return; }
 });
 function selPre(btn){ const pre=btn.parentElement.querySelector('pre'); const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent='Selecciona y copia'; }
 document.addEventListener('change',e=>{
   const t=e.target;
   if(t.dataset.act==='step'){ const i=+t.dataset.i; (S.steps[CUR.id] ||= {})[i]=t.checked; save(); t.closest('li').classList.toggle('ok',t.checked); refreshLessonMeta(); }
   if(t.dataset.act==='bknow'){ (S.basics ||= {})[t.dataset.t]=t.checked?'ok':''; save(); t.closest('.bcard').classList.toggle('ok',t.checked); }
+  if(t.dataset.act==='cap'){ (S.caps ||= {})[t.dataset.id]=t.checked; save(); t.closest('.capitem').classList.toggle('ok',t.checked); }
   if(t.dataset.act==='evid'){ S.evid[t.dataset.k]=t.checked; save(); }
 });
 document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.act==='notes'){ S.notes[CUR.id]=t.value; save(); } });
