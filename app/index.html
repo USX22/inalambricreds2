@@ -934,7 +934,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
 <h3>Si el ping falla, revisa en este orden</h3>
 <ol><li>IP, máscara y gateway del equipo.</li><li>Puerto del switch en la VLAN correcta (<code>show vlan brief</code>).</li><li>Trunk activo (<code>show interfaces trunk</code>).</li><li>Subinterfaz del router up (<code>show ip interface brief</code>).</li></ol>`,
  steps:[
-  {t:`Configura IP estática (Desktop → IP Configuration → Static):<div class="tbl"><table><thead><tr><th>Equipo</th><th>IP</th><th>Máscara</th><th>Gateway</th><th>DNS</th></tr></thead><tbody>
+  {t:`Configura IP estática <b>IPv4</b> (Desktop → IP Configuration → en la sección IPv4 marca Static; la sección IPv6 no la toques):<div class="tbl"><table><thead><tr><th>Equipo</th><th>IP</th><th>Máscara</th><th>Gateway</th><th>DNS</th></tr></thead><tbody>
 <tr><td>SRV-RADIUS</td><td class="mono">192.168.3.10</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
 <tr><td>SRV-IOT</td><td class="mono">192.168.3.11</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
 <tr><td>SRV-CENTRAL</td><td class="mono">192.168.3.12</td><td class="mono">255.255.255.0</td><td class="mono">192.168.3.1</td><td class="mono">192.168.3.12</td></tr>
