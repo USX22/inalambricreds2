@@ -83,7 +83,7 @@ s.addText([
   { text: 'ICCS 260 · Redes inalámbricas · Proyecto integrador', options: { breakLine: true } },
   { text: '(Tu nombre) · 13 de noviembre de 2026' }
 ], { placeholder: 'body' });
-s.addNotes('Tiempo: 30 segundos. "Soy el consultor contratado por InnovaLogistics Puebla para rediseñar su red inalámbrica e integrar IoT y conectividad celular."');
+s.addNotes("TIEMPO: 30 s.\nQUÉ DECIR: \"Buenos días. Soy el consultor contratado por InnovaLogistics Puebla para rediseñar su red inalámbrica, integrar sensores IoT y dar conectividad celular a su flotilla. Todo lo validé en Cisco Packet Tracer.\"");
 
 // ---------- 2 La empresa ----------
 s = content('Introducción');
@@ -98,7 +98,7 @@ s.addText('La empresa', { placeholder: 'title' });
   s.addText(d, { x: x + 0.25, y: 2.75, w: 2.4, h: 1.5, fontSize: 14, color: C.accent5, valign: 'top', isTextBox: true, margin: 0 });
 });
 s.addText('Parque Industrial Chachapa, Puebla', { x: 0.5, y: 4.75, w: 9, h: 0.35, fontSize: 12, italic: true, color: C.accent5, isTextBox: true, margin: 0 });
-s.addNotes('Tiempo: 15 segundos (junto con la portada, 45 s). "Distribuye insumos médicos e industriales en el Parque Industrial Chachapa. Tiene dos edificios y una flotilla en ruta. Los insumos médicos necesitan control de temperatura."');
+s.addNotes("TIEMPO: 15 s.\nQUÉ DECIR: \"La empresa distribuye insumos médicos e industriales en el Parque Industrial Chachapa. Tiene dos edificios, las oficinas y el almacén, y una flotilla de camiones en la calle. Los insumos médicos necesitan temperatura controlada.\"");
 
 // ---------- 3 Problemática ----------
 s = content('Introducción');
@@ -113,7 +113,7 @@ s.addText('Problemática actual', { placeholder: 'title' });
   s.addText(t, { x: x + 0.85, y: y + 0.2, w: 3.35, h: 0.55, fontSize: 17, bold: true, color: C.text1, valign: 'middle', isTextBox: true, margin: 0 });
   s.addText(d, { x: x + 0.85, y: y + 0.8, w: 3.35, h: 0.8, fontSize: 14, color: C.accent5, valign: 'top', isTextBox: true, margin: 0 });
 });
-s.addNotes('Tiempo: 1 minuto. "Encontramos cuatro problemas: routers caseros en el mismo canal y con una sola contraseña para todos; visitantes en la misma red que los servidores; ningún monitoreo de temperatura ni humo; y la flotilla desconectada al salir del WiFi."');
+s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR (fórmula: antes pasaba ___):\n1. \"Cada área tenía un router casero suelto, todos en el mismo canal de 2.4 GHz; se estorbaban, la señal se caía y había zonas del almacén sin cobertura. Además, todos usaban la misma contraseña: quien renunciaba se la llevaba.\"\n2. \"Los visitantes se conectaban a la misma red que los servidores y podían llegar a ellos.\"\n3. \"Nadie vigilaba la temperatura ni el humo del almacén.\"\n4. \"Los camiones quedaban desconectados al salir del alcance del WiFi y no podían reportar entregas.\"");
 
 // ---------- 4 Solución ----------
 pres.addSection({ title: 'Solución' });
@@ -126,7 +126,7 @@ s.addText('Solución en cuatro pilares', { placeholder: 'title' });
   s.addText(d, { x: 1.05, y: y + 0.38, w: 3.2, h: 0.4, fontSize: 13, color: C.accent5, isTextBox: true, margin: 0 });
 });
 cap(s, 'C01', 4.5, 1.15, 5.0, 3.85);
-s.addNotes('Tiempo: 1 minuto. "La solución tiene cuatro pilares: WiFi centralizado con una WLC y tres antenas; seguridad con usuario por empleado y red aislada para invitados; sensores IoT con reglas automáticas; y red 4G para la flotilla. Todo validado en Packet Tracer." Señala en la topología las tres zonas.');
+s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR (antes ___, ahora ___):\n1. WiFi centralizado: \"Ahora una WLC controla tres antenas, una en oficinas y dos en el almacén, en canales distintos (1, 6 y 11). Hay señal en todos lados y puedes caminar de un edificio a otro sin que se corte.\"\n2. Seguridad: \"Cada empleado entra con su propio usuario, que revisa el servidor RADIUS. Los visitantes tienen su propia red WiFi y una regla del router (ACL) les impide llegar a los servidores.\"\n3. IoT: \"Sensores de temperatura, puerta y humo conectados a un servidor IoT que enciende el ventilador o la sirena automáticamente.\"\n4. 4G: \"Una torre celular da señal a los camiones para reportar entregas al servidor central, de forma segura.\"\nSeñala en la topología las 3 zonas: oficinas, almacén y flotilla.\nSI TE PREGUNTAN POR R-CORE: \"Es el router principal: une todas las redes de la empresa y es el único camino entre ellas, por eso ahí se ponen las reglas de seguridad.\"");
 
 // ---------- 5 Direccionamiento ----------
 s = content('Solución');
@@ -135,7 +135,7 @@ tbl(s, [['VLAN', 'Red', 'Uso'], ['99', '192.168.0.0/24', 'Gestión'], ['10', '19
 s.addText('192.168.0.0/20 = 4096 direcciones → 16 subredes /24 de 254 equipos. Se usan 7.', { x: 0.5, y: 4.35, w: 4.3, h: 0.7, fontSize: 12, italic: true, color: C.accent5, isTextBox: true, margin: 0 });
 cap(s, 'C02', 5.05, 1.15, 4.45, 1.85);
 cap(s, 'C05', 5.05, 3.15, 4.45, 1.85);
-s.addNotes('Tiempo: 1 minuto 30 segundos. "Nos asignaron la 192.168.0.0 diagonal 20, que tiene 4096 direcciones. La dividimos en 16 subredes diagonal 24 de 254 equipos; usamos 7 y dejamos 9 para crecer. Cada grupo tiene su VLAN. El router R-CORE une las VLANs con router-on-a-stick y reparte las IPs por DHCP." Muestra el ping de PC-ADMIN al servidor: prueba que el enrutamiento entre VLANs funciona.');
+s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Nos asignaron la 192.168.0.0 diagonal 20: 20 bits fijos y 12 libres, o sea 4096 direcciones, de la 192.168.0.0 a la 192.168.15.255. La dividimos en subredes diagonal 24: fijamos 4 bits más, 2 a la 4 son 16 subredes de 254 equipos cada una. Usamos 7, una por grupo, y dejamos 9 libres para crecer.\"\n\"Cada subred es una VLAN: una división lógica del switch. Los equipos de VLANs distintas no se hablan directo: tienen que pasar por el router.\"\n\"El router usa router-on-a-stick: un solo cable trunk y una subinterfaz por VLAN; cada subinterfaz tiene la IP .1, que es el gateway de esa red. El router también reparte IPs por DHCP.\"\nMuestra C05: \"PC-ADMIN, en la VLAN 99, hace ping al servidor en la VLAN 30 y responde: el enrutamiento entre VLANs funciona.\"\nSI TE PREGUNTAN:\n- /24: \"es la máscara 255.255.255.0: los tres primeros números son la red.\"\n- Gateway: \"es la IP del router en mi red; en mi proyecto siempre es el .1.\"\n- VLAN nativa: \"es la que viaja sin etiqueta por los trunks; usamos la 99 porque la WLC manda su gestión sin etiqueta.\"\n- Gestión (VLAN 99): \"la red de los propios aparatos: WLC, antenas, switches y la PC de administración, separada de los usuarios.\"\n- Trunk vs access: \"access lleva una sola VLAN, para equipos finales; trunk lleva varias, con etiquetas 802.1Q, entre switches, al router y a la WLC.\"");
 
 // ---------- 6 WLC ----------
 pres.addSection({ title: 'Red inalámbrica' });
@@ -149,7 +149,7 @@ bullets(s, [
 ], 0.5, 1.15, 4.3, 2.2, 13);
 cap(s, 'C22', 0.5, 3.45, 4.3, 1.6);
 cap(s, 'C06', 5.0, 1.15, 4.5, 3.9);
-s.addNotes('Tiempo: 1 minuto 45 segundos. "Las tres antenas son ligeras: no se configuran solas. Al encender piden IP, encuentran a la WLC y forman un túnel CAPWAP. Toda la configuración vive en la WLC. Pusimos los canales 1, 6 y 11, los únicos de 2.4 GHz que no se enciman." Muestra la imagen de los canales: antes encimados (1/1/1) y después separados (1/6/11). DEMO: muestra en la WLC los 3 APs registrados.');
+s.addNotes("TIEMPO: 1 min 45 s.\nQUÉ DECIR: \"Las tres antenas son ligeras: no se configuran solas, obedecen a la WLC. Al encender piden IP, encuentran a la WLC y forman un túnel CAPWAP: puerto 5246 para control y 5247 para datos. Toda la configuración vive en la WLC.\"\nMuestra C22 (canales): \"Los routers caseros estaban todos en el mismo canal. En WiFi, cada equipo escucha antes de transmitir y, si el canal está ocupado, espera su turno; eso es CSMA/CA. Con todos en el mismo canal se la pasaban esperándose, y la red era lenta y se caía. Cada canal ocupa unos 22 MHz y los canales 1, 6 y 11 están separados 25 MHz, así que no se enciman. Pusimos una antena en cada uno.\"\nDEMO: muestra en la WLC los 3 APs registrados (C06).\nSI TE PREGUNTAN:\n- \"¿Por qué las antenas se conectan al switch y no a la WLC?\" \"Porque la WLC las administra por la red, a través del túnel CAPWAP; no necesita un cable directo.\"\n- \"¿Qué es un AP ligero?\" \"Uno que no se configura solo: toda su configuración la recibe de la WLC.\"");
 
 // ---------- 7 WiFi y roaming ----------
 s = content('Red inalámbrica');
@@ -158,7 +158,7 @@ tbl(s, [['Red WiFi', 'VLAN', 'Seguridad'], ['INNOVA-CORP', '10', 'Usuario por em
 s.addText('Las 3 antenas anuncian las 3 redes (ESS). Al caminar de oficinas al almacén, la laptop cambia de antena sin cortarse y conserva su IP.', { x: 0.5, y: 2.85, w: 4.3, h: 1.4, fontSize: 14, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
 cap(s, 'C08', 5.0, 1.15, 4.5, 1.85);
 cap(s, 'C07', 5.0, 3.15, 4.5, 1.85);
-s.addNotes('Tiempo: 1 minuto 30 segundos. "Cada red WiFi lleva a su VLAN. Las tres antenas anuncian las mismas redes, formando un ESS, y eso permite el roaming." DEMO: ping -t en la laptop y arrástrala en la vista Physical de AP-1 a AP-3. El ping no se detiene y la IP es la misma.');
+s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Hay tres redes WiFi y cada una lleva a su VLAN: empleados a la 10, invitados a la 20 y sensores a la 40. Las tres antenas anuncian las mismas tres redes; eso es un ESS, y permite el roaming: cambiar de antena sin que se corte la conexión. La laptop conserva su IP porque la WLC la mantiene en la misma VLAN.\"\nDEMO: ping -t en la laptop; arrástrala en la vista Physical de AP-1 a AP-3. El ping no se detiene y la IP es la misma (C07).");
 
 // ---------- 8 Seguridad empleados ----------
 pres.addSection({ title: 'Seguridad' });
@@ -168,7 +168,7 @@ arrowRow(s, ['Laptop (suplicante)', 'WLC (autenticador)', 'RADIUS (lista de empl
 s.addText('Cada empleado entra con su propio usuario. Si alguien deja la empresa, solo se borra su cuenta: se acabó la clave compartida.', { x: 0.5, y: 2.0, w: 9.0, h: 0.6, fontSize: 14, color: C.text1, isTextBox: true, margin: 0 });
 cap(s, 'C10', 0.5, 2.75, 4.4, 2.3);
 cap(s, 'C11', 5.1, 2.75, 4.4, 2.3);
-s.addNotes('Tiempo: 1 minuto 30 segundos. "La laptop es el suplicante, la WLC el autenticador y el RADIUS el servidor con la lista de empleados. La WLC le pregunta al RADIUS si el usuario es válido; si sí, se cifra con AES." DEMO: conexión con la contraseña correcta y luego con una incorrecta.');
+s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Eliminamos la contraseña compartida. Usamos WPA2-Enterprise: cada empleado entra con su propio usuario. La laptop es el suplicante, la WLC el autenticador y el servidor RADIUS tiene la lista de empleados. La WLC le pregunta al RADIUS si el usuario es válido; si sí, la conexión se cifra con AES. Si alguien deja la empresa, solo se borra su usuario.\"\nDEMO: conexión con la contraseña correcta (C10) y con una incorrecta (C11).\nSI TE PREGUNTAN: \"WPA2-Enterprise es la regla de pedir usuario por persona; RADIUS es el servidor con la lista. No funciona uno sin el otro.\"");
 
 // ---------- 9 Invitados ----------
 s = content('Seguridad');
@@ -183,7 +183,7 @@ cap(s, 'C12', 0.5, 2.5, 4.4, 2.55);
 cap(s, 'C13', 5.1, 2.5, 4.4, 2.55);
 s.addText('Antes de la ACL', { x: 0.5, y: 5.08, w: 4.4, h: 0.3, fontSize: 11, color: C.accent5, align: 'center', isTextBox: true, margin: 0 });
 s.addText('Después de la ACL', { x: 5.1, y: 5.08, w: 4.4, h: 0.3, fontSize: 11, color: C.accent5, align: 'center', isTextBox: true, margin: 0 });
-s.addNotes('Tiempo: 1 minuto. "Los invitados están en la VLAN 20. Una ACL extendida en el router niega todo lo que vaya de esa red a la 192.168.0.0/20, con wildcard 0.0.15.255. Solo permite DHCP, ping a su gateway e Internet." DEMO: ping del invitado al servidor: falla. Si preguntan, muestra show access-lists.');
+s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR: \"Los visitantes tienen su propia red WiFi, en la VLAN 20. La VLAN los separa dentro del switch, pero el router podría pasarlos a otras redes; por eso pusimos una ACL: una lista de reglas que el router lee de arriba hacia abajo. Niega todo lo que vaya de la red de invitados hacia la 192.168.0.0 diagonal 20, con wildcard 0.0.15.255. Solo permite DHCP, ping a su gateway e Internet.\"\nMuestra C12 y C13: \"Antes de la ACL, el visitante llegaba al servidor; después, ya no.\"\nSI TE PREGUNTAN POR INTERNET: \"En el proyecto no hay Internet; la última línea deja listo el acceso para cuando la empresa contrate un proveedor.\"");
 
 // ---------- 10 IoT ----------
 pres.addSection({ title: 'IoT y 4G' });
@@ -193,7 +193,7 @@ tbl(s, [['SI…', 'ENTONCES…'], ['Temperatura > 25 °C', 'Enciende el ventilad
 s.addText('Los sensores reportan por WiFi (INNOVA-IOT, VLAN 40) al servidor IoT, que decide y actúa solo.', { x: 0.5, y: 2.85, w: 4.3, h: 1.2, fontSize: 14, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
 cap(s, 'C16', 5.0, 1.15, 4.5, 1.85);
 cap(s, 'C17', 5.0, 3.15, 4.5, 1.85);
-s.addNotes('Tiempo: 1 minuto 30 segundos. "Los sensores de temperatura, puerta y humo envían sus lecturas al servidor IoT. El servidor evalúa reglas SI/ENTONCES: más de 25 °C enciende el ventilador; humo activa la sirena. Van en su propia VLAN por seguridad." DEMO: sube la temperatura y genera humo.');
+s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"En el almacén hay sensores de temperatura, puerta y humo, y actuadores: ventilador, sirena y luz. Se conectan por la red WiFi de sensores, en la VLAN 40, al servidor IoT. El servidor evalúa reglas SI/ENTONCES: si la temperatura pasa de 25 °C enciende el ventilador; si hay humo activa la sirena. Van en su propia VLAN porque los dispositivos IoT suelen ser poco seguros.\"\nDEMO: sube la temperatura y genera humo (C17).");
 
 // ---------- 11 4G ----------
 s = content('IoT y 4G');
@@ -202,7 +202,7 @@ arrowRow(s, ['Celular', 'Torre 4G', 'Central Office', 'R-CORE (ACL)', 'Servidor 
 s.addText('El chofer solo puede llegar al portal de entregas (HTTPS); el resto de la red le está bloqueado.', { x: 0.5, y: 2.0, w: 9.0, h: 0.6, fontSize: 14, color: C.text1, isTextBox: true, margin: 0 });
 cap(s, 'C20', 0.5, 2.75, 4.4, 2.3);
 cap(s, 'C21', 5.1, 2.75, 4.4, 2.3);
-s.addNotes('Tiempo: 1 minuto. "Los choferes se conectan a la torre 4G. El Central Office les da una IP de la 192.168.6.0 y los conecta con R-CORE. Una ruta estática regresa las respuestas, y una ACL solo les permite llegar al portal de entregas." DEMO: el celular abre el portal.');
+s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR: \"Los choferes se conectan a la torre 4G. El Central Office, que simula la central de la compañía celular, les da una IP de la 192.168.6.0 y los conecta con nuestro router. El router tiene una ruta estática para saber regresar las respuestas, y una ACL solo deja a los celulares llegar al portal de entregas por HTTPS.\"\nDEMO: el celular abre el portal (C20) y no llega al RADIUS (C21).");
 
 // ---------- 12 Resultados ----------
 pres.addSection({ title: 'Cierre' });
@@ -216,7 +216,7 @@ tbl(s, [['Prueba', 'Resultado'],
   ['Invitado intenta llegar a un servidor', '✔ Bloqueado'],
   ['Temperatura alta / humo', '✔ Ventilador / ✔ Sirena'],
   ['Celular → portal / → RADIUS', '✔ Abre / ✔ Bloqueado']], 0.5, 1.15, 9.0, [6.0, 3.0], 13);
-s.addNotes('Tiempo: 30 segundos. Recorre la tabla rápido: cada fila ya la demostraste en vivo.');
+s.addNotes("TIEMPO: 30 s.\nRecorre la tabla rápido: cada fila ya la demostraste en vivo.");
 
 // ---------- 13 Conclusiones ----------
 s = content('Cierre');
@@ -227,13 +227,13 @@ bullets(s, ['Cobertura en ambos edificios con roaming', 'Un usuario por empleado
 card(s, 5.1, 1.15, 4.4, 3.9, 'Mejoras');
 s.addText('En una red real', { x: 5.35, y: 1.3, w: 3.9, h: 0.45, fontSize: 18, bold: true, color: C.accent2, isTextBox: true, margin: 0 });
 bullets(s, ['WPA3 y certificados (EAP-TLS)', 'Banda de 5 GHz', 'WLC y RADIUS de respaldo', 'VPN para la flotilla', 'Switches PoE para las antenas'], 5.35, 1.85, 3.95, 3.1, 14);
-s.addNotes('Tiempo: 30 segundos. "Logramos cobertura con roaming, seguridad por usuario, invitados aislados, monitoreo automático y flotilla conectada. En una implementación real agregaríamos WPA3, 5 GHz, equipos de respaldo y VPN."');
+s.addNotes("TIEMPO: 30 s.\nQUÉ DECIR: \"Logramos cobertura en ambos edificios con roaming, un usuario por empleado, invitados aislados, monitoreo automático del almacén y la flotilla conectada de forma segura. En una implementación real agregaríamos WPA3, la banda de 5 GHz, equipos de respaldo y VPN.\"");
 
 // ---------- 14 Preguntas ----------
 s = pres.addSlide({ masterName: 'PORTADA', sectionTitle: 'Cierre' });
 s.addText('¿Preguntas?', { placeholder: 'title' });
 s.addText('Gracias. Puedo demostrar cualquier prueba en Packet Tracer.', { placeholder: 'body' });
-s.addNotes('Quedan unos 7 minutos para preguntas y pruebas de falla. Si algo falla en vivo, explica cómo lo diagnosticarías: cable → VLAN → IP → ACL → servicio.');
+s.addNotes("Quedan unos 7 minutos para preguntas y pruebas de falla.\nSi algo falla en vivo, explica cómo lo diagnosticas, de lo cercano a lo lejano: cable → VLAN → IP y gateway (ping al gateway) → ACL → servicio.");
 
 const out = path.join(ROOT, 'entregables', 'Presentacion_InnovaLogistics.pptx');
 pres.writeFile({ fileName: out }).then(async () => {
