@@ -201,6 +201,9 @@ const children = [
     ['Celular intenta llegar al RADIUS', 'Bloqueado por ACL-CELULAR', 'Correcto']
   ], [4000, 3800, 1560]),
   P(' '),
+  ...(() => { const f = path.join(CAPDIR, 'extra_pruebas_pdu.png'); if (!fs.existsSync(f)) return []; fig++; const { w, h } = pngSize(f); const k = Math.min(600 / w, 430 / h, 1.4);
+    return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(f), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: 'Pruebas Simple PDU', description: 'Resultados Successful y Failed', name: 'extra_pruebas_pdu.png' } })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: 'Resumen de pruebas con Simple PDU: todo exitoso excepto el visitante hacia el Servidor Central, bloqueado por la ACL', size: 19 })] })]; })(),
   ...captura('C05'), ...captura('C07'), ...captura('C10'), ...captura('C11'), ...captura('C12'), ...captura('C13'), ...captura('C17'), ...captura('C20'), ...captura('C21'),
 
   // ---------- 9-10 ----------

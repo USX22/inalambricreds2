@@ -228,7 +228,9 @@ tbl(s, [['Prueba', 'Resultado'],
   ['Invitado intenta llegar a un servidor', '✔ Bloqueado'],
   ['Puerta abierta (regla IoT) / reglas de temperatura y humo', '✔ Luz encendida / ✔ Configuradas'],
   ['Celular 4G → portal / → RADIUS', '✔ Abre / ✔ Bloqueado']], 0.5, 1.15, 9.0, [6.0, 3.0], 13);
-s.addNotes("TIEMPO: 30 s.\nRecorre la tabla rápido: cada fila ya la demostraste en vivo.");
+{ const f = path.join(ROOT, 'entregables', 'capturas', 'extra_pruebas_pdu.png');
+  if (fs.existsSync(f)) { const b = fs.readFileSync(f); const iw = b.readUInt32BE(16), ih = b.readUInt32BE(20); const k = Math.min(9 / iw, 1.15 / ih); s.addImage({ path: f, x: 0.5 + (9 - iw * k) / 2, y: 3.95, w: iw * k, h: ih * k, altText: 'Pruebas con Simple PDU: Successful y Failed' }); } }
+s.addNotes("TIEMPO: 30 s.\nMuestra abajo las pruebas con el sobre (Simple PDU): todo Successful excepto el visitante hacia el servidor, que es Failed por la ACL. Recorre la tabla rápido: cada fila ya la demostraste en vivo.");
 
 // ---------- 13 Conclusiones ----------
 s = content('Cierre');
