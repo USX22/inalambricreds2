@@ -223,11 +223,11 @@ s.addText('Resultados de las pruebas', { placeholder: 'title' });
 tbl(s, [['Prueba', 'Resultado'],
   ['Enrutamiento entre VLANs (ping PC-ADMIN → servidor)', '✔ Responde'],
   ['3 APs registrados en la WLC', '✔ Registrados'],
-  ['Roaming de AP-1 a AP-3', '✔ Sin cortes, misma IP'],
+  ['Cada laptop se asocia a la antena más cercana (ESS)', '✔ AP-1 y AP-2'],
   ['Empleado con usuario válido / inválido', '✔ Entra / ✔ Rechazado'],
   ['Invitado intenta llegar a un servidor', '✔ Bloqueado'],
-  ['Temperatura alta / humo', '✔ Ventilador / ✔ Sirena'],
-  ['Celular → portal / → RADIUS', '✔ Abre / ✔ Bloqueado']], 0.5, 1.15, 9.0, [6.0, 3.0], 13);
+  ['Puerta abierta (regla IoT) / reglas de temperatura y humo', '✔ Luz encendida / ✔ Configuradas'],
+  ['Celular 4G → portal / → RADIUS', '✔ Abre / ✔ Bloqueado']], 0.5, 1.15, 9.0, [6.0, 3.0], 13);
 s.addNotes("TIEMPO: 30 s.\nRecorre la tabla rápido: cada fila ya la demostraste en vivo.");
 
 // ---------- 13 Conclusiones ----------

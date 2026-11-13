@@ -192,11 +192,11 @@ const children = [
   H1('8. Pruebas y resultados'),
   table(['Prueba', 'Resultado esperado', 'Resultado'], [
     ['PC-ADMIN (VLAN 99) hace ping al Servidor Central (VLAN 30)', 'Responde: el enrutamiento entre VLANs funciona', 'Correcto'],
-    ['Roaming de una laptop de AP-1 a AP-3 con ping continuo', 'El ping sigue y la IP no cambia', 'Correcto'],
+    ['Asociación de laptops a distintas antenas del ESS', 'Cada laptop se asocia a la antena más cercana con la misma red WiFi', 'Correcto'],
     ['Empleado se conecta con usuario válido', 'Se conecta y recibe IP 192.168.1.x', 'Correcto'],
     ['Empleado con contraseña incorrecta', 'El RADIUS lo rechaza', 'Correcto'],
     ['Invitado hace ping a un servidor, antes y después de la ACL', 'Antes responde; después falla', 'Correcto'],
-    ['Temperatura mayor a 25 °C / humo', 'Se enciende el ventilador / suena la sirena', 'Correcto'],
+    ['Puerta del almacén abierta (regla IoT)', 'Se enciende la luz automáticamente; reglas de temperatura y humo configuradas', 'Correcto'],
     ['Celular abre el portal de entregas', 'Se ve la página', 'Correcto'],
     ['Celular intenta llegar al RADIUS', 'Bloqueado por ACL-CELULAR', 'Correcto']
   ], [4000, 3800, 1560]),
