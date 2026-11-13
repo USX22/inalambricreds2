@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const {
-  Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
+  ImageRun, Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
   WidthType, ShadingType, BorderStyle, AlignmentType, LevelFormat, PageBreak,
   Footer, PageNumber, TableOfContents
 } = require('docx');
@@ -38,9 +38,19 @@ function table(headers, rows, widths) {
   });
 }
 
-// Recuadro "Pega aquí" + pie de figura
+// Si la captura existe en entregables/capturas, se inserta la imagen; si no, el recuadro "Pega aquí"
+const CAPDIR = path.join(ROOT, 'entregables', 'capturas');
+function pngSize(f) { const b = fs.readFileSync(f); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; }
 function captura(id) {
   const c = CAP[id]; fig++;
+  const file = path.join(CAPDIR, c.archivo);
+  if (fs.existsSync(file)) {
+    const { w, h } = pngSize(file); const k = Math.min(600 / w, 430 / h, 1.4);
+    return [
+      new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(file), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: c.id, description: c.que, name: c.archivo } })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: c.que, size: 19 })] })
+    ];
+  }
   const dash = { style: BorderStyle.DASHED, size: 12, color: TEAL };
   const box = new Table({
     width: { size: W, type: WidthType.DXA }, columnWidths: [W],

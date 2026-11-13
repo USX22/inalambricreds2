@@ -46,6 +46,13 @@ function circleNum(s, x, y, n, color) {
 }
 function cap(s, id, x, y, w, h) {
   const c = CAP[id];
+  const file = path.join(ROOT, 'entregables', 'capturas', c.archivo);
+  if (fs.existsSync(file)) {
+    const b = fs.readFileSync(file); const iw = b.readUInt32BE(16), ih = b.readUInt32BE(20);
+    const k = Math.min(w / iw, h / ih); const dw = iw * k, dh = ih * k;
+    s.addImage({ path: file, x: x + (w - dw) / 2, y: y + (h - dh) / 2, w: dw, h: dh, altText: c.que, objectName: 'Captura ' + id });
+    return;
+  }
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.06, fill: { color: C.accent6 }, line: { color: C.accent1, width: 1.5, dashType: 'dash' }, objectName: 'Captura ' + id });
   s.addText([
     { text: 'PEGA AQUÍ ' + id, options: { bold: true, color: C.accent1, fontSize: 14, breakLine: true } },
