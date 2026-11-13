@@ -141,7 +141,7 @@ interface GigabitEthernet0/1
  ip access-group ACL-CELULAR in
  exit
 
-! ---------- ACL 3 (OPCIONAL, aplicar al final cuando todo funcione) ----------
+! ---------- ACL 3: la VLAN IoT solo habla con el Servidor IoT (aplicada) ----------
 ! La VLAN IoT solo habla con el Servidor IoT.
 ip access-list extended ACL-IOT
  permit udp any any eq bootps
@@ -149,10 +149,9 @@ ip access-list extended ACL-IOT
  permit ip 192.168.4.0 0.0.0.255 host 192.168.3.11
  deny ip any any
  exit
-! Para activarla quita el "!" de las 3 lineas siguientes:
-! interface GigabitEthernet0/0.40
-!  ip access-group ACL-IOT in
-!  exit
+interface GigabitEthernet0/0.40
+ ip access-group ACL-IOT in
+ exit
 
 end
 write memory

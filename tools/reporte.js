@@ -171,7 +171,7 @@ const children = [
   // ---------- 7 ----------
   H1('7. Configuración de los dispositivos'),
   H2('7.1 Router R-CORE'),
-  P('Router-on-a-stick con una subinterfaz 802.1Q por VLAN, servidor DHCP con cuatro pools, ruta estática hacia la red celular, ACLs extendidas nombradas (ACL-INVITADOS y ACL-CELULAR) y acceso SSH. La configuración completa está en el Anexo A.'),
+  P('Router-on-a-stick con una subinterfaz 802.1Q por VLAN, servidor DHCP con cuatro pools, ruta estática hacia la red celular, tres ACLs extendidas nombradas (ACL-INVITADOS, ACL-CELULAR y ACL-IOT, que limita la VLAN de sensores al Servidor IoT) y acceso SSH. La configuración completa está en el Anexo A.'),
   ...captura('C04'), ...captura('C14'), ...captura('C19'),
   H2('7.2 Switches'),
   P('Ambos switches tienen las VLANs 10, 20, 30, 40 y 99. Los enlaces hacia el router, entre switches y hacia la WLC son troncales 802.1Q con VLAN nativa 99; los puertos de equipos finales son de acceso con PortFast, y los puertos sin uso están apagados (Anexos B y C).'),
@@ -205,6 +205,9 @@ const children = [
   ...(() => { const f = path.join(CAPDIR, 'extra_pruebas_pdu.png'); if (!fs.existsSync(f)) return []; fig++; const { w, h } = pngSize(f); const k = Math.min(600 / w, 430 / h, 1.4);
     return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(f), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: 'Pruebas Simple PDU', description: 'Resultados Successful y Failed', name: 'extra_pruebas_pdu.png' } })] }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: 'Resumen de pruebas con Simple PDU: todo exitoso excepto el visitante hacia el Servidor Central, bloqueado por la ACL', size: 19 })] })]; })(),
+  ...(() => { const f = path.join(CAPDIR, 'extra_acl_iot_pdu.png'); if (!fs.existsSync(f)) return []; fig++; const { w, h } = pngSize(f); const k = Math.min(600 / w, 430 / h, 1.4);
+    return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(f), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: 'ACL-IOT', description: 'Pruebas de la ACL-IOT', name: 'extra_acl_iot_pdu.png' } })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: 'ACL-IOT: el detector de humo llega al Servidor IoT, pero no al Servidor Central ni a las laptops de empleados', size: 19 })] })]; })(),
   ...captura('C05'), ...captura('C07'), ...captura('C10'), ...captura('C11'), ...captura('C12'), ...captura('C13'), ...captura('C17'), ...captura('C20'), ...captura('C21'),
 
   // ---------- 9-10 ----------
