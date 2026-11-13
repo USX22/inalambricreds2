@@ -129,6 +129,11 @@ ip access-list extended ACL-CELULAR
  permit udp 192.168.6.0 0.0.0.255 host 192.168.3.12 eq domain
  remark Ping al servidor central (pruebas)
  permit icmp 192.168.6.0 0.0.0.255 host 192.168.3.12
+ remark El Central Office hace NAT: los celulares llegan con 192.168.5.2
+ permit tcp host 192.168.5.2 host 192.168.3.12 eq 443
+ permit tcp host 192.168.5.2 host 192.168.3.12 eq www
+ permit udp host 192.168.5.2 host 192.168.3.12 eq domain
+ permit icmp host 192.168.5.2 host 192.168.3.12
  deny ip any any
  exit
 
