@@ -51,10 +51,10 @@ interface FastEthernet0/1
 
 ! ---------- Access Point de Oficinas ----------
 interface FastEthernet0/2
- description AP-1-OFICINAS
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-1-OFICINAS (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 
 ! ---------- Servidores ----------

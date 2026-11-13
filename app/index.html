@@ -477,10 +477,10 @@ interface FastEthernet0/1
  switchport trunk allowed vlan 10,20,30,40,99
  exit
 interface FastEthernet0/2
- description AP-1-OFICINAS
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-1-OFICINAS (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 interface range FastEthernet0/10 - 12
  description SERVIDORES (RADIUS / IoT / CENTRAL)
@@ -534,16 +534,16 @@ interface GigabitEthernet0/1
  switchport trunk allowed vlan 10,20,30,40,99
  exit
 interface FastEthernet0/1
- description AP-2-ALMACEN-ZONA-A
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-2-ALMACEN-ZONA-A (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 interface FastEthernet0/2
- description AP-3-ALMACEN-ZONA-B
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-3-ALMACEN-ZONA-B (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 interface range FastEthernet0/5 - 10
  description IOT-CABLEADO
@@ -777,7 +777,7 @@ ${T_VLANS}
 <div class="tbl"><table><thead><tr><th>Cant.</th><th>En Packet Tracer</th><th>Nombre</th><th>Para qué</th></tr></thead><tbody>
 <tr><td>1</td><td>Routers → 2911</td><td>R-CORE</td><td>Une todas las redes</td></tr>
 <tr><td>2</td><td>Switches → 2960</td><td>SW-CORE, SW-ALMACEN</td><td>Un switch por edificio</td></tr>
-<tr><td>1</td><td>Wireless Devices → WLC-3504 (o 2504)</td><td>WLC</td><td>Controla los APs</td></tr>
+<tr><td>1</td><td>Wireless Devices → <b>WLC-2504</b> (recomendada; con la 3504 hay más limitaciones)</td><td>WLC</td><td>Controla los APs</td></tr>
 <tr><td>3</td><td>Wireless Devices → LAP-PT (o 3702i)</td><td>AP-1, AP-2, AP-3</td><td>Antenas WiFi</td></tr>
 <tr><td>3</td><td>End Devices → Server</td><td>SRV-RADIUS, SRV-IOT, SRV-CENTRAL</td><td>Autenticación, IoT, portal web</td></tr>
 <tr><td>1</td><td>End Devices → PC</td><td>PC-ADMIN</td><td>Administrar la WLC por web</td></tr>
@@ -1062,6 +1062,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
   {t:`WLC → <b>Controller → Interfaces → New</b>. Crea CORP (VLAN 10), GUEST (VLAN 20) e IOT (VLAN 40) con los datos de la tabla. En cada una: puerto físico <code>1</code> y Primary DHCP Server = su gateway.`},
   {t:'<b>Si ya creaste INNOVA-GUEST en el asistente de la WLC</b>, no la crees de nuevo: ve a <b>WLANs</b>, haz clic en su número, y en General cambia Interface a <b>GUEST</b>; revisa que la seguridad sea WPA2 PSK con <code>Visitante2026</code> y Apply. <b>Si no existe</b>: WLC → <b>WLANs → Create New → Go</b>: SSID <code>INNOVA-GUEST</code>, ID 2. General: Status Enabled, Interface <b>GUEST</b>. Security → Layer 2: WPA+WPA2, WPA2 Policy, AES, Auth Key Mgmt <b>PSK</b>, clave <code>Visitante2026</code>. Apply.'},
   {t:'Crea <code>INNOVA-IOT</code>, ID 3, Interface <b>IOT</b>, WPA2 + AES + PSK <code>SensorIoT2026</code>. Apply. (INNOVA-CORP se crea en la lección 12, cuando exista el RADIUS.)'},
+  {t:'<b>Importante en Packet Tracer:</b> las antenas trabajan en modo <b>FlexConnect</b> y no se puede cambiar. Para que cada usuario caiga en su VLAN: (1) los puertos de los APs deben ser <b>trunk</b> (nativa 99, permitidas 10,20,40,99; ya viene en las configuraciones de la lección 5), y (2) en cada WLAN → pestaña <b>Advanced</b> → marca <b>FlexConnect Local Switching</b> → Apply → Save Configuration. Sin esto, todos los clientes reciben IP 192.168.0.x.'},
   {t:'Canales: <b>Wireless → Access Points → Radios → 802.11b/g/n</b> → cada AP → Channel personalizado: AP-1 = 1, AP-2 = 6, AP-3 = 11. Si tu versión no lo permite, explícalo en la exposición.'},
   {t:'LAP-VISITANTE → Physical: apaga, quita el módulo Ethernet, pon <b>WPC300N</b>, enciende. Config → Wireless0: SSID <code>INNOVA-GUEST</code>, <b>WPA2-PSK</b>, <code>Visitante2026</code>. IP por DHCP: debe recibir 192.168.2.x.'},
   {t:'<b>Prepara el roaming en la vista Physical.</b> En Packet Tracer el alcance del WiFi depende de la posición en la vista <b>Physical</b>, no en la Logical. Cambia a Physical (arriba a la izquierda) y entra hasta donde están tus equipos. Arrastra AP-1 a un extremo (zona Oficinas), AP-2 al centro y AP-3 al otro extremo (zona Almacén), de modo que sus círculos de cobertura apenas se toquen.'},

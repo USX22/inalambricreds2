@@ -37,17 +37,17 @@ interface GigabitEthernet0/1
 
 ! ---------- Access Points del almacen ----------
 interface FastEthernet0/1
- description AP-2-ALMACEN-ZONA-A
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-2-ALMACEN-ZONA-A (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 
 interface FastEthernet0/2
- description AP-3-ALMACEN-ZONA-B
- switchport mode access
- switchport access vlan 99
- spanning-tree portfast
+ description AP-3-ALMACEN-ZONA-B (trunk: el AP en FlexConnect entrega a cada usuario en su VLAN)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,40,99
  exit
 
 ! ---------- (Opcional) sensores IoT cableados ----------
