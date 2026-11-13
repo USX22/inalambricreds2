@@ -44,8 +44,9 @@ function circleNum(s, x, y, n, color) {
   s.addShape(pres.shapes.OVAL, { x, y, w: 0.42, h: 0.42, fill: { color: color || C.accent1 }, line: { type: 'none' } });
   s.addText(String(n), { x, y, w: 0.42, h: 0.42, align: 'center', valign: 'middle', fontSize: 14, bold: true, color: C.background1, isTextBox: true, margin: 0 });
 }
+const CMAP = {};
 function cap(s, id, x, y, w, h) {
-  const c = CAP[id];
+  const c = CAP[id]; if (!CMAP[id] && typeof NSL !== 'undefined') CMAP[id] = NSL;
   const file = path.join(ROOT, 'entregables', 'capturas', c.archivo);
   if (fs.existsSync(file)) {
     const b = fs.readFileSync(file); const iw = b.readUInt32BE(16), ih = b.readUInt32BE(20);
@@ -79,6 +80,25 @@ function arrowRow(s, labels, y, color) {
     if (i < n - 1) s.addText('→', { x: x + w, y, w: gap, h: 0.62, align: 'center', valign: 'middle', fontSize: 16, bold: true, color: C.accent1, isTextBox: true, margin: 0 });
   });
 }
+
+// Contador de diapositivas y diapositivas de evidencia (una captura a pantalla completa)
+let NSL = 0; const _addSlide = pres.addSlide.bind(pres); pres.addSlide = (o) => { NSL++; return _addSlide(o); };
+const EVMAP = {};
+function evid(sec, id, title, what, notes) {
+  const c = CAP[id]; const hfile = path.join(ROOT, 'entregables', 'capturas', c.archivo.replace('.png', '_h.png'));
+  const file = fs.existsSync(hfile) ? hfile : path.join(ROOT, 'entregables', 'capturas', c.archivo);
+  const s = pres.addSlide({ masterName: 'CONTENIDO', sectionTitle: sec });
+  s.addText(title, { placeholder: 'title' });
+  if (fs.existsSync(file)) {
+    const b = fs.readFileSync(file); const iw = b.readUInt32BE(16), ih = b.readUInt32BE(20);
+    const k = Math.min(9 / iw, 3.8 / ih); const dw = iw * k, dh = ih * k;
+    s.addImage({ path: file, x: 0.5 + (9 - dw) / 2, y: 1.0 + (3.8 - dh) / 2, w: dw, h: dh, altText: c.que, objectName: 'Evidencia ' + id });
+  } else { cap(s, id, 0.5, 1.0, 9, 3.8); }
+  s.addText(what, { x: 0.5, y: 4.88, w: 9, h: 0.42, fontSize: 13, color: C.text1, align: 'center', valign: 'middle', isTextBox: true, margin: 0, objectName: 'Qué se ve' });
+  s.addNotes('TIEMPO: 15 a 20 s (si hiciste la demostración en vivo, pásala rápido).\nQUÉ SEÑALAR Y DECIR: ' + notes);
+  EVMAP[id] = NSL;
+}
+
 const content = (sec) => pres.addSlide({ masterName: 'CONTENIDO', sectionTitle: sec });
 
 // ---------- 1 Portada ----------
@@ -135,6 +155,7 @@ s.addText('Solución en cuatro pilares', { placeholder: 'title' });
 cap(s, 'C01', 4.5, 1.15, 5.0, 3.85);
 s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR (antes ___, ahora ___):\n1. WiFi centralizado: \"Ahora una WLC controla tres antenas, una en oficinas y dos en el almacén, en canales distintos (1, 6 y 11). Hay señal en todos lados y puedes caminar de un edificio a otro sin que se corte.\"\n2. Seguridad: \"Cada empleado entra con su propio usuario, que revisa el servidor RADIUS. Los visitantes tienen su propia red WiFi y una regla del router (ACL) les impide llegar a los servidores.\"\n3. IoT: \"Sensores de temperatura, puerta y humo conectados a un servidor IoT que enciende el ventilador o la sirena automáticamente.\"\n4. 4G: \"Una torre celular da señal a los camiones para reportar entregas al servidor central, de forma segura.\"\nSeñala en la topología las 3 zonas: oficinas, almacén y flotilla.\nSI TE PREGUNTAN POR R-CORE: \"Es el router principal: une todas las redes de la empresa y es el único camino entre ellas, por eso ahí se ponen las reglas de seguridad.\"");
 
+evid("Soluci\u00f3n", "C01", "Evidencia: la topología completa", "Tres zonas: Oficinas, Almacén y Flotilla 4G. Enlaces en verde; las líneas punteadas son conexiones WiFi.", "Recorre el mapa: arriba la flotilla con la torre y el Central Office; al centro R-CORE; en oficinas SW-CORE con los servidores, la WLC, AP-1 y las laptops; a la derecha el almacén con SW-ALMACEN, AP-2, AP-3 y los sensores. Las líneas punteadas son WiFi (azul: 4G).");
 // ---------- 5 Direccionamiento ----------
 s = content('Solución');
 s.addText('Direccionamiento: /20 en subredes /24', { placeholder: 'title' });
@@ -144,6 +165,8 @@ cap(s, 'C02', 5.05, 1.15, 4.45, 1.85);
 cap(s, 'C05', 5.05, 3.15, 4.45, 1.85);
 s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Nos asignaron la 192.168.0.0 diagonal 20: 20 bits fijos y 12 libres, o sea 4096 direcciones, de la 192.168.0.0 a la 192.168.15.255. La dividimos en subredes diagonal 24: fijamos 4 bits más, 2 a la 4 son 16 subredes de 254 equipos cada una. Usamos 7, una por grupo, y dejamos 9 libres para crecer.\"\n\"Cada subred es una VLAN: una división lógica del switch. Los equipos de VLANs distintas no se hablan directo: tienen que pasar por el router.\"\n\"El router usa router-on-a-stick: un solo cable trunk y una subinterfaz por VLAN; cada subinterfaz tiene la IP .1, que es el gateway de esa red. El router también reparte IPs por DHCP.\"\nMuestra C05: \"PC-ADMIN, en la VLAN 99, hace ping al servidor en la VLAN 30 y responde: el enrutamiento entre VLANs funciona.\"\nSI TE PREGUNTAN:\n- /24: \"es la máscara 255.255.255.0: los tres primeros números son la red.\"\n- Gateway: \"es la IP del router en mi red; en mi proyecto siempre es el .1.\"\n- VLAN nativa: \"es la que viaja sin etiqueta por los trunks; usamos la 99 porque la WLC manda su gestión sin etiqueta.\"\n- Gestión (VLAN 99): \"la red de los propios aparatos: WLC, antenas, switches y la PC de administración, separada de los usuarios.\"\n- Trunk vs access: \"access lleva una sola VLAN, para equipos finales; trunk lleva varias, con etiquetas 802.1Q, entre switches, al router y a la WLC.\"");
 
+evid("Soluci\u00f3n", "C02", "Evidencia: VLANs en SW-CORE", "show vlan brief: existen las VLANs 10, 20, 30, 40 y 99; los servidores (Fa0/10 a Fa0/12) están en la VLAN 30.", "Señala las 5 VLANs y los puertos de cada una: los servidores en la 30 y PC-ADMIN (Fa0/20) en la 99. Los trunks no aparecen en este comando porque llevan varias VLANs; se ven con show interfaces trunk.");
+evid("Soluci\u00f3n", "C05", "Evidencia: comunicación entre VLANs", "PC-ADMIN (VLAN 99) hace ping al Servidor Central (VLAN 30) y abre el portal por su nombre (DNS + HTTP).", "El ping cruza de la VLAN 99 a la 30 a través del router: prueba que VLANs, trunks y router-on-a-stick funcionan. El primer intento puede fallar mientras la PC aprende la MAC del router (ARP). Que la página abra por su nombre prueba el DNS y el servidor web.");
 // ---------- 6 WLC ----------
 pres.addSection({ title: 'Red inalámbrica' });
 s = content('Red inalámbrica');
@@ -158,6 +181,8 @@ cap(s, 'C22', 0.5, 3.45, 4.3, 1.6);
 cap(s, 'C06', 5.0, 1.15, 4.5, 3.9);
 s.addNotes("TIEMPO: 1 min 45 s.\nQUÉ DECIR: \"Las tres antenas son ligeras: no se configuran solas, obedecen a la WLC. Al encender piden IP, encuentran a la WLC y forman un túnel CAPWAP: puerto 5246 para control y 5247 para datos. Toda la configuración vive en la WLC.\"\nMuestra C22 (canales): \"Los routers caseros estaban todos en el mismo canal. En WiFi, cada equipo escucha antes de transmitir y, si el canal está ocupado, espera su turno; eso es CSMA/CA. Con todos en el mismo canal se la pasaban esperándose, y la red era lenta y se caía. Cada canal ocupa unos 22 MHz y los canales 1, 6 y 11 están separados 25 MHz, así que no se enciman. Pusimos una antena en cada uno.\"\nDEMO: muestra en la WLC los 3 APs registrados (C06): AP-1, AP-2 y AP-3 con IP 192.168.0.22, .23 y .24 por DHCP y estado REG (registrada).\nEJEMPLO REAL PARA CONTAR: \"Durante la implementación, las tres antenas no volvieron a conectarse después de reiniciarlas. Las reemplacé por antenas nuevas y no tuve que configurar nada en ellas: al encender, pidieron IP por DHCP, encontraron a la WLC y descargaron su configuración solas. Esa es la ventaja de las antenas ligeras: si una se daña, se cambia y la WLC la configura automáticamente.\"\nCÓMO LO DIAGNOSTIQUÉ (por si preguntan): \"En el switch, show ip interface brief mostraba el puerto de la antena en down/down, no en administratively down: el puerto estaba encendido pero del otro lado no había nada funcionando. Así supe que el problema era la antena y no el switch.\" \\nSI TE PREGUNTAN:\\n- \\\"¿Por qué las antenas se conectan al switch y no a la WLC?\\\" \\\"Porque la WLC las administra por la red, a través del túnel CAPWAP; no necesita un cable directo.\\\"\\n- \\\"¿Qué es un AP ligero?\\\" \\\"Uno que no se configura solo: toda su configuración la recibe de la WLC.\\\"\nSI PREGUNTAN POR LOS CANALES: \"El diseño asigna los canales 1, 6 y 11 [muestra C22]. Packet Tracer no permite cambiar la configuración de cada antena en este modelo [muestra la captura extra del aviso 'This feature is not supported']. En un equipo real se haría desde la WLC, en Wireless → Radios → 802.11b/g/n.\"\nSI PREGUNTAN POR FLEXCONNECT: \"En Packet Tracer las antenas trabajan en FlexConnect y no se puede cambiar a modo Local. Por eso los puertos de las antenas son trunk y las redes WiFi usan FlexConnect Local Switching: así cada antena entrega a cada usuario en su VLAN. Lo detectamos porque el visitante recibía una IP de gestión (192.168.0.x) en lugar de 192.168.2.x.\"");
 
+evid("Red inal\u00e1mbrica", "C22", "Evidencia: el plan de canales", "Antes: todas las antenas en el canal 1 (se estorban). Canales cercanos también se enciman. Diseño: 1, 6 y 11, sin traslape.", "Izquierda: así estaba la empresa, todo en el canal 1. Centro: aunque sean distintos, el 1, 2 y 3 se enciman. Derecha: el diseño, 1, 6 y 11, separados 25 MHz; cada canal ocupa unos 22 MHz, por eso no se pisan. En Packet Tracer no se pueden fijar los canales de cada antena; en un equipo real se hace en la WLC.");
+evid("Red inal\u00e1mbrica", "C06", "Evidencia: antenas registradas en la WLC", "WIRELESS → All APs: AP-1, AP-2 y AP-3 con IP por DHCP en la VLAN 99 y estado REG (registradas).", "REG significa registrada: la antena encontró a la WLC, formó el túnel CAPWAP y recibió su configuración. Las IP 192.168.0.21 a .23 se las dio el DHCP del router. Ejemplo real: cambié las antenas y se configuraron solas desde la WLC.");
 // ---------- 7 WiFi y roaming ----------
 s = content('Red inalámbrica');
 s.addText('Tres redes WiFi y roaming', { placeholder: 'title' });
@@ -172,6 +197,8 @@ cap(s, 'C08', 5.0, 1.15, 4.5, 1.85);
 cap(s, 'C07', 5.0, 3.15, 4.5, 1.85);
 s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Hay tres redes WiFi y cada una lleva a su VLAN: empleados a la 10, invitados a la 20 y sensores a la 40. Las tres antenas anuncian las mismas tres redes; eso es un ESS, y permite el roaming: cambiar de antena sin que se corte la conexión. La laptop conserva su IP porque la WLC la mantiene en la misma VLAN.\"\nDEMO: ping -t en la laptop; arrástrala en la vista Physical de AP-1 a AP-3. El ping no se detiene y la IP es la misma (C07).\nLA CADENA (señálala en la diapositiva): \"1) El visitante elige INNOVA-GUEST y escribe la clave de invitados. 2) La WLC sabe que INNOVA-GUEST está amarrada a la interfaz GUEST, que está en la VLAN 20. 3) El visitante pide IP y la WLC le pasa la petición al router. 4) El DHCP del router le da una IP 192.168.2.x.\"\nSI TE PREGUNTAN:\n- \"¿Qué es una interfaz dinámica?\" \"Es una puerta de la WLC dentro de cada VLAN de usuarios, como las subinterfaces del router. La WLC tiene la .2 en cada red (el router tiene la .1). Cada red WiFi se amarra a una interfaz, y así la WLC deja a cada usuario en su VLAN.\"\n- \"¿La WLC funciona por cable?\" \"Se conecta por cable al switch, pero solo administra lo inalámbrico. Los equipos por cable no pasan por ella: su VLAN la decide el puerto del switch.\"\n- \"¿Quién da la IP a los usuarios del WiFi?\" \"El router R-CORE con DHCP; la WLC solo le reenvía la petición.\"\nCÓMO SE VE EN PACKET TRACER (C07): \"Cada laptop se conecta a la antena que tiene más cerca: en la vista Logical, LAP-EMPLEADO-2 está en AP-2 y las otras en AP-1. El roaming ocurre cuando un usuario se aleja tanto de su antena que la señal baja: la laptop se cambia a otra sin perder su IP, porque la WLC la mantiene en la misma VLAN. En Packet Tracer la señal de cada antena alcanza todo el edificio, por eso la laptop no necesita cambiar mientras camina; si la reconecto cerca de AP-3, se asocia con AP-3.\"\nDEMO OPCIONAL: pon la laptop junto a AP-3, Config → Wireless0 → Port Status Off → On, y muestra en Logical que su línea ahora va a otra antena.");
 
+evid("Red inal\u00e1mbrica", "C08", "Evidencia: las tres redes WiFi", "INNOVA-GUEST e INNOVA-IOT con WPA2-PSK (clave compartida); INNOVA-CORP con WPA2 + 802.1X (usuario por empleado).", "Señala la columna Security Policies: Auth(PSK) en invitados y sensores, Auth(802.1X) en empleados. Las tres están Enabled. Cada red está amarrada a la interfaz de su VLAN (10, 20, 40).");
+evid("Red inal\u00e1mbrica", "C07", "Evidencia: cada laptop en su antena (ESS)", "Vista Logical: LAP-EMPLEADO-2 se asoció con AP-2 y las demás con AP-1; el ping al gateway responde.", "Las tres antenas anuncian las mismas redes (ESS) y cada laptop se asocia a la más cercana. En Packet Tracer la señal cubre todo el edificio, por eso la laptop no necesita cambiar al moverse; en una red real, al alejarse cambiaría de antena sin perder su IP (roaming).");
 // ---------- 8 Seguridad empleados ----------
 pres.addSection({ title: 'Seguridad' });
 s = content('Seguridad');
@@ -182,6 +209,8 @@ cap(s, 'C10', 0.5, 2.75, 4.4, 2.3);
 cap(s, 'C11', 5.1, 2.75, 4.4, 2.3);
 s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Eliminamos la contraseña compartida. Usamos WPA2-Enterprise: cada empleado entra con su propio usuario. La laptop es el suplicante, la WLC el autenticador y el servidor RADIUS tiene la lista de empleados. La WLC le pregunta al RADIUS si el usuario es válido; si sí, la conexión se cifra con AES. Si alguien deja la empresa, solo se borra su usuario.\"\nDEMO: conexión con la contraseña correcta (C10) y con una incorrecta (C11).\nSI TE PREGUNTAN: \"WPA2-Enterprise es la regla de pedir usuario por persona; RADIUS es el servidor con la lista. No funciona uno sin el otro.\"\nCÓMO SE VE EN LAS CAPTURAS: con usuario y contraseña correctos, la laptop recibe 192.168.1.11 y llega al servidor (C10). Con la contraseña incorrecta, el RADIUS la rechaza: no recibe IP del DHCP y Windows le pone una 169.254.x.x (APIPA, \"no recibí IP de nadie\") (C11).\nLO QUE APRENDÍ AL CONFIGURARLO: \"Al principio ningún empleado entraba: el RADIUS escuchaba en el puerto 1645 y la WLC le preguntaba por el 1812, y además faltaban los usuarios en la lista. Al igualar el puerto y agregar a los empleados, funcionó.\"");
 
+evid("Seguridad", "C10", "Evidencia: empleado autenticado por RADIUS", "jlopez entra a INNOVA-CORP, recibe 192.168.1.11 (VLAN 10) y llega al Servidor Central.", "El RADIUS aceptó al usuario: por eso la laptop recibió IP de la red de empleados (192.168.1.11, gateway 192.168.1.1) y el ping al servidor responde.");
+evid("Seguridad", "C11", "Evidencia: contraseña incorrecta rechazada", "Con una contraseña errónea el RADIUS rechaza al usuario: la laptop no recibe IP (169.254.x.x = sin DHCP).", "Arriba: mgarcia con la contraseña xxxxx. Abajo: no recibió IP del DHCP; Windows se pone una 169.254.x.x (APIPA). Con la contraseña correcta recibió 192.168.1.12. Eso demuestra que cada empleado necesita su propia cuenta.");
 // ---------- 9 Invitados ----------
 s = content('Seguridad');
 s.addText('Invitados aislados con una ACL', { placeholder: 'title' });
@@ -197,6 +226,7 @@ s.addText('Antes de la ACL', { x: 0.5, y: 5.08, w: 4.4, h: 0.3, fontSize: 11, co
 s.addText('Después de la ACL', { x: 5.1, y: 5.08, w: 4.4, h: 0.3, fontSize: 11, color: C.accent5, align: 'center', isTextBox: true, margin: 0 });
 s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR: \"Los visitantes tienen su propia red WiFi, en la VLAN 20. La VLAN los separa dentro del switch, pero el router podría pasarlos a otras redes; por eso pusimos una ACL: una lista de reglas que el router lee de arriba hacia abajo. Niega todo lo que vaya de la red de invitados hacia la 192.168.0.0 diagonal 20, con wildcard 0.0.15.255. Solo permite DHCP, ping a su gateway e Internet.\"\nMuestra C12 y C13: \"Antes de la ACL, el visitante llegaba al servidor; después, ya no.\"\nSI TE PREGUNTAN POR INTERNET: \"En el proyecto no hay Internet; la última línea deja listo el acceso para cuando la empresa contrate un proveedor.\"\nLA CADENA DEL BLOQUEO (cuéntala señalando C13): \"1) El visitante, con IP 192.168.2.x, hace ping al servidor 192.168.3.12. 2) Como el servidor está en otra red, el mensaje va a su gateway, la puerta .20 del router (192.168.2.1). 3) Antes de cruzarlo, el router lee la ACL-INVITADOS de arriba hacia abajo: no es DHCP (línea 10), no va a su gateway (línea 20), y la línea 30 dice 'deny' de invitados hacia toda la 192.168.0.0/20. 4) El router lo tira y le contesta 'Destination host unreachable' desde 192.168.2.1.\"\nEVIDENCIA EN EL ROUTER (C14): \"show access-lists muestra '4 match(es)' en la línea deny: son los 4 pings que bloqueó.\"");
 
+evid("Seguridad", "C14", "Evidencia: la ACL en el router", "show access-lists: la línea 30 (deny de invitados hacia 192.168.0.0/20) registra 4 coincidencias.", "La ACL se lee de arriba hacia abajo: 10 permite DHCP, 20 permite el ping a su gateway, 30 niega todo hacia la red interna, 40 permite lo demás. Las 4 coincidencias en la 30 son los 4 pings que el visitante intentó al servidor.");
 // ---------- 10 IoT ----------
 pres.addSection({ title: 'IoT y 4G' });
 s = content('IoT y 4G');
@@ -207,6 +237,9 @@ cap(s, 'C16', 5.0, 1.15, 4.5, 1.85);
 cap(s, 'C17', 5.0, 3.15, 4.5, 1.85);
 s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"En el almacén hay sensores de temperatura, puerta y humo, y actuadores: ventilador, sirena y luz. Se conectan por la red WiFi de sensores, en la VLAN 40, al servidor IoT. El servidor evalúa reglas SI/ENTONCES: si la temperatura pasa de 25 °C enciende el ventilador; si hay humo activa la sirena. Van en su propia VLAN porque los dispositivos IoT suelen ser poco seguros.\"\nDEMO: sube la temperatura y genera humo (C17).");
 
+evid("IoT y 4G", "C15", "Evidencia: sensores registrados", "Los 6 dispositivos IoT conectados al servidor (bolita verde), con sus lecturas en vivo.", "Señala que se ven la temperatura, si la puerta está abierta, el humo y el estado de cada actuador: es el monitoreo centralizado. Cada dispositivo se registró en el servidor con la cuenta admin.");
+evid("IoT y 4G", "C16", "Evidencia: reglas automáticas", "Seis reglas SI/ENTONCES: puerta → luz, humo → sirena, temperatura mayor a 25 °C → ventilador.", "Lee una regla completa: SI la temperatura del almacén es mayor a 25 °C, ENTONCES el ventilador en High. El sensor solo mide; el servidor decide y da la orden.");
+evid("IoT y 4G", "C17", "Evidencia: una regla en acción", "Al abrir la puerta (Alt + clic), el servidor enciende la luz automáticamente.", "Arriba: puerta cerrada y luz apagada, luego puerta abierta y luz encendida. Abajo: el servidor muestra Open en verde y la luz en On. Nadie la encendió a mano: lo hizo la regla.");
 // ---------- 11 4G ----------
 s = content('IoT y 4G');
 s.addText('Red 4G para la flotilla', { placeholder: 'title' });
@@ -216,6 +249,8 @@ cap(s, 'C20', 0.5, 2.75, 4.4, 2.3);
 cap(s, 'C21', 5.1, 2.75, 4.4, 2.3);
 s.addNotes("TIEMPO: 1 min.\nQUÉ DECIR: \"Los choferes se conectan a la torre 4G. El Central Office, que simula la central de la compañía celular, les da una IP de la 192.168.6.0 y los conecta con nuestro router. El router tiene una ruta estática para saber regresar las respuestas, y una ACL solo deja a los celulares llegar al portal de entregas por HTTPS.\"\nDEMO: el celular abre el portal (C20) y no llega al RADIUS (C21).\nLO QUE APRENDÍ (cuéntalo, demuestra diagnóstico): \"Al principio la ACL bloqueaba todo. Con show access-lists vi que los permisos tenían cero coincidencias y el deny subía: el Central Office hace NAT y los celulares llegan al router con su IP, 192.168.5.2. Agregué esa IP a la ACL, solo hacia el Servidor Central, y funcionó.\"\nEVIDENCIA: C20 el celular abre el portal (por IP) y responde el ping al servidor; C21 el ping al RADIUS falla.\nSI PREGUNTAN POR EL NOMBRE: \"Por IP entra; la consulta DNS a través del NAT del simulador no resolvió. En una red real se usaría el DNS del operador o una VPN.\"");
 
+evid("IoT y 4G", "C20", "Evidencia: el chofer llega al portal", "El celular (IP 192.168.6.10 por 4G) abre el Portal de Entregas y responde el ping al servidor.", "El celular recibió su IP del Central Office. Llega al Servidor Central porque la ACL-CELULAR lo permite. Si preguntan por el nombre: por IP entra; el DNS a través del NAT del simulador no resolvió.");
+evid("IoT y 4G", "C21", "Evidencia: acceso restringido", "El mismo celular no puede llegar al RADIUS (192.168.3.10): la ACL-CELULAR solo permite el Servidor Central.", "Esta es la comunicación segura que pide el PDF: el chofer solo llega al portal de entregas; todo lo demás está bloqueado.");
 // ---------- 12 Resultados ----------
 pres.addSection({ title: 'Cierre' });
 s = content('Cierre');
@@ -250,6 +285,7 @@ s.addText('Gracias. Puedo demostrar cualquier prueba en Packet Tracer.', { place
 s.addNotes("Quedan unos 7 minutos para preguntas y pruebas de falla.\nSi algo falla en vivo, explica cómo lo diagnosticas, de lo cercano a lo lejano: cable → VLAN → IP y gateway (ping al gateway) → ACL → servicio.");
 
 const out = path.join(ROOT, 'entregables', 'Presentacion_InnovaLogistics.pptx');
+fs.writeFileSync(path.join(ROOT, 'entregables', 'diapositivas_evidencia.json'), JSON.stringify(Object.fromEntries(Object.keys(CAP).map(k => [k, EVMAP[k] || CMAP[k] || null])), null, 2) + '\n');
 pres.writeFile({ fileName: out }).then(async () => {
   if (SKILL) { const { applyTheme } = require(path.join(SKILL, 'scripts', 'apply_theme.js')); await applyTheme(out, THEME); }
   console.log('Escrito', out);

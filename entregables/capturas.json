@@ -5,7 +5,7 @@
     "leccion": "cableado",
     "que": "Topología completa en la vista Logical, con las 3 zonas y todos los cables",
     "reporte": "5. Topología",
-    "diapositiva": 4
+    "diapositiva": 5
   },
   {
     "id": "C02",
@@ -13,7 +13,7 @@
     "leccion": "vlans",
     "que": "SW-CORE: resultado de show vlan brief",
     "reporte": "7.2 Switches",
-    "diapositiva": 5
+    "diapositiva": 7
   },
   {
     "id": "C03",
@@ -37,7 +37,7 @@
     "leccion": "servidores",
     "que": "PC-ADMIN: ping 192.168.3.12 respondiendo y el portal de entregas en el navegador",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 5
+    "diapositiva": 8
   },
   {
     "id": "C06",
@@ -45,7 +45,7 @@
     "leccion": "wlc",
     "que": "WLC → Wireless → All APs con los 3 APs registrados",
     "reporte": "7.3 WLC",
-    "diapositiva": 6
+    "diapositiva": 11
   },
   {
     "id": "C07",
@@ -53,7 +53,7 @@
     "leccion": "ssids",
     "que": "Laptop con ping continuo mientras cambia de AP (misma IP)",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 7
+    "diapositiva": 14
   },
   {
     "id": "C08",
@@ -61,7 +61,7 @@
     "leccion": "radius",
     "que": "WLC → WLANs con las 3 redes WiFi (INNOVA-CORP, INNOVA-GUEST, INNOVA-IOT)",
     "reporte": "7.3 WLC",
-    "diapositiva": 7
+    "diapositiva": 13
   },
   {
     "id": "C09",
@@ -77,7 +77,7 @@
     "leccion": "radius",
     "que": "Laptop de empleado conectada a INNOVA-CORP con IP 192.168.1.x",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 8
+    "diapositiva": 16
   },
   {
     "id": "C11",
@@ -85,7 +85,7 @@
     "leccion": "radius",
     "que": "Laptop con contraseña incorrecta: no se conecta",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 8
+    "diapositiva": 17
   },
   {
     "id": "C12",
@@ -93,7 +93,7 @@
     "leccion": "acl",
     "que": "Laptop de visitante: ping al servidor ANTES de la ACL (responde)",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 9
+    "diapositiva": 18
   },
   {
     "id": "C13",
@@ -101,7 +101,7 @@
     "leccion": "acl",
     "que": "Laptop de visitante: ping al servidor DESPUÉS de la ACL (falla)",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 9
+    "diapositiva": 18
   },
   {
     "id": "C14",
@@ -109,7 +109,7 @@
     "leccion": "acl",
     "que": "R-CORE: show access-lists con coincidencias en la línea deny",
     "reporte": "7.1 Router R-CORE",
-    "diapositiva": null
+    "diapositiva": 19
   },
   {
     "id": "C15",
@@ -117,7 +117,7 @@
     "leccion": "iot",
     "que": "Servidor IoT: lista de dispositivos registrados",
     "reporte": "7.4 Servidores",
-    "diapositiva": null
+    "diapositiva": 21
   },
   {
     "id": "C16",
@@ -125,7 +125,7 @@
     "leccion": "iot",
     "que": "Servidor IoT: lista de reglas (Conditions)",
     "reporte": "7.4 Servidores",
-    "diapositiva": 10
+    "diapositiva": 22
   },
   {
     "id": "C17",
@@ -133,7 +133,7 @@
     "leccion": "iot",
     "que": "Ventilador o sirena encendidos automáticamente por una regla",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 10
+    "diapositiva": 23
   },
   {
     "id": "C18",
@@ -157,7 +157,7 @@
     "leccion": "celular",
     "que": "Celular del chofer abriendo el portal de entregas",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 11
+    "diapositiva": 25
   },
   {
     "id": "C21",
@@ -165,7 +165,7 @@
     "leccion": "celular",
     "que": "Celular del chofer: ping al RADIUS falla (ACL)",
     "reporte": "8. Pruebas y resultados",
-    "diapositiva": 11
+    "diapositiva": 26
   },
   {
     "id": "C22",
@@ -173,6 +173,6 @@
     "leccion": "wifi",
     "que": "Simulador de canales de la app: antes (1/1/1, encimados) y después (1/6/11, separados)",
     "reporte": "4.1 Infraestructura WLAN centralizada",
-    "diapositiva": 6
+    "diapositiva": 10
   }
 ]

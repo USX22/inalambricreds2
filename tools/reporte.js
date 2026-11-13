@@ -43,9 +43,10 @@ const CAPDIR = path.join(ROOT, 'entregables', 'capturas');
 function pngSize(f) { const b = fs.readFileSync(f); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; }
 function captura(id) {
   const c = CAP[id]; fig++;
-  const file = path.join(CAPDIR, c.archivo);
+  const vfile = path.join(CAPDIR, c.archivo.replace('.png', '_v.png'));
+  const file = fs.existsSync(vfile) ? vfile : path.join(CAPDIR, c.archivo);
   if (fs.existsSync(file)) {
-    const { w, h } = pngSize(file); const k = Math.min(600 / w, 430 / h, 1.4);
+    const { w, h } = pngSize(file); const k = Math.min(624 / w, 600 / h, 1.6);
     return [
       new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(file), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: c.id, description: c.que, name: c.archivo } })] }),
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: c.que, size: 19 })] })

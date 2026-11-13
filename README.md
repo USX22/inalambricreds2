@@ -50,7 +50,7 @@ vistas se vean bien en celular y en modo oscuro.
 | Archivo | Qué es | Qué te falta |
 |---|---|---|
 | [`entregables/Reporte_InnovaLogistics.docx`](entregables/Reporte_InnovaLogistics.docx) | Reporte en Word (19 páginas): portada, índice, problemática, solución, topología, direccionamiento, configuración, pruebas, conclusiones y anexos | Tu nombre, el del docente y pegar las 22 capturas |
-| [`entregables/Presentacion_InnovaLogistics.pptx`](entregables/Presentacion_InnovaLogistics.pptx) | Presentación de 14 diapositivas para 20 minutos, con lo que debes decir en las notas | Tu nombre y pegar 15 capturas |
+| [`entregables/Presentacion_InnovaLogistics.pptx`](entregables/Presentacion_InnovaLogistics.pptx) | Presentación de 29 diapositivas (14 de contenido + 15 de evidencia a pantalla completa) para 20 minutos, con lo que debes decir en las notas | Tu nombre y pegar 15 capturas |
 | [`entregables/capturas.json`](entregables/capturas.json) | Lista de las 22 capturas: nombre de archivo, lección, sección del reporte y diapositiva | — |
 
 Cada captura tiene un nombre (C01_topologia.png, C02_vlan_brief.png…). La app te dice en qué lección tomarla,
