@@ -155,10 +155,15 @@ s.addNotes("TIEMPO: 1 min 45 s.\nQUÉ DECIR: \"Las tres antenas son ligeras: no 
 s = content('Red inalámbrica');
 s.addText('Tres redes WiFi y roaming', { placeholder: 'title' });
 tbl(s, [['Red WiFi', 'VLAN', 'Seguridad'], ['INNOVA-CORP', '10', 'Usuario por empleado'], ['INNOVA-GUEST', '20', 'Clave de invitados'], ['INNOVA-IOT', '40', 'Clave de sensores']], 0.5, 1.15, 4.3, [1.6, 0.7, 2.0], 12);
-s.addText('Las 3 antenas anuncian las 3 redes (ESS). Al caminar de oficinas al almacén, la laptop cambia de antena sin cortarse y conserva su IP.', { x: 0.5, y: 2.85, w: 4.3, h: 1.4, fontSize: 14, color: C.text1, valign: 'top', isTextBox: true, margin: 0 });
+s.addText('Cómo se conecta un visitante', { x: 0.5, y: 2.5, w: 4.3, h: 0.3, fontSize: 13, bold: true, color: C.accent1, isTextBox: true, margin: 0 });
+[['Elige INNOVA-GUEST y escribe la clave'], ['La WLC: GUEST → interfaz GUEST → VLAN 20'], ['Pide IP: la WLC lo pasa al router (192.168.2.1)'], ['El DHCP del router le da una 192.168.2.x']].forEach(([t], k) => {
+  const y = 2.88 + k * 0.52;
+  circleNum(s, 0.5, y + 0.02, k + 1);
+  s.addText(t, { x: 1.02, y, w: 3.8, h: 0.46, fontSize: 12, color: C.text1, valign: 'middle', isTextBox: true, margin: 0 });
+});
 cap(s, 'C08', 5.0, 1.15, 4.5, 1.85);
 cap(s, 'C07', 5.0, 3.15, 4.5, 1.85);
-s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Hay tres redes WiFi y cada una lleva a su VLAN: empleados a la 10, invitados a la 20 y sensores a la 40. Las tres antenas anuncian las mismas tres redes; eso es un ESS, y permite el roaming: cambiar de antena sin que se corte la conexión. La laptop conserva su IP porque la WLC la mantiene en la misma VLAN.\"\nDEMO: ping -t en la laptop; arrástrala en la vista Physical de AP-1 a AP-3. El ping no se detiene y la IP es la misma (C07).");
+s.addNotes("TIEMPO: 1 min 30 s.\nQUÉ DECIR: \"Hay tres redes WiFi y cada una lleva a su VLAN: empleados a la 10, invitados a la 20 y sensores a la 40. Las tres antenas anuncian las mismas tres redes; eso es un ESS, y permite el roaming: cambiar de antena sin que se corte la conexión. La laptop conserva su IP porque la WLC la mantiene en la misma VLAN.\"\nDEMO: ping -t en la laptop; arrástrala en la vista Physical de AP-1 a AP-3. El ping no se detiene y la IP es la misma (C07).\nLA CADENA (señálala en la diapositiva): \"1) El visitante elige INNOVA-GUEST y escribe la clave de invitados. 2) La WLC sabe que INNOVA-GUEST está amarrada a la interfaz GUEST, que está en la VLAN 20. 3) El visitante pide IP y la WLC le pasa la petición al router. 4) El DHCP del router le da una IP 192.168.2.x.\"\nSI TE PREGUNTAN:\n- \"¿Qué es una interfaz dinámica?\" \"Es una puerta de la WLC dentro de cada VLAN de usuarios, como las subinterfaces del router. La WLC tiene la .2 en cada red (el router tiene la .1). Cada red WiFi se amarra a una interfaz, y así la WLC deja a cada usuario en su VLAN.\"\n- \"¿La WLC funciona por cable?\" \"Se conecta por cable al switch, pero solo administra lo inalámbrico. Los equipos por cable no pasan por ella: su VLAN la decide el puerto del switch.\"\n- \"¿Quién da la IP a los usuarios del WiFi?\" \"El router R-CORE con DHCP; la WLC solo le reenvía la petición.\"");
 
 // ---------- 8 Seguridad empleados ----------
 pres.addSection({ title: 'Seguridad' });
