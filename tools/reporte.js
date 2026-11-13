@@ -321,6 +321,22 @@ const children = [
   LI('Usar VPN IPsec para la flotilla sobre la red del operador celular.'),
   LI('Agregar redundancia: una segunda WLC y un RADIUS secundario.'),
 
+  H1('11. Referencias'),
+  P('Las siguientes fuentes sustentan los estándares, protocolos y configuraciones usados en este proyecto (formato APA 7).'),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Bautista López, V. E., Sánchez López, A., León Chávez, M. Á. y Torres León, J. E. (s. f.). Programa de la asignatura ICCS 260 Redes inalámbricas. Facultad de Ciencias de la Computación, Benemérita Universidad Autónoma de Puebla.")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Calhoun, P., Montemurro, M. y Stanley, D. (2009). Control And Provisioning of Wireless Access Points (CAPWAP) Protocol Specification (RFC 5415). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc5415")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Cisco Networking Academy. (2020). CCNA: Switching, Routing, and Wireless Essentials (SRWE) v7. Cisco Systems.")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Cisco Systems. (s. f.). Cisco Packet Tracer. Cisco Networking Academy. https://www.netacad.com/cisco-packet-tracer")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Cisco Systems. (s. f.). Cisco Wireless Controller Configuration Guide. https://www.cisco.com/c/en/us/support/wireless/wireless-lan-controller-software/products-installation-and-configuration-guides-list.html")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Droms, R. (1997). Dynamic Host Configuration Protocol (RFC 2131). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc2131")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("IEEE. (2020). IEEE Standard for Local and Metropolitan Area Networks: Port-Based Network Access Control (IEEE Std 802.1X-2020).")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("IEEE. (2021). IEEE Standard for Information Technology: Wireless LAN Medium Access Control (MAC) and Physical Layer (PHY) Specifications (IEEE Std 802.11-2020).")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("IEEE. (2022). IEEE Standard for Local and Metropolitan Area Networks: Bridges and Bridged Networks (IEEE Std 802.1Q-2022).")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Kurose, J. F. y Ross, K. W. (2021). Computer Networking: A Top-Down Approach (8.ª ed.). Pearson.")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Rekhter, Y., Moskowitz, B., Karrenberg, D., de Groot, G. J. y Lear, E. (1996). Address Allocation for Private Internets (RFC 1918). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc1918")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Rigney, C., Willens, S., Rubens, A. y Simpson, W. (2000). Remote Authentication Dial In User Service (RADIUS) (RFC 2865). Internet Engineering Task Force. https://www.rfc-editor.org/rfc/rfc2865")] }),
+  new Paragraph({ spacing: { after: 120 }, indent: { left: 720, hanging: 720 }, children: [new TextRun("Tanenbaum, A. S., Feamster, N. y Wetherall, D. J. (2021). Computer Networks (6.ª ed.). Pearson.")] }),
+
   // ---------- Anexos ----------
   new Paragraph({ children: [new PageBreak()] }),
   H1('Anexo A. Configuración de R-CORE'), ...cfg('R-CORE.txt'),
