@@ -1109,7 +1109,7 @@ ${[['R-CORE','G0/0','SW-CORE','G0/1','Directo'],['R-CORE','G0/1','CENTRAL-OFFICE
   {t:'SRV-RADIUS → Services → <b>AAA</b>: Service On. Network Configuration: Client Name <code>WLC</code>, Client IP <code>192.168.0.10</code>, Secret <code>RadiusInnova2026</code>, ServerType <b>Radius</b> → Add.'},
   {t:'User Setup: agrega <code>jlopez</code>/<code>Corp2026</code>, <code>mgarcia</code>/<code>Corp2026</code>, <code>almacen01</code>/<code>Corp2026</code>.'},
   {t:'WLC → <b>Security → AAA → RADIUS → Authentication → New</b>: Server IP <code>192.168.3.10</code>, Shared Secret <code>RadiusInnova2026</code> (exactamente igual), Port 1812, Enabled. Apply.'},
-  {t:'WLC → WLANs → Create New: <code>INNOVA-CORP</code>, ID 1, Interface <b>CORP</b>, Enabled. Security → Layer 2: WPA+WPA2, WPA2, AES, Auth Key Mgmt <b>802.1X</b>. Security → AAA Servers: Server 1 = 192.168.3.10. Apply.'},
+  {t:'WLC → WLANs → Create New: <code>INNOVA-CORP</code> (Profile Name y SSID iguales), ID 2 o el primero libre (el número no importa; si el asistente ya usó el 1 para INNOVA-GUEST, usa el 2), Interface <b>CORP</b>, Status <b>Enabled</b>, Enabled. Security → Layer 2: WPA+WPA2, WPA2, AES, Auth Key Mgmt <b>802.1X</b>. Security → AAA Servers: Server 1 = 192.168.3.10. Apply.'},
   {t:'LAP-EMPLEADO-1 y LAP-EMPLEADO-2 (con WPC300N): SSID <code>INNOVA-CORP</code>, Authentication <b>WPA2</b> (no WPA2-PSK), User ID <code>jlopez</code> / <code>mgarcia</code>, Password <code>Corp2026</code>, AES. IP por DHCP → 192.168.1.x.'},
   {t:'TAB-ALMACEN: igual, con <code>almacen01</code>. Colócala cerca de AP-2 o AP-3.'},
   {t:'Prueba la falla: cambia la contraseña de LAP-EMPLEADO-2 a <code>xxxx</code>. No debe conectar. Regrésala. Toma ambas capturas.'},
