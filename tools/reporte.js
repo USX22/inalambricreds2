@@ -41,17 +41,31 @@ function table(headers, rows, widths) {
 // Si la captura existe en entregables/capturas, se inserta la imagen; si no, el recuadro "Pega aquí"
 const CAPDIR = path.join(ROOT, 'entregables', 'capturas');
 function pngSize(f) { const b = fs.readFileSync(f); return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }; }
-function captura(id) {
-  const c = CAP[id]; fig++;
+// figura(file, pie, antes, despues): '#' en los textos se reemplaza por el número de figura
+const sub = (t, n) => t.replace(/#/g, n);
+function imgFig(file, pie, alt) {
+  const { w, h } = pngSize(file); const k = Math.min(624 / w, 600 / h, 1.6);
+  return [
+    new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(file), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: alt, description: pie, name: path.basename(file) } })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 200 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: pie, size: 19 })] })
+  ];
+}
+function wrap(body, antes, despues) {
+  const out = [];
+  if (antes) out.push(P(sub(antes, fig)));
+  out.push(...body);
+  if (despues) out.push(P(sub(despues, fig)));
+  return out;
+}
+function extra(nombre, pie, antes, despues) {
+  const f = path.join(CAPDIR, nombre); if (!fs.existsSync(f)) return [];
+  fig++; return wrap(imgFig(f, pie, nombre), antes, despues);
+}
+function captura(id, antes, despues, pie) {
+  const c = CAP[id]; fig++; pie = pie || c.que;
   const vfile = path.join(CAPDIR, c.archivo.replace('.png', '_v.png'));
   const file = fs.existsSync(vfile) ? vfile : path.join(CAPDIR, c.archivo);
-  if (fs.existsSync(file)) {
-    const { w, h } = pngSize(file); const k = Math.min(624 / w, 600 / h, 1.6);
-    return [
-      new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(file), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: c.id, description: c.que, name: c.archivo } })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: c.que, size: 19 })] })
-    ];
-  }
+  if (fs.existsSync(file)) return wrap(imgFig(file, pie, c.id), antes, despues);
   const dash = { style: BorderStyle.DASHED, size: 12, color: TEAL };
   const box = new Table({
     width: { size: W, type: WidthType.DXA }, columnWidths: [W],
@@ -62,15 +76,15 @@ function captura(id) {
       verticalAlign: 'center',
       children: [
         new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { after: 80 }, children: [new TextRun({ text: `PEGA AQUÍ LA CAPTURA ${c.id}`, bold: true, color: TEAL, size: 26 })] }),
-        new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { after: 80 }, children: [new TextRun({ text: c.archivo, font: 'Courier New', size: 20 })] }),
-        new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, children: [new TextRun({ text: c.que, italics: true, size: 20 })] }),
-        new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 120 }, children: [new TextRun({ text: '(Borra este recuadro y pega la imagen en su lugar)', size: 16, color: '55666F' })] })
+        new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, children: [new TextRun({ text: c.archivo, font: 'Courier New', size: 20 })] })
       ]
     })] })]
   });
-  const cap = new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: c.que, size: 19 })] });
-  return [box, cap];
+  const cap = new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 200 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: pie, size: 19 })] });
+  return wrap([box, cap], antes, despues);
 }
+let tab = 0;
+const TCAP = t => { tab++; return new Paragraph({ keepNext: true, spacing: { before: 160, after: 80 }, children: [new TextRun({ text: `Tabla ${tab}. `, bold: true, size: 19 }), new TextRun({ text: t, size: 19 })] }); };
 
 const cfg = n => fs.readFileSync(path.join(ROOT, 'configs', n), 'utf8').split('\n').map(l =>
   new Paragraph({ spacing: { after: 0 }, children: [new TextRun({ text: l || ' ', font: 'Courier New', size: 16 })] }));
@@ -108,37 +122,48 @@ const children = [
 
   // ---------- 3 ----------
   H1('3. Análisis de la problemática'),
+  P('Antes del rediseño, la red de la empresa tenía cuatro problemas principales. La Tabla 1 resume cada problema y el impacto que tiene en la operación.'),
+  TCAP('Problemas detectados en la red actual y su impacto'),
   table(['#', 'Problema', 'Impacto'], [
     ['1', 'Routers caseros independientes, todos en el mismo canal de 2.4 GHz, con una sola clave WPA2-PSK compartida', 'Caídas por interferencia, zonas del almacén sin cobertura y fuga de información: quien deja la empresa conserva la clave'],
     ['2', 'Visitantes conectados a la misma red que los servidores', 'Un visitante puede ver o atacar los servidores internos'],
     ['3', 'Sin monitoreo de temperatura ni detección de humo en el almacén', 'Pérdida de insumos médicos y riesgo de incendio sin alerta'],
     ['4', 'La flotilla queda fuera del alcance del WiFi', 'No se registran las entregas en tiempo real']
   ], [500, 4300, 4560]),
+  P('Cada problema de la Tabla 1 se atiende con una parte de la solución de la sección 4: el problema 1 con la WLC y WPA2-Enterprise, el 2 con la VLAN y la ACL de invitados, el 3 con la red de sensores IoT y el 4 con la red celular 4G.'),
 
   // ---------- 4 ----------
   H1('4. Solución propuesta'),
   H2('4.1 Infraestructura WLAN centralizada'),
   P('Se sustituyen los routers caseros por una Wireless LAN Controller (WLC) y tres Access Points ligeros (LAP): AP-1 en Oficinas y AP-2 y AP-3 en el Almacén. Los APs se registran en la WLC mediante el protocolo CAPWAP, por lo que las redes WiFi, la seguridad y los canales se administran desde un solo punto.'),
-  P('Los tres APs anuncian las mismas redes WiFi y forman un ESS (Extended Service Set), lo que permite el roaming: un usuario se desplaza entre edificios sin perder la conexión ni cambiar de IP. Se asignan los canales no traslapados 1, 6 y 11 para eliminar la interferencia.'),
-  ...captura('C22'),
+  P('Los tres APs anuncian las mismas redes WiFi y forman un ESS (Extended Service Set), lo que permite el roaming: un usuario se desplaza entre zonas sin cambiar de red WiFi ni de dirección IP. Además se asignan los canales no traslapados 1, 6 y 11 para eliminar la interferencia.'),
+  ...captura('C22',
+    'La Figura # ilustra por qué importa la elección de canales. Se tomó del simulador de canales de la aplicación de estudio del proyecto, porque Packet Tracer no permite cambiar el canal de los APs administrados por la WLC.',
+    'En la parte de "antes" (Figura #), los tres APs usan el canal 1 y sus señales se enciman: los equipos compiten por el mismo canal y la red se vuelve lenta. En la parte de "después", cada AP usa un canal distinto (1, 6 y 11), que no se traslapan entre sí, y la interferencia desaparece.'),
   H2('4.2 Seguridad'),
+  P('La seguridad se resuelve con un tipo de protección distinto para cada grupo de usuarios:'),
   LI([B('INNOVA-CORP (empleados): '), T('WPA2-Enterprise (802.1X) con cifrado AES. La WLC actúa como autenticador y consulta al servidor RADIUS (192.168.3.10). Cada empleado tiene usuario y contraseña propios; para revocar el acceso de alguien solo se elimina su cuenta.')]),
   LI([B('INNOVA-GUEST (invitados): '), T('WPA2-PSK en la VLAN 20. La ACL extendida ACL-INVITADOS, aplicada de entrada en la subinterfaz G0/0.20 del router, niega todo el tráfico hacia la red interna 192.168.0.0/20 y solo permite DHCP, ping al gateway y salida a Internet.')]),
   LI([B('Endurecimiento: '), T('acceso SSH v2 al router, contraseñas cifradas, banner legal, puertos sin uso apagados y VLAN de gestión separada.')]),
   H2('4.3 Red de sensores IoT (WSN)'),
-  P('En el almacén se instalan un sensor de temperatura, un sensor de puerta y un detector de humo, más los actuadores ventilador, sirena y luz. Se conectan por WiFi a la red INNOVA-IOT (VLAN 40) y se registran en el Servidor IoT (192.168.3.11), que ejecuta estas reglas:'),
+  P('En el almacén se instalan un sensor de temperatura, un sensor de puerta y un detector de humo, más los actuadores ventilador, sirena y luz. Se conectan por WiFi a la red INNOVA-IOT (VLAN 40) y se registran en el Servidor IoT (192.168.3.11). La Tabla 2 muestra las reglas de automatización que ejecuta el servidor.'),
+  TCAP('Reglas de automatización del Servidor IoT'),
   table(['Condición', 'Acción'], [['Temperatura mayor a 25 °C', 'Encender el ventilador'], ['Temperatura de 25 °C o menos', 'Apagar el ventilador'], ['Humo detectado', 'Activar la sirena'], ['Puerta abierta', 'Encender la luz indicadora']], [4680, 4680]),
+  P('Cada regla de la Tabla 2 funciona como un "si pasa esto, haz aquello": el sensor reporta su valor al servidor y el servidor ordena la acción al actuador, sin intervención de una persona.'),
   H2('4.4 Conectividad móvil WWAN 4G'),
-  P('Se integra una torre celular conectada a un Central Office Server, que asigna direcciones 192.168.6.0/24 a los smartphones de la flotilla. El router R-CORE tiene una ruta estática hacia esa red, y la ACL-CELULAR limita el acceso de los móviles al Servidor Central (portal de entregas por HTTPS y DNS).'),
+  P('Se integra una torre celular conectada a un Central Office Server, que asigna direcciones 192.168.6.0/24 a los smartphones de la flotilla. El router R-CORE tiene una ruta estática hacia esa red, y la ACL-CELULAR limita el acceso de los móviles al Servidor Central (portal de entregas por HTTP/HTTPS y DNS).'),
 
   // ---------- 5 ----------
   H1('5. Topología'),
   P('La red se organiza en tres zonas: Oficinas Corporativas, Almacén Central y Flotilla / Red 4G. El router R-CORE ocupa el centro y une todas las redes.'),
-  ...captura('C01'),
+  ...captura('C01',
+    'La Figura # muestra la topología completa construida en Packet Tracer.',
+    'En la Figura # se distinguen las tres zonas. En Oficinas están SW-CORE, la WLC, AP-1, PC-ADMIN, los tres servidores y las laptops. En el Almacén están SW-ALMACEN, AP-2, AP-3 y los sensores y actuadores IoT. En la zona 4G están la torre celular, el Central Office y los celulares. Las líneas sólidas son cables, la línea punteada es el enlace entre switches y las líneas onduladas son conexiones inalámbricas.'),
 
   // ---------- 6 ----------
   H1('6. Direccionamiento IP'),
-  P('Red asignada: 192.168.0.0/20 (4096 direcciones, de 192.168.0.0 a 192.168.15.255). Se divide en 16 subredes /24 de 254 equipos cada una: se usan 7 y quedan 9 libres para crecimiento.'),
+  P('Red asignada: 192.168.0.0/20 (4096 direcciones, de 192.168.0.0 a 192.168.15.255). Se divide en 16 subredes /24 de 254 equipos cada una. La Tabla 3 muestra las 7 subredes que se usan; las otras 9 quedan libres para crecimiento.'),
+  TCAP('Subredes /24 y VLANs del proyecto'),
   table(['VLAN', 'Nombre', 'Red', 'Gateway', 'Uso'], [
     ['99', 'Gestión (nativa)', '192.168.0.0/24', '192.168.0.1', 'WLC, APs, switches, PC-ADMIN'],
     ['10', 'Corporativo', '192.168.1.0/24', '192.168.1.1', 'Empleados (INNOVA-CORP)'],
@@ -146,16 +171,18 @@ const children = [
     ['30', 'Servidores', '192.168.3.0/24', '192.168.3.1', 'RADIUS, IoT, Central'],
     ['40', 'IoT', '192.168.4.0/24', '192.168.4.1', 'Sensores (INNOVA-IOT)'],
     ['—', 'Enlace 4G', '192.168.5.0/24', '—', 'R-CORE .1 ↔ Central Office .2'],
-    ['—', 'Celular', '192.168.6.0/24', 'Central Office', 'Smartphones de la flotilla']
+    ['—', 'Celular', '192.168.6.0/24', '192.168.6.1', 'Smartphones de la flotilla']
   ], [800, 1700, 1900, 1700, 3260]),
-  P(' '),
+  P('En la Tabla 3, cada VLAN tiene su propia subred y el número de la VLAN coincide con el tercer octeto cuando es posible (VLAN 10 → 192.168.1.x, VLAN 20 → 192.168.2.x), lo que facilita recordar a qué grupo pertenece cada dirección. Las redes 192.168.5.0 y 192.168.6.0 no tienen VLAN porque no pasan por los switches: son el cable entre el router y el Central Office, y la red de los celulares.'),
+  P('La Tabla 4 detalla la dirección de cada equipo. Se sigue una regla sencilla: en todas las subredes el router es el .1 (gateway), los equipos de infraestructura tienen direcciones fijas bajas y los clientes inalámbricos reciben su dirección por DHCP a partir del .11.'),
+  TCAP('Direccionamiento por dispositivo'),
   table(['Dispositivo', 'Interfaz', 'Dirección IP', 'Gateway'], [
-    ['R-CORE', 'G0/0.99 / .10 / .20 / .30 / .40', '192.168.0.1 / 1.1 / 2.1 / 3.1 / 4.1', '—'],
+    ['R-CORE', 'Subinterfaces G0/0.99 / .10 / .20 / .30 / .40', '192.168.0.1 / 1.1 / 2.1 / 3.1 / 4.1', '— (es el gateway)'],
     ['R-CORE', 'G0/1', '192.168.5.1/24', '—'],
     ['SW-CORE', 'VLAN 99', '192.168.0.2/24', '192.168.0.1'],
     ['SW-ALMACEN', 'VLAN 99', '192.168.0.3/24', '192.168.0.1'],
     ['WLC', 'Management', '192.168.0.10/24', '192.168.0.1'],
-    ['WLC', 'Interfaces CORP / GUEST / IOT', '192.168.1.2 / 2.2 / 4.2', '.1 de cada red'],
+    ['WLC', 'Interfaces dinámicas CORP / GUEST / IOT', '192.168.1.2 / 2.2 / 4.2', '.1 de cada red'],
     ['AP-1, AP-2, AP-3', 'G0', 'DHCP (192.168.0.21+)', '192.168.0.1'],
     ['PC-ADMIN', 'Fa0', '192.168.0.20/24', '192.168.0.1'],
     ['SRV-RADIUS', 'Fa0', '192.168.3.10/24', '192.168.3.1'],
@@ -167,52 +194,124 @@ const children = [
     ['Sensores IoT', 'Wireless0', 'DHCP (192.168.4.11+)', '192.168.4.1'],
     ['Celulares', '3G/4G Cell', 'DHCP (192.168.6.x)', '192.168.6.1']
   ], [2200, 2600, 2800, 1760]),
+  P('Dos renglones de la Tabla 4 merecen explicación. Primero, R-CORE tiene una sola conexión física hacia SW-CORE (G0/0), pero se divide en cinco subinterfaces lógicas, una por VLAN; cada subinterfaz es el gateway (.1) de su VLAN. Segundo, la WLC tiene su interfaz de administración en la VLAN 99 (192.168.0.10), que es la dirección con la que los APs la encuentran, y además una interfaz dinámica en cada VLAN de usuarios (.2 de cada red). Las interfaces dinámicas no son APs: son la "puerta" de la WLC en cada VLAN, que le indica en qué VLAN colocar a cada cliente según la red WiFi a la que se conecta.'),
 
   // ---------- 7 ----------
   H1('7. Configuración de los dispositivos'),
+  P('Esta sección muestra, con capturas de Packet Tracer, que cada equipo quedó configurado como se diseñó. La configuración completa en texto está en los Anexos A, B y C.'),
   H2('7.1 Router R-CORE'),
-  P('Router-on-a-stick con una subinterfaz 802.1Q por VLAN, servidor DHCP con cuatro pools, ruta estática hacia la red celular, tres ACLs extendidas nombradas (ACL-INVITADOS, ACL-CELULAR y ACL-IOT, que limita la VLAN de sensores al Servidor IoT) y acceso SSH. La configuración completa está en el Anexo A.'),
-  ...captura('C04'), ...captura('C14'), ...captura('C19'),
+  P('R-CORE funciona como router-on-a-stick, con una subinterfaz 802.1Q por VLAN. Además es el servidor DHCP (cuatro pools), tiene una ruta estática hacia la red celular, tres ACLs extendidas nombradas (ACL-INVITADOS, ACL-CELULAR y ACL-IOT) y acceso remoto por SSH.'),
+  ...captura('C04',
+    'Para comprobar que las subinterfaces están activas se ejecutó el comando show ip interface brief, cuyo resultado aparece en la Figura #.',
+    'En la Figura # se ve que G0/0 no tiene dirección (unassigned): es solo el cable físico. Las subinterfaces G0/0.10, .20, .30, .40 y .99 tienen las direcciones 192.168.1.1, 2.1, 3.1, 4.1 y 0.1, y están en estado up/up, es decir, encendidas y funcionando. G0/1 (192.168.5.1) es el enlace hacia el Central Office. Esto demuestra el router-on-a-stick: un solo puerto físico atiende a las cinco VLANs.'),
+  ...captura('C14',
+    'Para verificar la ACL de invitados se usó el comando show access-lists, mostrado en la Figura #.',
+    'La Figura # presenta las cuatro líneas de ACL-INVITADOS en el orden en que el router las revisa: 10 permite DHCP, 20 permite el ping al gateway, 30 niega el acceso a toda la red interna 192.168.0.0/20 y 40 permite lo demás (Internet). La línea 30 muestra "4 match(es)": son los cuatro pings de la laptop de visitante hacia el servidor que la ACL bloqueó, lo que prueba que la regla funciona.'),
+  ...captura('C19',
+    'La ruta hacia los celulares se comprobó con show ip route (Figura #).',
+    'En la Figura # aparecen con la letra C las redes conectadas directamente al router (una por subinterfaz y la del enlace 192.168.5.0), con la letra L la dirección propia del router en cada una, y al final, con la letra S, la ruta estática 192.168.6.0/24 vía 192.168.5.2. Esa ruta le dice a R-CORE que, para llegar a los celulares, debe enviar los paquetes al Central Office.'),
   H2('7.2 Switches'),
-  P('Ambos switches tienen las VLANs 10, 20, 30, 40 y 99. Los enlaces hacia el router, entre switches y hacia la WLC son troncales 802.1Q con VLAN nativa 99; los puertos de equipos finales son de acceso con PortFast, y los puertos sin uso están apagados (Anexos B y C).'),
-  ...captura('C02'), ...captura('C03'),
+  P('Ambos switches tienen las VLANs 10, 20, 30, 40 y 99. Los enlaces hacia el router, entre switches y hacia la WLC son troncales 802.1Q con VLAN nativa 99. Los puertos de los APs también son troncales, porque en Packet Tracer los APs trabajan en modo FlexConnect y entregan el tráfico de los clientes ya separado por VLAN. Los puertos de equipos finales son de acceso con PortFast y los puertos sin uso están apagados.'),
+  ...captura('C02',
+    'Las VLANs creadas en SW-CORE se verifican con show vlan brief (Figura #).',
+    'En la Figura # se ven las VLANs 10 (CORPORATIVO), 20 (INVITADOS), 30 (SERVIDORES), 40 (IOT) y 99 (GESTION), todas activas, y los puertos de acceso de cada una: Fa0/10 a Fa0/12 (servidores) en la VLAN 30 y Fa0/20 (PC-ADMIN) en la VLAN 99. La VLAN 1 "default" es la que trae el switch de fábrica: ahí quedan los puertos que no se asignaron a ninguna VLAN, que en este diseño están apagados. Los puertos troncales no aparecen en esta lista porque llevan todas las VLANs; se ven en la siguiente figura.'),
+  ...captura('C03',
+    'Los enlaces troncales se verifican con show interfaces trunk (Figura #).',
+    'En la Figura # aparecen Fa0/1, Gig0/1 y Gig0/2 en modo trunking, con encapsulación 802.1q, VLAN nativa 99 y las VLANs 10, 20, 30, 40 y 99 permitidas. Es decir, por esos cables viajan todas las VLANs al mismo tiempo, cada paquete con su etiqueta. Este comando se ejecuta en el switch porque el trunk es una configuración de los puertos del switch; el router no usa "switchport", sino subinterfaces.'),
   H2('7.3 WLC'),
-  P('La WLC (192.168.0.10) tiene una interfaz dinámica por VLAN de usuarios y tres WLANs:'),
+  P('La WLC (192.168.0.10) tiene una interfaz dinámica por VLAN de usuarios y tres WLANs, que se resumen en la Tabla 5.'),
+  TCAP('Redes WiFi (WLANs) configuradas en la WLC'),
   table(['Red WiFi', 'VLAN', 'Seguridad'], [['INNOVA-CORP', '10', 'WPA2-Enterprise (802.1X) contra RADIUS 192.168.3.10'], ['INNOVA-GUEST', '20', 'WPA2-PSK'], ['INNOVA-IOT', '40', 'WPA2-PSK']], [2600, 1200, 5560]),
-  P(' '),
-  P('Los tres APs obtuvieron su dirección por DHCP en la VLAN 99 (192.168.0.22, .23 y .24) y se registraron en la WLC (estado REG). Durante la implementación, las antenas no volvieron a conectarse tras un reinicio: el switch mostraba sus puertos en estado down/down, lo que indicaba una falla del lado del AP. Se reemplazaron por APs nuevos que, sin ninguna configuración manual, obtuvieron IP, descubrieron la WLC y descargaron su configuración, lo que demuestra la ventaja de los APs ligeros administrados de forma centralizada.'),
-  ...captura('C06'), ...captura('C08'),
+  P('Como muestra la Tabla 5, cada red WiFi se asocia a su propia VLAN: así, aunque todos usan las mismas antenas, cada grupo de usuarios queda en una subred distinta. Solo la red de empleados usa 802.1X, porque es la única donde cada persona necesita su propia cuenta.'),
+  P('Los tres APs obtuvieron su dirección por DHCP en la VLAN 99 y se registraron en la WLC. Durante la implementación, las antenas no volvieron a conectarse tras un reinicio: el switch mostraba sus puertos en estado down/down, lo que indicaba una falla del lado del AP. Se reemplazaron por APs nuevos que, sin ninguna configuración manual, obtuvieron IP, descubrieron la WLC y descargaron su configuración, lo que demuestra la ventaja de los APs ligeros administrados de forma centralizada.'),
+  ...captura('C06',
+    'La Figura # muestra la sección Wireless → All APs de la WLC.',
+    'En la Figura # aparecen los tres APs registrados en la WLC. Esto significa que cada AP encontró a la WLC por CAPWAP y recibió de ella las redes WiFi y su configuración; ningún AP se configuró a mano.'),
+  ...captura('C08',
+    'La Figura # muestra la lista de WLANs de la WLC.',
+    'En la Figura # se ven las tres redes WiFi de la Tabla 5 (INNOVA-CORP, INNOVA-GUEST e INNOVA-IOT) habilitadas. La WLC las envía a los tres APs, por lo que las tres redes se anuncian en todo el edificio.'),
   H2('7.4 Servidores'),
   P('SRV-RADIUS tiene el servicio AAA con la WLC como cliente y una cuenta por empleado. SRV-IOT ejecuta el servicio IoT con las reglas de automatización. SRV-CENTRAL ofrece HTTP, HTTPS (portal de entregas) y DNS.'),
-  ...captura('C09'), ...captura('C15'), ...captura('C16'),
+  ...captura('C09',
+    'La configuración del servidor RADIUS se muestra en la Figura #.',
+    'En la Figura # se ve el servicio AAA encendido en el puerto 1812, la WLC dada de alta como cliente (IP 192.168.0.10, tipo Radius y clave compartida) y tres cuentas de empleados (jlopez, mgarcia y almacen01). Cuando un empleado se conecta a INNOVA-CORP, la WLC envía su usuario y contraseña a este servidor, que responde si lo acepta o lo rechaza.'),
+  ...captura('C15',
+    'La Figura # muestra los dispositivos registrados en el Servidor IoT.',
+    'En la Figura # aparecen los sensores (temperatura, puerta y humo) y los actuadores (ventilador, sirena y luz) conectados al servidor. Que estén en la lista significa que cada dispositivo obtuvo IP en la VLAN 40 y se registró en 192.168.3.11; solo así el servidor puede leer sus valores y darles órdenes.'),
+  ...captura('C16',
+    'Las reglas de automatización configuradas aparecen en la Figura #.',
+    'La Figura # corresponde a las reglas de la Tabla 2, capturadas en la sección Conditions del servidor. Cada regla tiene una condición (por ejemplo, "la puerta está abierta") y una acción (por ejemplo, "encender la luz").'),
   H2('7.5 Central Office y torre celular'),
-  P('El Central Office se conecta a R-CORE por su puerto Backbone (192.168.5.2) y a la torre por cable coaxial. Asigna a los celulares direcciones de la red 192.168.6.0/24 con DNS 192.168.3.12.'),
-  ...captura('C18'),
+  P('El Central Office se conecta a R-CORE por su puerto Backbone (192.168.5.2) y a la torre por cable coaxial. Asigna a los celulares direcciones de la red 192.168.6.0/24, con gateway 192.168.6.1 y DNS 192.168.3.12.'),
+  ...captura('C18',
+    'La configuración del Central Office aparece en la Figura #.',
+    'En la parte superior de la Figura # se ve el puerto Backbone con la dirección 192.168.5.2 y gateway 192.168.5.1 (R-CORE). En la parte inferior, la interfaz Cell Tower tiene la dirección 192.168.6.1, que funciona como gateway de los celulares. La torre celular no lleva dirección IP: solo transmite la señal entre los celulares y el Central Office.'),
 
   // ---------- 8 ----------
   H1('8. Pruebas y resultados'),
+  P('Para validar la solución se realizaron las pruebas de la Tabla 6. Cada prueba indica qué se esperaba y si se cumplió; después se presentan las evidencias de cada una.'),
+  TCAP('Resumen de pruebas realizadas'),
   table(['Prueba', 'Resultado esperado', 'Resultado'], [
     ['PC-ADMIN (VLAN 99) hace ping al Servidor Central (VLAN 30)', 'Responde: el enrutamiento entre VLANs funciona', 'Correcto'],
-    ['Asociación de laptops a distintas antenas del ESS', 'Cada laptop se asocia a la antena más cercana con la misma red WiFi', 'Correcto'],
+    ['Laptop conectada al ESS hace ping a su gateway', 'Responde con la misma red WiFi en todo el edificio', 'Correcto'],
     ['Empleado se conecta con usuario válido', 'Se conecta y recibe IP 192.168.1.x', 'Correcto'],
     ['Empleado con contraseña incorrecta', 'El RADIUS lo rechaza', 'Correcto'],
     ['Invitado hace ping a un servidor, antes y después de la ACL', 'Antes responde; después falla', 'Correcto'],
-    ['Puerta del almacén abierta (regla IoT)', 'Se enciende la luz automáticamente; reglas de temperatura y humo configuradas', 'Correcto'],
+    ['Sensor IoT intenta llegar al Servidor Central y a un empleado', 'Bloqueado por ACL-IOT; solo llega al Servidor IoT', 'Correcto'],
+    ['Puerta del almacén abierta (regla IoT)', 'Se enciende la luz automáticamente', 'Correcto'],
     ['Celular abre el portal de entregas', 'Se ve la página', 'Correcto'],
     ['Celular intenta llegar al RADIUS', 'Bloqueado por ACL-CELULAR', 'Correcto']
   ], [4000, 3800, 1560]),
-  P(' '),
-  ...(() => { const f = path.join(CAPDIR, 'extra_pruebas_pdu.png'); if (!fs.existsSync(f)) return []; fig++; const { w, h } = pngSize(f); const k = Math.min(600 / w, 430 / h, 1.4);
-    return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(f), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: 'Pruebas Simple PDU', description: 'Resultados Successful y Failed', name: 'extra_pruebas_pdu.png' } })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: 'Resumen de pruebas con Simple PDU: todo exitoso excepto el visitante hacia el Servidor Central, bloqueado por la ACL', size: 19 })] })]; })(),
-  ...(() => { const f = path.join(CAPDIR, 'extra_acl_iot_pdu.png'); if (!fs.existsSync(f)) return []; fig++; const { w, h } = pngSize(f); const k = Math.min(600 / w, 430 / h, 1.4);
-    return [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, children: [new ImageRun({ type: 'png', data: fs.readFileSync(f), transformation: { width: Math.round(w * k), height: Math.round(h * k) }, altText: { title: 'ACL-IOT', description: 'Pruebas de la ACL-IOT', name: 'extra_acl_iot_pdu.png' } })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 240 }, children: [new TextRun({ text: `Figura ${fig}. `, bold: true, size: 19 }), new TextRun({ text: 'ACL-IOT: el detector de humo llega al Servidor IoT, pero no al Servidor Central ni a las laptops de empleados', size: 19 })] })]; })(),
-  ...captura('C05'), ...captura('C07'), ...captura('C10'), ...captura('C11'), ...captura('C12'), ...captura('C13'), ...captura('C17'), ...captura('C20'), ...captura('C21'),
+  P('Todas las pruebas de la Tabla 6 dieron el resultado esperado. En las de seguridad, el resultado correcto es que la comunicación falle, porque eso demuestra que la ACL bloquea lo que debe bloquear.'),
+
+  H2('8.1 Pruebas generales de conectividad (Simple PDU)'),
+  ...extra('extra_pruebas_pdu.png', 'Resumen de pruebas con Simple PDU: todo exitoso excepto el visitante hacia el Servidor Central, bloqueado por la ACL',
+    'Con la herramienta Simple PDU de Packet Tracer se enviaron pings de prueba entre distintos equipos. La Figura # resume los resultados.',
+    'En la Figura #, las pruebas Successful son comunicaciones permitidas (por ejemplo, PC-ADMIN hacia el Servidor Central y los empleados hacia los servidores) y la prueba Failed es la de la laptop de visitante hacia el Servidor Central, que bloquea ACL-INVITADOS. El visitante sí llega a su gateway (R-CORE), porque la ACL lo permite para diagnóstico.'),
+  ...captura('C05',
+    'La Figura # muestra la prueba de enrutamiento entre VLANs desde PC-ADMIN.',
+    'En la Figura #, PC-ADMIN, que está en la VLAN 99, hace ping a 192.168.3.12, en la VLAN 30, y recibe respuesta; además abre el portal de entregas en el navegador. Como están en VLANs distintas, el tráfico tuvo que pasar por el router: esto confirma que el router-on-a-stick funciona.'),
+  ...captura('C07',
+    'La Figura # muestra a LAP-EMPLEADO-1 conectada a la red WiFi del ESS, con un ping a su gateway, y la vista física del edificio.',
+    'En la Figura #, la laptop recibe respuesta de 192.168.1.1 sin pérdidas, y en la vista física se ven los tres APs cubriendo el edificio. Como los tres APs anuncian la misma red con la misma seguridad, el cliente puede moverse entre ellos sin cambiar de red ni de IP. En Packet Tracer la cobertura de cada AP alcanza todo el plano, por lo que no se observa el cambio de AP; en un edificio real, el cliente se reasociaría al AP con mejor señal manteniendo su dirección.',
+    'LAP-EMPLEADO-1 conectada al ESS: ping sin pérdidas a su gateway y vista física de los tres APs'),
+
+  H2('8.2 Autenticación de empleados (802.1X / RADIUS)'),
+  ...captura('C10',
+    'La Figura # muestra una laptop de empleado conectada a INNOVA-CORP con un usuario válido.',
+    'En la Figura #, la laptop obtuvo por DHCP la dirección 192.168.1.11, con gateway 192.168.1.1 y DNS 192.168.3.12, que pertenece a la VLAN 10 de empleados. Eso significa que el RADIUS aceptó sus credenciales y que la WLC la colocó en la VLAN correcta. A la derecha, la laptop hace ping al Servidor Central y recibe respuesta; el primer paquete se pierde porque el equipo todavía está averiguando la dirección física (ARP) del gateway, algo normal en el primer ping.'),
+  ...captura('C11',
+    'La Figura # muestra el intento de conexión con una contraseña incorrecta.',
+    'En la Figura #, arriba se ve la laptop configurada para INNOVA-CORP con WPA2 (Enterprise), usuario mgarcia y una contraseña incorrecta; abajo, el resultado: "DHCP failed. APIPA is being used" y una dirección 169.254.x.x, que la computadora se pone sola cuando no logra conectarse. Es decir, el RADIUS rechazó las credenciales y la laptop nunca entró a la red. Esta es la ventaja de 802.1X frente a una clave compartida: el acceso depende de cada usuario y se puede quitar a una sola persona sin cambiar la clave de todos.'),
+
+  H2('8.3 Aislamiento de invitados (ACL-INVITADOS)'),
+  ...captura('C12',
+    'La Figura # muestra un ping de la laptop de visitante hacia un servidor interno, antes de aplicar la ACL.',
+    'En la Figura #, el ping responde: sin la ACL, un visitante puede alcanzar los servidores de la empresa. Este es precisamente el problema 2 de la Tabla 1.'),
+  ...captura('C13',
+    'La Figura # muestra el mismo ping después de aplicar ACL-INVITADOS en la subinterfaz G0/0.20.',
+    'En la Figura #, el ping ya no responde: el router descarta el tráfico del visitante hacia la red interna. Estos son los paquetes que aparecen como coincidencias en la línea deny de la Figura 4.'),
+
+  H2('8.4 Red IoT: segmentación y automatización'),
+  ...extra('extra_acl_iot_pdu.png', 'ACL-IOT: el detector de humo llega al Servidor IoT, pero no al Servidor Central ni a las laptops de empleados',
+    'Para limitar el alcance de los sensores se aplicó ACL-IOT en la subinterfaz G0/0.40. La Figura # muestra las pruebas con Simple PDU.',
+    'En la Figura #, el detector de humo sí se comunica con el Servidor IoT (Successful), que es lo único que necesita, pero no llega al Servidor Central ni a las laptops de empleados (Failed). Así, si un sensor fuera comprometido, no podría usarse para atacar el resto de la red.'),
+  ...captura('C17',
+    'La Figura # muestra una regla de automatización en funcionamiento.',
+    'En la Figura #, a la izquierda la puerta está cerrada y la luz apagada; a la derecha la puerta se abrió y el servidor encendió la luz automáticamente, como indica la regla "Puerta abierta → encender la luz" de la Tabla 2. En el panel del servidor se ven el estado Open de la puerta y la luz encendida.',
+    'Regla IoT en acción: al abrir la puerta del almacén se enciende la luz automáticamente'),
+
+  H2('8.5 Acceso móvil 4G (ACL-CELULAR)'),
+  ...captura('C20',
+    'La Figura # muestra el celular de un chofer abriendo el portal de entregas.',
+    'En la Figura #, el celular, conectado por la red 4G, carga la página del Servidor Central usando su dirección IP. El tráfico viaja del celular a la torre, de la torre al Central Office y de ahí a R-CORE, que lo deja pasar porque ACL-CELULAR permite el portal web.'),
+  ...captura('C21',
+    'La Figura # muestra el mismo celular intentando hacer ping al servidor RADIUS.',
+    'En la Figura #, el ping falla: ACL-CELULAR solo permite llegar al Servidor Central (web, DNS y ping) y niega todo lo demás. Así, un celular robado o perdido no puede alcanzar el resto de la red interna.'),
 
   // ---------- 9-10 ----------
   H1('9. Conclusiones'),
-  P('La WLC resolvió la saturación del espectro al coordinar tres APs en canales no traslapados, y permitió el roaming transparente dentro del ESS. WPA2-Enterprise eliminó la clave compartida al autenticar a cada usuario contra RADIUS, y la combinación de VLAN y ACL garantizó que los visitantes no alcancen la red interna.'),
+  P('La WLC centralizó la administración de los tres APs, que forman un ESS con las mismas redes WiFi en todo el edificio, y el uso de canales no traslapados evita la saturación del espectro. WPA2-Enterprise eliminó la clave compartida al autenticar a cada usuario contra RADIUS, y la combinación de VLAN y ACL garantizó que los visitantes no alcancen la red interna.'),
   P('La red de sensores IoT da telemetría y respuesta automática ante condiciones de riesgo para los insumos médicos, y la red 4G extiende la conectividad a la flotilla de forma controlada. El esquema de direccionamiento deja nueve subredes libres para crecimiento.'),
   H1('10. Recomendaciones para una implementación real'),
   LI('Usar WPA3-Enterprise y certificados (EAP-TLS) en lugar de usuario y contraseña.'),
